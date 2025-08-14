@@ -1,16 +1,33 @@
-
-import React, { useState, useMemo } from 'react';
-import { useParams, NavLink } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useParams, NavLink, useLocation } from 'react-router-dom';
 import { products, categories, getProductsByCategory } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
-import { Product } from '../types';
 
 const ShopPage: React.FC = () => {
   const { categorySlug } = useParams<{ categorySlug?: string }>();
-  const [showFilters, setShowFilters] = useState(false);
+  const location = useLocation();
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortOption, setSortOption] = useState('featured');
   
   const activeCategorySlug = categorySlug || 'all';
+  
+  // Close filter panel on route change
+  useEffect(() => {
+    setIsFilterOpen(false);
+  }, [location.pathname]);
+  
+  // Prevent body scroll when filter panel is open
+  useEffect(() => {
+    if (isFilterOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isFilterOpen]);
+
 
   const filteredProducts = useMemo(() => {
     let productsToShow = activeCategorySlug === 'all' 
@@ -34,9 +51,10 @@ const ShopPage: React.FC = () => {
   const CategoryLink: React.FC<{ slug: string, name: string }> = ({ slug, name }) => (
     <NavLink
         to={slug === 'all' ? '/shop' : `/shop/${slug}`}
+        end // Important for 'All Products' link to not stay active
         className={({ isActive }) => 
-            `block w-full text-left px-4 py-2 rounded-md transition-colors ${
-                isActive ? 'bg-primary text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'
+            `block w-full text-left px-4 py-2 rounded-md transition-colors text-sm font-medium ${
+                isActive ? 'bg-primary text-white' : 'text-secondary hover:bg-gray-100'
             }`
         }
     >
@@ -45,7 +63,7 @@ const ShopPage: React.FC = () => {
   );
 
   const sidebarContent = (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <h3 className="font-bold text-lg text-secondary mb-4">Categories</h3>
         <div className="space-y-2">
@@ -72,25 +90,35 @@ const ShopPage: React.FC = () => {
   );
   
   return (
-    <div className="flex flex-col md:flex-row gap-8">
+    <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
       {/* Mobile Filter Button */}
-      <div className="md:hidden">
+      <div className="md:hidden flex items-center justify-between">
+         <h1 className="text-xl font-bold text-secondary capitalize">
+            {activeCategorySlug.replace('-', ' ')}
+        </h1>
         <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-secondary hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          onClick={() => setIsFilterOpen(true)}
+          className="flex items-center space-x-2 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-secondary bg-white hover:bg-gray-50"
         >
-          {showFilters ? 'Hide' : 'Show'} Filters & Categories
-          <svg className="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>
+          <span>Filters</span>
+          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>
         </button>
       </div>
 
-      {/* Mobile Sidebar */}
-      {showFilters && (
-        <aside className="md:hidden w-full bg-white p-6 rounded-lg shadow-lg mb-6">
-          {sidebarContent}
-        </aside>
-      )}
-
+      {/* Mobile Filter Panel (Off-canvas) */}
+      <div className={`fixed inset-0 z-50 transition-transform transform ${isFilterOpen ? 'translate-x-0' : 'translate-x-full'} md:hidden`}>
+          <div className="absolute inset-0 bg-black/40" onClick={() => setIsFilterOpen(false)}></div>
+          <div className="relative z-10 w-4/5 max-w-sm h-full bg-white ml-auto p-6 overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold">Filters</h2>
+                <button onClick={() => setIsFilterOpen(false)} className="p-2 -mr-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              {sidebarContent}
+          </div>
+      </div>
+      
       {/* Desktop Sidebar */}
       <aside className="hidden md:block w-full md:w-1/4 lg:w-1/5">
         {sidebarContent}
@@ -98,18 +126,18 @@ const ShopPage: React.FC = () => {
 
       {/* Products Grid */}
       <main className="w-full md:w-3/4 lg:w-4/5">
-        <h1 className="text-3xl font-bold text-secondary mb-6 capitalize">
+        <h1 className="hidden md:block text-3xl font-bold text-secondary mb-6 capitalize">
             {activeCategorySlug.replace('-', ' ')}
         </h1>
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6">
             {filteredProducts.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <p className="text-xl text-gray-500">No products found in this category.</p>
+          <div className="text-center py-16 bg-white rounded-lg">
+            <p className="text-xl text-secondary-light">No products found in this category.</p>
           </div>
         )}
       </main>

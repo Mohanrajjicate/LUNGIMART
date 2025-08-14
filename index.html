@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,11 +26,18 @@
           },
           colors: {
             primary: {
-              DEFAULT: '#FF6B00',
-              dark: '#E65A00'
+              DEFAULT: '#D32F2F',
+              dark: '#B71C1C'
             },
-            secondary: '#0D3D56',
+            secondary: {
+              DEFAULT: '#212121',
+              light: '#757575',
+            },
             accent: '#FFC107',
+            'light-bg': '#F5F5F5',
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
           }
         }
       }
@@ -51,7 +57,7 @@
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-light-bg text-secondary">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -8,15 +7,15 @@ const CartPage: React.FC = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="text-center py-20 bg-white rounded-lg shadow-md">
-        <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="text-center py-20 bg-white rounded-lg shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
         <h1 className="mt-4 text-2xl font-bold text-secondary">Your Cart is Empty</h1>
-        <p className="mt-2 text-gray-500">Looks like you haven't added anything to your cart yet.</p>
+        <p className="mt-2 text-secondary-light">Looks like you haven't added anything to your cart yet.</p>
         <Link
           to="/shop"
-          className="mt-6 inline-block bg-primary text-white font-bold py-3 px-8 rounded-full hover:bg-primary-dark transition-transform hover:scale-105"
+          className="mt-6 inline-block bg-primary text-white font-bold py-3 px-8 rounded-md hover:bg-primary-dark transition-transform hover:scale-105"
         >
           Start Shopping
         </Link>
@@ -31,19 +30,19 @@ const CartPage: React.FC = () => {
 
   return (
     <div className="lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12 xl:gap-x-16">
-      <section className="lg:col-span-7">
-        <h1 className="text-3xl font-bold text-secondary mb-6">Shopping Cart ({cartCount})</h1>
-        <ul className="divide-y divide-gray-200 border-t border-b border-gray-200">
+      <section className="lg:col-span-7 bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+        <h1 className="text-2xl font-bold text-secondary mb-6">Shopping Cart ({cartCount})</h1>
+        <ul className="divide-y divide-gray-200">
           {cart.map(item => (
-            <li key={item.id} className="flex py-6 sm:py-10 animate-fade-in">
+            <li key={item.id} className="flex py-6">
               <div className="flex-shrink-0">
-                <img src={item.images[0]} alt={item.name} className="h-24 w-24 rounded-md object-cover object-center sm:h-48 sm:w-48"/>
+                <img src={item.images[0]} alt={item.name} className="h-24 w-24 rounded-md object-cover object-center sm:h-32 sm:w-32"/>
               </div>
               <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
                 <div className="relative pr-9 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:pr-0">
                   <div>
-                    <h3 className="text-base font-medium text-gray-900"><Link to={`/product/${item.slug}`}>{item.name}</Link></h3>
-                    <p className="mt-1 text-sm font-medium text-gray-900">₹{item.price}</p>
+                    <h3 className="text-base font-medium text-secondary"><Link to={`/product/${item.slug}`}>{item.name}</Link></h3>
+                    <p className="mt-1 text-sm font-medium text-secondary">₹{item.price}</p>
                   </div>
                   <div className="mt-4 sm:mt-0 sm:pr-9">
                     <div className="flex items-center border border-gray-300 rounded-md w-fit">
@@ -66,20 +65,20 @@ const CartPage: React.FC = () => {
       </section>
 
       {/* Order summary */}
-      <section className="mt-16 rounded-lg bg-gray-50 px-4 py-6 sm:p-6 lg:col-span-5 lg:mt-0 lg:p-8 shadow-md sticky top-24">
-        <h2 className="text-lg font-medium text-gray-900">Order summary</h2>
+      <section className="mt-16 rounded-lg bg-white px-4 py-6 sm:p-6 lg:col-span-5 lg:mt-0 lg:p-8 shadow-sm sticky top-24">
+        <h2 className="text-lg font-medium text-secondary">Order summary</h2>
         <dl className="mt-6 space-y-4">
           <div className="flex items-center justify-between">
-            <dt className="text-sm text-gray-600">Subtotal</dt>
-            <dd className="text-sm font-medium text-gray-900">₹{cartTotal.toFixed(2)}</dd>
+            <dt className="text-sm text-secondary-light">Subtotal</dt>
+            <dd className="text-sm font-medium text-secondary">₹{cartTotal.toFixed(2)}</dd>
           </div>
           <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-            <dt className="flex items-center text-sm text-gray-600"><span>Shipping</span></dt>
-            <dd className="text-sm font-medium text-gray-900">₹50.00</dd>
+            <dt className="flex items-center text-sm text-secondary-light"><span>Shipping</span></dt>
+            <dd className="text-sm font-medium text-secondary">₹50.00</dd>
           </div>
            <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-            <dt className="text-base font-medium text-gray-900">Order total</dt>
-            <dd className="text-base font-medium text-gray-900">₹{(cartTotal + 50).toFixed(2)}</dd>
+            <dt className="text-base font-medium text-secondary">Order total</dt>
+            <dd className="text-base font-medium text-secondary">₹{(cartTotal + 50).toFixed(2)}</dd>
           </div>
         </dl>
         <div className="mt-6">
@@ -87,7 +86,7 @@ const CartPage: React.FC = () => {
             onClick={handleCheckout}
             className="w-full bg-primary border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-primary transition-transform hover:scale-105"
           >
-            Checkout
+            Proceed to Checkout
           </button>
         </div>
       </section>

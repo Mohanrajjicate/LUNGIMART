@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 const BulkOrderPage: React.FC = () => {
@@ -16,7 +15,7 @@ const BulkOrderPage: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <h1 className="mt-4 text-2xl font-bold text-secondary">Thank You!</h1>
-        <p className="mt-2 text-gray-600">Your inquiry has been submitted. Our team will get back to you shortly.</p>
+        <p className="mt-2 text-secondary-light">Your inquiry has been submitted. Our team will get back to you shortly.</p>
       </div>
     );
   }
@@ -24,7 +23,7 @@ const BulkOrderPage: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
       <h1 className="text-3xl font-bold text-center text-secondary mb-2">Bulk Order Inquiry</h1>
-      <p className="text-center text-gray-600 mb-8">Planning for a wedding, event, or corporate needs? Fill out the form below.</p>
+      <p className="text-center text-secondary-light mb-8">Planning for a wedding, event, or corporate needs? Fill out the form below.</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
