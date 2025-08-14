@@ -1,0 +1,5 @@
+{
+  "name": "LungiMart.in",
+  "description": "A modern, responsive e-commerce frontend for LungiMart.in, selling traditional lungi and dhoti from Komarapalayam. Built with React and TailwindCSS.",
+  "requestFramePermissions": []
+}
