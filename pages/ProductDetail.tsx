@@ -1,124 +1,164 @@
+
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductBySlug, getRelatedProducts } from '../services/mockData';
 import { useAppContext } from '../contexts/AppContext';
 import ProductCard from '../components/ProductCard';
 
+const AccordionItem: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="border-b border-gray-200 py-6">
+      <h3 className="-my-3 flow-root">
+        <button
+          type="button"
+          className="flex w-full items-center justify-between py-3 text-sm text-gray-500 hover:text-gray-900"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span className="font-medium text-gray-900">{title}</span>
+          <span className="ml-6 flex items-center">
+            {isOpen ? (
+                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" /></svg>
+            ) : (
+                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6" /></svg>
+            )}
+          </span>
+        </button>
+      </h3>
+      {isOpen && <div className="pt-6 text-sm text-gray-600 space-y-4">{children}</div>}
+    </div>
+  );
+};
+
+
 const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const product = getProductBySlug(slug || '');
+  
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
-  const [activeTab, setActiveTab] = useState('description');
+  const [selectedColor, setSelectedColor] = useState(product?.colors[0]);
+  const [selectedSize, setSelectedSize] = useState(product?.sizes[0]);
+  
   const { addToCart } = useAppContext();
 
-  if (!product) {
+  if (!product || !selectedColor || !selectedSize) {
     return (
-      <div className="text-center py-20 bg-white rounded-lg shadow-md">
+      <div className="text-center py-20">
         <h1 className="text-2xl font-bold">Product not found</h1>
-        <Link to="/shop" className="text-primary hover:underline mt-4 inline-block">
-          Back to Shop
-        </Link>
+        <Link to="/shop" className="text-black hover:underline mt-4 inline-block">Back to Shop</Link>
       </div>
     );
   }
   
-  const relatedProducts = getRelatedProducts(product.id);
-  const hasDiscount = product.originalPrice && product.originalPrice > product.price;
-  const discountPercent = hasDiscount ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) : 0;
+  const handleAddToCart = () => {
+    addToCart(product, quantity, selectedColor, selectedSize);
+  };
+  
+  const handleBuyNow = () => {
+    addToCart(product, quantity, selectedColor, selectedSize);
+    navigate('/cart');
+  }
+
+  const relatedProducts = getRelatedProducts(product.slug);
 
   return (
     <div className="space-y-16">
-      <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-lg shadow-sm">
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-16">
-          {/* Image Gallery */}
-          <div className="space-y-4">
-            <div className="aspect-w-1 aspect-h-1 bg-gray-100 rounded-lg overflow-hidden shadow-inner">
-              <img src={product.images[activeImage]} alt={`${product.name} view ${activeImage + 1}`} className="w-full h-full object-cover object-center" />
-            </div>
-            <div className="grid grid-cols-5 gap-2">
+      <div className="grid md:grid-cols-2 gap-8 lg:gap-16">
+        {/* Image Gallery */}
+        <div className="flex flex-col-reverse sm:flex-row gap-4">
+            <div className="flex sm:flex-col gap-2 justify-center sm:justify-start flex-wrap">
               {product.images.map((img, index) => (
                 <button
                   key={index}
                   onClick={() => setActiveImage(index)}
-                  className={`aspect-w-1 aspect-h-1 rounded-md overflow-hidden ring-2 transition ${activeImage === index ? 'ring-primary' : 'ring-transparent hover:ring-primary/50'}`}
+                  className={`w-16 h-20 rounded-sm overflow-hidden ring-2 transition ${activeImage === index ? 'ring-black' : 'ring-transparent hover:ring-gray-300'}`}
                 >
                   <img src={img} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover object-center" />
                 </button>
               ))}
             </div>
-          </div>
+            <div className="flex-1 aspect-w-1 aspect-h-1 bg-gray-100">
+              <img src={product.images[activeImage]} alt={`${product.name} view ${activeImage + 1}`} className="w-full h-full object-cover object-center" />
+            </div>
+        </div>
 
-          {/* Product Info */}
-          <div className="flex flex-col">
-              <p className="text-sm font-medium text-secondary-light">{product.category.name}</p>
-              <h1 className="text-3xl lg:text-4xl font-bold text-secondary mt-1">{product.name}</h1>
-              
-              <div className="flex items-baseline space-x-3 mt-4">
-                  <p className="text-3xl font-bold text-primary">₹{product.price}</p>
-                  {hasDiscount && <p className="text-xl text-gray-400 line-through">₹{product.originalPrice}</p>}
-                  {hasDiscount && <p className="text-lg font-semibold text-green-600">{discountPercent}% OFF</p>}
-              </div>
-              <p className="text-xs text-secondary-light mt-1">Inclusive of all taxes</p>
-              
-              <div className="mt-auto pt-8">
-                  <div className="flex items-stretch space-x-4">
-                      <div className="flex items-center border border-gray-300 rounded-md">
-                          <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-2 text-lg text-secondary-light hover:bg-gray-100 rounded-l-md transition">-</button>
-                          <span className="px-5 py-2 font-semibold text-lg">{quantity}</span>
-                          <button onClick={() => setQuantity(q => q + 1)} className="px-4 py-2 text-lg text-secondary-light hover:bg-gray-100 rounded-r-md transition">+</button>
-                      </div>
-                      <button 
-                          onClick={() => addToCart(product, quantity)}
-                          className="flex-1 bg-primary text-white font-bold py-3 px-6 rounded-md hover:bg-primary-dark transition-all duration-300 transform hover:scale-105"
-                      >
-                          Add to Bag
-                      </button>
+        {/* Product Info */}
+        <div className="flex flex-col">
+            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">{product.name}</h1>
+            <p className="text-2xl text-gray-900 mt-3">₹{product.price}</p>
+            
+            <div className="mt-6">
+                {/* Colors */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">Color: <span className="text-gray-600">{selectedColor.name}</span></h3>
+                  <div className="flex items-center space-x-3 mt-2">
+                    {product.colors.map((color) => (
+                      <button key={color.name} onClick={() => setSelectedColor(color)}
+                        className={`h-8 w-8 rounded-full border border-gray-300 ring-2 ring-offset-1 transition-all ${selectedColor.name === color.name ? 'ring-black' : 'ring-transparent'}`}
+                        style={{ backgroundColor: color.hex }}
+                        aria-label={color.name}
+                      ></button>
+                    ))}
                   </div>
-              </div>
-          </div>
+                </div>
+
+                {/* Sizes */}
+                <div className="mt-8">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-gray-900">Select Size</h3>
+                  </div>
+                  <div className="grid grid-cols-4 gap-4 sm:grid-cols-8 lg:grid-cols-6 mt-2">
+                    {product.sizes.map((size) => (
+                      <button key={size} onClick={() => setSelectedSize(size)}
+                        className={`group relative flex items-center justify-center rounded-md border py-3 px-4 text-sm font-medium uppercase hover:bg-gray-50 focus:outline-none sm:flex-1 ${selectedSize === size ? 'bg-black text-white' : 'bg-white text-gray-900'}`}
+                      >{size}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quantity */}
+                <div className="mt-8">
+                    <h3 className="text-sm font-medium text-gray-900 mb-2">Quantity</h3>
+                    <div className="flex items-center border border-gray-300 rounded-md w-fit">
+                        <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-2 text-lg text-gray-600 hover:bg-gray-100 rounded-l-md">-</button>
+                        <span className="px-5 py-2 font-semibold text-lg">{quantity}</span>
+                        <button onClick={() => setQuantity(q => q + 1)} className="px-4 py-2 text-lg text-gray-600 hover:bg-gray-100 rounded-r-md">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <button onClick={handleAddToCart} className="w-full bg-white border border-black text-black py-3 px-8 text-base font-medium hover:bg-gray-100 transition-colors">
+                Add to cart
+              </button>
+              <button onClick={handleBuyNow} className="w-full bg-black border border-transparent text-white py-3 px-8 text-base font-medium hover:bg-gray-800 transition-colors">
+                Buy it now
+              </button>
+            </div>
+            
+            <div className="mt-8">
+                <AccordionItem title="Description">
+                    <p>{product.description}</p>
+                </AccordionItem>
+                <AccordionItem title="Shipping & Returns">
+                    <p>Free standard shipping on orders over ₹1000. Express shipping available. We accept returns within 30 days of delivery. Please see our full policy for details.</p>
+                </AccordionItem>
+                <AccordionItem title="Details">
+                    <ul className="list-disc list-inside space-y-2">
+                       {product.details.map((detail, i) => <li key={i}>{detail}</li>)}
+                    </ul>
+                </AccordionItem>
+            </div>
         </div>
       </div>
       
-      {/* Description, Details, Reviews Tabs */}
-       <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-lg shadow-sm">
-         <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                <button onClick={() => setActiveTab('description')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'description' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Description</button>
-                <button onClick={() => setActiveTab('details')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Details</button>
-                <button onClick={() => setActiveTab('reviews')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'reviews' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Reviews ({product.reviews.length})</button>
-            </nav>
-         </div>
-         <div className="mt-6 text-secondary-light leading-relaxed">
-            {activeTab === 'description' && <p>{product.description}</p>}
-            {activeTab === 'details' && <ul className="list-disc list-inside space-y-1">{product.details.map((detail, i) => <li key={i}>{detail}</li>)}</ul>}
-            {activeTab === 'reviews' && (
-                <div className="space-y-6">
-                    {product.reviews.length > 0 ? product.reviews.map(review => (
-                        <div key={review.id}>
-                            <div className="flex items-center mb-1">
-                                <p className="font-semibold text-secondary">{review.author}</p>
-                                <div className="flex items-center ml-4">
-                                   {Array.from({length: 5}).map((_, i) => (
-                                     <svg key={i} className={`w-4 h-4 ${i < review.rating ? 'text-accent' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                   ))}
-                                </div>
-                            </div>
-                            <p>{review.comment}</p>
-                        </div>
-                    )) : <p>No reviews yet for this product.</p>}
-                 </div>
-            )}
-         </div>
-       </div>
-
       {relatedProducts.length > 0 && (
         <section>
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-secondary mb-8">You Might Also Like</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {relatedProducts.map(p => (
-              <ProductCard key={p.id} product={p} />
-            ))}
+          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">You May Also Like</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10">
+            {relatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </section>
       )}
