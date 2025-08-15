@@ -9,7 +9,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Swiper JS -->
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
@@ -22,18 +22,16 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Poppins', 'sans-serif'],
+            sans: ['Inter', 'sans-serif'],
           },
           colors: {
             primary: {
-              DEFAULT: '#0A68FF',
-              dark: '#0052CC'
+              DEFAULT: '#111827', // Gray-900 for a near-black look
             },
             secondary: {
-              DEFAULT: '#1F2937', // Dark Gray for text
-              light: '#6B7280', // Lighter Gray for subtitles
+              DEFAULT: '#6B7280', // Gray-500
+              light: '#9CA3AF', // Gray-400
             },
-            'light-bg': '#F9FAFB', // Very light gray for page background
             'light-border': '#E5E7EB',
           },
         }
@@ -54,7 +52,7 @@
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-light-bg text-secondary">
+<body class="bg-white text-gray-800">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

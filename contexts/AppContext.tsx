@@ -6,9 +6,12 @@ interface AppContextType {
   cart: CartItem[];
   wishlist: Product[];
   user: User | null;
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  isCartOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
+  addToCart: (product: Product, quantity: number, color: { name: string; hex: string }, size: string) => void;
+  removeFromCart: (productId: number, size: string, color: string) => void;
+  updateQuantity: (productId: number, size: string, color: string, quantity: number) => void;
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
@@ -35,6 +38,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [cart, setCart] = useState<CartItem[]>(() => getInitialState<CartItem[]>('cart', []));
   const [wishlist, setWishlist] = useState<Product[]>(() => getInitialState<Product[]>('wishlist', []));
   const [user, setUser] = useState<User | null>(() => getInitialState<User | null>('user', null));
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -48,29 +52,35 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     localStorage.setItem('user', JSON.stringify(user));
   }, [user]);
 
-  const addToCart = (product: Product, quantity = 1) => {
+  const openCart = () => setIsCartOpen(true);
+  const closeCart = () => setIsCartOpen(false);
+
+  const addToCart = (product: Product, quantity: number, color: { name: string; hex: string }, size: string) => {
     setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id);
+      const existingItem = prevCart.find(item => item.id === product.id && item.size === size && item.color.name === color.name);
       if (existingItem) {
         return prevCart.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+          (item.id === product.id && item.size === size && item.color.name === color.name)
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
         );
       }
-      return [...prevCart, { ...product, quantity }];
+      return [...prevCart, { ...product, quantity, color, size }];
     });
+    openCart();
   };
 
-  const removeFromCart = (productId: number) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== productId));
+  const removeFromCart = (productId: number, size: string, colorName: string) => {
+    setCart(prevCart => prevCart.filter(item => !(item.id === productId && item.size === size && item.color.name === colorName)));
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (productId: number, size: string, colorName: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(productId, size, colorName);
     } else {
       setCart(prevCart =>
         prevCart.map(item =>
-          item.id === productId ? { ...item, quantity } : item
+          (item.id === productId && item.size === size && item.color.name === colorName) ? { ...item, quantity } : item
         )
       );
     }
@@ -103,6 +113,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       cart,
       wishlist,
       user,
+      isCartOpen,
+      openCart,
+      closeCart,
       addToCart,
       removeFromCart,
       updateQuantity,
