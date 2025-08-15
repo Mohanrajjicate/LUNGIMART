@@ -9,7 +9,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Swiper JS -->
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
@@ -22,16 +22,18 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['Poppins', 'sans-serif'],
           },
           colors: {
             primary: {
-              DEFAULT: '#111827', // Gray-900 for a near-black look
+              DEFAULT: '#0A68FF',
+              dark: '#0052CC'
             },
             secondary: {
-              DEFAULT: '#6B7280', // Gray-500
-              light: '#9CA3AF', // Gray-400
+              DEFAULT: '#1F2937', // Dark Gray for text
+              light: '#6B7280', // Lighter Gray for subtitles
             },
+            'light-bg': '#F9FAFB', // Very light gray for page background
             'light-border': '#E5E7EB',
           },
         }
@@ -43,16 +45,16 @@
   "imports": {
     "swiper/": "https://esm.sh/swiper@^11.2.10/",
     "swiper": "https://esm.sh/swiper@^11.2.10",
-    "react/": "https://esm.sh/react@^18.2.0/",
-    "react": "https://esm.sh/react@^18.2.0",
-    "react-dom/": "https://esm.sh/react-dom@^18.2.0/",
-    "react-router-dom": "https://esm.sh/react-router-dom@^6.23.1"
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "react": "https://esm.sh/react@^19.1.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.8.0"
   }
 }
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-white text-gray-800">
+<body class="bg-light-bg text-secondary">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

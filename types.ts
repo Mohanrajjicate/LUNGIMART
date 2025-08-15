@@ -10,8 +10,6 @@ export interface Product {
   description: string;
   details: string[];
   reviews: Review[];
-  colors: { name: string; hex: string }[];
-  sizes: string[];
 }
 
 export interface Category {
@@ -30,8 +28,6 @@ export interface Review {
 
 export interface CartItem extends Product {
   quantity: number;
-  color: { name: string; hex: string };
-  size: string;
 }
 
 export interface User {

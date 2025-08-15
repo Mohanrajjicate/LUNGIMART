@@ -8,7 +8,6 @@ import HomePage from './pages/Home';
 import ShopPage from './pages/Shop';
 import ProductDetailPage from './pages/ProductDetail';
 import CartPage from './pages/Cart';
-import CheckoutPage from './pages/Checkout';
 import ProfilePage from './pages/Profile';
 import AboutPage from './pages/About';
 import BulkOrderPage from './pages/BulkOrder';
@@ -25,7 +24,6 @@ const App: React.FC = () => {
             <Route path="/shop/:categorySlug" element={<ShopPage />} />
             <Route path="/product/:slug" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/bulk-order" element={<BulkOrderPage />} />

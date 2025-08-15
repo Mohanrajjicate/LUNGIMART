@@ -21,16 +21,6 @@ const reviews: Review[] = [
     { id: 3, author: 'Anitha', rating: 5, comment: 'Soft material, my husband loves it!' },
 ];
 
-const availableColors = [
-    { name: 'Blue', hex: '#3b82f6' },
-    { name: 'Red', hex: '#ef4444' },
-    { name: 'Green', hex: '#22c55e' },
-    { name: 'Black', hex: '#1f2937' },
-    { name: 'White', hex: '#ffffff' },
-];
-
-const availableSizes = ['S', 'M', 'L', 'XL', 'XXL'];
-
 export const products: Product[] = [
   {
     id: 1,
@@ -39,12 +29,10 @@ export const products: Product[] = [
     category: getCategory('lungi'),
     price: 499,
     originalPrice: 799,
-    images: ['https://picsum.photos/seed/product1/800/800', 'https://picsum.photos/seed/product1-2/800/800', 'https://picsum.photos/seed/product1-3/800/800', 'https://picsum.photos/seed/product1-4/800/800', 'https://picsum.photos/seed/product1-5/800/800'],
+    images: ['https://picsum.photos/seed/product1/800/800', 'https://picsum.photos/seed/product1-2/800/800', 'https://picsum.photos/seed/product1-3/800/800'],
     description: 'A timeless classic, this checkered lungi is made from 100% pure Komarapalayam cotton, known for its softness and durability. Perfect for daily wear.',
     details: ['100% Cotton', 'Machine Washable', '2.25 meters length', 'Colorfast guarantee'],
     reviews: reviews.slice(0, 2),
-    colors: [availableColors[0], availableColors[1], availableColors[3]],
-    sizes: availableSizes.slice(1, 4),
   },
   {
     id: 2,
@@ -57,8 +45,6 @@ export const products: Product[] = [
     description: 'Feel divine in our pure white temple dhoti. Woven with care and precision, it offers unparalleled comfort and a graceful drape for all your spiritual occasions.',
     details: ['Premium Weave Cotton', 'Hand Wash Recommended', '4 meters length', 'Slightly starched for a crisp look'],
     reviews: [reviews[2]],
-    colors: [availableColors[4]],
-    sizes: ['One Size'],
   },
   {
     id: 3,
@@ -71,8 +57,6 @@ export const products: Product[] = [
     description: 'Elevate your traditional attire with this exquisite silk-blend matching dhoti and angavastram set. Features a beautiful golden border for a regal touch.',
     details: ['Silk-Cotton Blend', 'Dry Clean Only', 'Dhoti: 4m, Angavastram: 2.5m', 'Intricate Zari Border'],
     reviews: [],
-    colors: [availableColors[4]],
-    sizes: ['One Size'],
   },
   {
     id: 4,
@@ -85,8 +69,6 @@ export const products: Product[] = [
     description: 'Show your support with our special edition political party dhoti. Made with durable cotton and featuring the iconic party colors on the border.',
     details: ['100% Cotton', 'Bold Color Border', 'Ideal for rallies and events', 'Comfortable for long hours'],
     reviews: [reviews[0]],
-    colors: [availableColors[1], availableColors[3]],
-    sizes: ['One Size'],
   },
   {
     id: 5,
@@ -99,8 +81,6 @@ export const products: Product[] = [
     description: 'Experience the softness of Komarapalayam cotton with our ultra-absorbent bath towels. Quick-drying and incredibly soft on the skin.',
     details: ['100% Terry Cotton', 'High GSM for absorbency', 'Size: 75cm x 150cm', 'Available in multiple colors'],
     reviews: [],
-    colors: [availableColors[0], availableColors[2], availableColors[4]],
-    sizes: ['Standard'],
   },
    {
     id: 6,
@@ -113,8 +93,6 @@ export const products: Product[] = [
     description: 'A modern take on the traditional lungi with stylish stripes. Perfect for lounging at home or a casual outing.',
     details: ['100% Cotton', 'Machine Washable', '2.25 meters length', 'Modern striped pattern'],
     reviews: [reviews[1]],
-    colors: [availableColors[3], availableColors[0]],
-    sizes: availableSizes,
   },
   {
     id: 7,
@@ -127,8 +105,6 @@ export const products: Product[] = [
     description: 'A premium dhoti for weddings and special functions. The rich gold border adds a touch of grandeur to your look.',
     details: ['Premium Cotton', 'Hand Wash', '4.5 meters length', 'Wide gold zari border'],
     reviews: [],
-    colors: [{name: 'Cream', hex: '#FFFDD0'}],
-    sizes: ['One Size'],
   },
   {
     id: 8,
@@ -140,8 +116,6 @@ export const products: Product[] = [
     description: 'Show your support for the DMK party with this dhoti featuring their signature black and red border. Made for comfort during campaigns.',
     details: ['100% Cotton', 'Black & Red Border', 'Ideal for party meetings', 'Breathable fabric'],
     reviews: [],
-    colors: [{name: 'Red/Black', hex: '#000000'}],
-    sizes: ['One Size'],
   },
 ];
 
@@ -156,9 +130,6 @@ export const getProductsByCategory = (categorySlug: string): Product[] => {
     return products.filter(p => p.category.id === category.id);
 }
 
-export const getRelatedProducts = (currentProductSlug: string): Product[] => {
-    const currentProduct = getProductBySlug(currentProductSlug);
-    if (!currentProduct) return products.slice(0, 4);
-
-    return products.filter(p => p.category.id === currentProduct.category.id && p.slug !== currentProductSlug).slice(0, 4);
+export const getRelatedProducts = (currentProductId: number): Product[] => {
+    return products.filter(p => p.id !== currentProductId).slice(0, 4);
 }
