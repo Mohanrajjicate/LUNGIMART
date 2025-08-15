@@ -12,6 +12,8 @@ export interface Product {
   reviews: Review[];
   colors: { name: string; hex: string }[];
   sizes: string[];
+  rating: number;
+  reviewCount: number;
 }
 
 export interface Category {

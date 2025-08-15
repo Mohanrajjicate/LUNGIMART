@@ -2,13 +2,13 @@
 import { Product, Category, Review } from '../types';
 
 export const categories: Category[] = [
-  { id: 1, name: 'Lungi', slug: 'lungi', icon: 'https://picsum.photos/seed/lungi-cat/100/100' },
-  { id: 2, name: 'Dhoti', slug: 'dhoti', icon: 'https://picsum.photos/seed/dhoti-cat/100/100' },
-  { id: 3, name: 'Matching Sets', slug: 'matching-dhoti', icon: 'https://picsum.photos/seed/matching-cat/100/100' },
-  { id: 4, name: 'Political', slug: 'political-party', icon: 'https://picsum.photos/seed/political-cat/100/100' },
-  { id: 5, name: 'Towel', slug: 'towel', icon: 'https://picsum.photos/seed/towel-cat/100/100' },
-  { id: 6, name: 'Wedding', slug: 'wedding', icon: 'https://picsum.photos/seed/wedding-cat/100/100' },
-  { id: 7, name: 'Casual Wear', slug: 'casual-wear', icon: 'https://picsum.photos/seed/casual-cat/100/100' },
+  { id: 1, name: 'Men', slug: 'men', icon: '' },
+  { id: 2, name: 'Women', slug: 'women', icon: '' },
+  { id: 3, name: 'T-Shirts', slug: 't-shirts', icon: '' },
+  { id: 4, name: 'Hoodies', slug: 'hoodies', icon: '' },
+  { id: 5, name: 'Jackets and Coats', slug: 'jackets-coats', icon: '' },
+  { id: 6, name: 'Watches', slug: 'watches', icon: '' },
+  { id: 7, name: 'Hat', slug: 'hat', icon: '' },
 ];
 
 const getCategory = (slug: string): Category => {
@@ -16,132 +16,106 @@ const getCategory = (slug: string): Category => {
 };
 
 const reviews: Review[] = [
-    { id: 1, author: 'Ramesh K.', rating: 5, comment: 'Excellent quality and very comfortable.' },
-    { id: 2, author: 'Suresh P.', rating: 4, comment: 'Good value for money. Color is vibrant.' },
-    { id: 3, author: 'Anitha', rating: 5, comment: 'Soft material, my husband loves it!' },
+    { id: 1, author: 'Alex D.', rating: 5, comment: 'Great fit and material.' },
+    { id: 2, author: 'Jamie R.', rating: 4, comment: 'Good value for money.' },
+    { id: 3, author: 'Casey B.', rating: 5, comment: 'Love the color!' },
 ];
 
 const availableColors = [
-    { name: 'Blue', hex: '#3b82f6' },
-    { name: 'Red', hex: '#ef4444' },
-    { name: 'Green', hex: '#22c55e' },
-    { name: 'Black', hex: '#1f2937' },
-    { name: 'White', hex: '#ffffff' },
+    { name: 'Black', hex: '#000000' },
+    { name: 'Grey', hex: '#808080' },
+    { name: 'Pink', hex: '#FFC0CB' },
+    { name: 'White', hex: '#FFFFFF' },
+    { name: 'Blue', hex: '#0000FF' },
+    { name: 'Green', hex: '#008000' },
 ];
 
 const availableSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
 export const products: Product[] = [
   {
-    id: 1,
-    name: 'Classic Checkered Lungi',
-    slug: 'classic-checkered-lungi',
-    category: getCategory('lungi'),
-    price: 499,
-    originalPrice: 799,
-    images: ['https://picsum.photos/seed/product1/800/800', 'https://picsum.photos/seed/product1-2/800/800', 'https://picsum.photos/seed/product1-3/800/800', 'https://picsum.photos/seed/product1-4/800/800', 'https://picsum.photos/seed/product1-5/800/800'],
-    description: 'A timeless classic, this checkered lungi is made from 100% pure Komarapalayam cotton, known for its softness and durability. Perfect for daily wear.',
-    details: ['100% Cotton', 'Machine Washable', '2.25 meters length', 'Colorfast guarantee'],
-    reviews: reviews.slice(0, 2),
-    colors: [availableColors[0], availableColors[1], availableColors[3]],
-    sizes: availableSizes.slice(1, 4),
+    id: 1, name: 'Spread Casual Shirt', slug: 'spread-casual-shirt', category: getCategory('men'),
+    price: 75.00, images: ['https://picsum.photos/seed/product1/600/800'],
+    description: 'Highlight the material fit and design', reviews: [reviews[0]],
+    colors: [availableColors[0], availableColors[3]], sizes: availableSizes,
+    rating: 4.5, reviewCount: 21, details: []
   },
   {
-    id: 2,
-    name: 'Pure White Temple Dhoti',
-    slug: 'pure-white-temple-dhoti',
-    category: getCategory('dhoti'),
-    price: 899,
-    originalPrice: 1199,
-    images: ['https://picsum.photos/seed/product2/800/800', 'https://picsum.photos/seed/product2-2/800/800'],
-    description: 'Feel divine in our pure white temple dhoti. Woven with care and precision, it offers unparalleled comfort and a graceful drape for all your spiritual occasions.',
-    details: ['Premium Weave Cotton', 'Hand Wash Recommended', '4 meters length', 'Slightly starched for a crisp look'],
-    reviews: [reviews[2]],
-    colors: [availableColors[4]],
-    sizes: ['One Size'],
+    id: 2, name: 'Collar Casual Shirt', slug: 'collar-casual-shirt', category: getCategory('men'),
+    price: 75.00, images: ['https://picsum.photos/seed/product2/600/800'],
+    description: 'Mention fabric, colors, and special features', reviews: [],
+    colors: [availableColors[3], availableColors[4]], sizes: availableSizes,
+    rating: 4.2, reviewCount: 15, details: []
   },
   {
-    id: 3,
-    name: 'Silk Matching Dhoti Set',
-    slug: 'silk-matching-dhoti-set',
-    category: getCategory('matching-dhoti'),
-    price: 1599,
-    originalPrice: 2199,
-    images: ['https://picsum.photos/seed/product3/800/800', 'https://picsum.photos/seed/product3-2/800/800'],
-    description: 'Elevate your traditional attire with this exquisite silk-blend matching dhoti and angavastram set. Features a beautiful golden border for a regal touch.',
-    details: ['Silk-Cotton Blend', 'Dry Clean Only', 'Dhoti: 4m, Angavastram: 2.5m', 'Intricate Zari Border'],
-    reviews: [],
-    colors: [availableColors[4]],
-    sizes: ['One Size'],
+    id: 3, name: 'Striped Sweatshirt', slug: 'striped-sweatshirt', category: getCategory('men'),
+    price: 75.00, images: ['https://picsum.photos/seed/product3/600/800'],
+    description: 'Elevate your casual look with our premium materials', reviews: [],
+    colors: [availableColors[0], availableColors[1], availableColors[3]], sizes: availableSizes,
+    rating: 4.8, reviewCount: 30, details: []
   },
   {
-    id: 4,
-    name: 'Party Flag Border Dhoti',
-    slug: 'party-flag-border-dhoti',
-    category: getCategory('political-party'),
-    price: 650,
-    originalPrice: 800,
-    images: ['https://picsum.photos/seed/product4/800/800', 'https://picsum.photos/seed/product4-2/800/800'],
-    description: 'Show your support with our special edition political party dhoti. Made with durable cotton and featuring the iconic party colors on the border.',
-    details: ['100% Cotton', 'Bold Color Border', 'Ideal for rallies and events', 'Comfortable for long hours'],
-    reviews: [reviews[0]],
-    colors: [availableColors[1], availableColors[3]],
-    sizes: ['One Size'],
+    id: 4, name: 'Solid Sweatshirt', slug: 'solid-sweatshirt', category: getCategory('women'),
+    price: 75.00, images: ['https://picsum.photos/seed/product4/600/800'],
+    description: 'Effortless style with our basic must-haves', reviews: [],
+    colors: [availableColors[2], availableColors[3]], sizes: availableSizes,
+    rating: 4.0, reviewCount: 10, details: []
   },
   {
-    id: 5,
-    name: 'Ultra Absorbent Bath Towel',
-    slug: 'ultra-absorbent-bath-towel',
-    category: getCategory('towel'),
-    price: 350,
-    originalPrice: 500,
-    images: ['https://picsum.photos/seed/product5/800/800'],
-    description: 'Experience the softness of Komarapalayam cotton with our ultra-absorbent bath towels. Quick-drying and incredibly soft on the skin.',
-    details: ['100% Terry Cotton', 'High GSM for absorbency', 'Size: 75cm x 150cm', 'Available in multiple colors'],
-    reviews: [],
-    colors: [availableColors[0], availableColors[2], availableColors[4]],
-    sizes: ['Standard'],
-  },
-   {
-    id: 6,
-    name: 'Striped Casual Lungi',
-    slug: 'striped-casual-lungi',
-    category: getCategory('casual-wear'),
-    price: 550,
-    originalPrice: 699,
-    images: ['https://picsum.photos/seed/product6/800/800', 'https://picsum.photos/seed/product6-2/800/800'],
-    description: 'A modern take on the traditional lungi with stylish stripes. Perfect for lounging at home or a casual outing.',
-    details: ['100% Cotton', 'Machine Washable', '2.25 meters length', 'Modern striped pattern'],
-    reviews: [reviews[1]],
-    colors: [availableColors[3], availableColors[0]],
-    sizes: availableSizes,
+    id: 5, name: 'Sleeve Sweatshirt', slug: 'sleeve-sweatshirt', category: getCategory('women'),
+    price: 75.00, images: ['https://picsum.photos/seed/product5/600/800'],
+    description: 'Classic fit, perfect for everyday comfort', reviews: [],
+    colors: [availableColors[4], availableColors[5]], sizes: availableSizes,
+    rating: 4.6, reviewCount: 18, details: []
   },
   {
-    id: 7,
-    name: 'Gold Border Wedding Dhoti',
-    slug: 'gold-border-wedding-dhoti',
-    category: getCategory('wedding'),
-    price: 1299,
-    originalPrice: 1799,
-    images: ['https://picsum.photos/seed/product7/800/800'],
-    description: 'A premium dhoti for weddings and special functions. The rich gold border adds a touch of grandeur to your look.',
-    details: ['Premium Cotton', 'Hand Wash', '4.5 meters length', 'Wide gold zari border'],
-    reviews: [],
-    colors: [{name: 'Cream', hex: '#FFFDD0'}],
-    sizes: ['One Size'],
+    id: 6, name: 'Super Slimfit blazer', slug: 'super-slimfit-blazer', category: getCategory('women'),
+    price: 75.00, images: ['https://picsum.photos/seed/product6/600/800'],
+    description: 'Mention fabric, colors, and special features', reviews: [],
+    colors: [availableColors[0], availableColors[1]], sizes: availableSizes,
+    rating: 4.3, reviewCount: 25, details: []
   },
   {
-    id: 8,
-    name: 'DMK Flag Border Dhoti',
-    slug: 'dmk-flag-border-dhoti',
-    category: getCategory('political-party'),
-    price: 650,
-    images: ['https://picsum.photos/seed/product8/800/800', 'https://picsum.photos/seed/product8-2/800/800'],
-    description: 'Show your support for the DMK party with this dhoti featuring their signature black and red border. Made for comfort during campaigns.',
-    details: ['100% Cotton', 'Black & Red Border', 'Ideal for party meetings', 'Breathable fabric'],
-    reviews: [],
-    colors: [{name: 'Red/Black', hex: '#000000'}],
-    sizes: ['One Size'],
+    id: 7, name: 'Slimfit blazer-black', slug: 'slimfit-blazer-black', category: getCategory('men'),
+    price: 75.00, images: ['https://picsum.photos/seed/product7/600/800'],
+    description: 'Highlight the material fit and design', reviews: [],
+    colors: [availableColors[0]], sizes: availableSizes,
+    rating: 4.9, reviewCount: 42, details: []
+  },
+  {
+    id: 8, name: 'Neck Pure T-Shirt', slug: 'neck-pure-t-shirt', category: getCategory('men'),
+    price: 75.00, images: ['https://picsum.photos/seed/product8/600/800'],
+    description: 'A basic tee with a comfortable neck design', reviews: [],
+    colors: [availableColors[3], availableColors[1]], sizes: availableSizes,
+    rating: 4.1, reviewCount: 9, details: []
+  },
+  {
+    id: 9, name: 'Trendy Brown Coat', slug: 'trendy-brown-coat', category: getCategory('women'),
+    price: 75.00, images: ['https://picsum.photos/seed/product9/600/800'],
+    description: 'Stay warm and stylish with this trendy coat', reviews: [],
+    colors: [{name: 'Brown', hex: '#A52A2A'}], sizes: availableSizes,
+    rating: 4.7, reviewCount: 35, details: []
+  },
+  {
+    id: 10, name: 'Trendy blazer', slug: 'trendy-blazer', category: getCategory('men'),
+    price: 70.00, images: ['https://picsum.photos/seed/product10/600/800'],
+    description: 'Highlight the material fit and design', reviews: [],
+    colors: [availableColors[1], availableColors[0]], sizes: availableSizes,
+    rating: 5.0, reviewCount: 2, details: []
+  },
+  {
+    id: 11, name: 'Premium Solid Shirt', slug: 'premium-solid-shirt', category: getCategory('men'),
+    price: 68.00, images: ['https://picsum.photos/seed/product11/600/800'],
+    description: 'A premium shirt for any occasion', reviews: [],
+    colors: [availableColors[5], availableColors[3]], sizes: availableSizes,
+    rating: 4.5, reviewCount: 1, details: []
+  },
+  {
+    id: 12, name: 'Trendy Gray T-Shirt', slug: 'trendy-gray-t-shirt', category: getCategory('women'),
+    price: 80.00, images: ['https://picsum.photos/seed/product12/600/800'],
+    description: 'A trendy gray t-shirt for your wardrobe', reviews: [],
+    colors: [availableColors[1]], sizes: availableSizes,
+    rating: 4.0, reviewCount: 3, details: []
   },
 ];
 

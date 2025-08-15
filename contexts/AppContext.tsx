@@ -6,9 +6,6 @@ interface AppContextType {
   cart: CartItem[];
   wishlist: Product[];
   user: User | null;
-  isCartOpen: boolean;
-  openCart: () => void;
-  closeCart: () => void;
   addToCart: (product: Product, quantity: number, color: { name: string; hex: string }, size: string) => void;
   removeFromCart: (productId: number, size: string, color: string) => void;
   updateQuantity: (productId: number, size: string, color: string, quantity: number) => void;
@@ -38,7 +35,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [cart, setCart] = useState<CartItem[]>(() => getInitialState<CartItem[]>('cart', []));
   const [wishlist, setWishlist] = useState<Product[]>(() => getInitialState<Product[]>('wishlist', []));
   const [user, setUser] = useState<User | null>(() => getInitialState<User | null>('user', null));
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -52,9 +48,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     localStorage.setItem('user', JSON.stringify(user));
   }, [user]);
 
-  const openCart = () => setIsCartOpen(true);
-  const closeCart = () => setIsCartOpen(false);
-
   const addToCart = (product: Product, quantity: number, color: { name: string; hex: string }, size: string) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id && item.size === size && item.color.name === color.name);
@@ -67,7 +60,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       return [...prevCart, { ...product, quantity, color, size }];
     });
-    openCart();
   };
 
   const removeFromCart = (productId: number, size: string, colorName: string) => {
@@ -113,9 +105,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       cart,
       wishlist,
       user,
-      isCartOpen,
-      openCart,
-      closeCart,
       addToCart,
       removeFromCart,
       updateQuantity,
