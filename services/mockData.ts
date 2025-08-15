@@ -2,11 +2,13 @@
 import { Product, Category, Review } from '../types';
 
 export const categories: Category[] = [
-  { id: 1, name: 'Lungi', slug: 'lungi' },
-  { id: 2, name: 'Dhoti', slug: 'dhoti' },
-  { id: 3, name: 'Matching Dhoti', slug: 'matching-dhoti' },
-  { id: 4, name: 'Political Party', slug: 'political-party' },
-  { id: 5, name: 'Towel', slug: 'towel' },
+  { id: 1, name: 'Lungi', slug: 'lungi', icon: 'https://picsum.photos/seed/lungi-cat/100/100' },
+  { id: 2, name: 'Dhoti', slug: 'dhoti', icon: 'https://picsum.photos/seed/dhoti-cat/100/100' },
+  { id: 3, name: 'Matching Sets', slug: 'matching-dhoti', icon: 'https://picsum.photos/seed/matching-cat/100/100' },
+  { id: 4, name: 'Political', slug: 'political-party', icon: 'https://picsum.photos/seed/political-cat/100/100' },
+  { id: 5, name: 'Towel', slug: 'towel', icon: 'https://picsum.photos/seed/towel-cat/100/100' },
+  { id: 6, name: 'Wedding', slug: 'wedding', icon: 'https://picsum.photos/seed/wedding-cat/100/100' },
+  { id: 7, name: 'Casual Wear', slug: 'casual-wear', icon: 'https://picsum.photos/seed/casual-cat/100/100' },
 ];
 
 const getCategory = (slug: string): Category => {
@@ -38,6 +40,7 @@ export const products: Product[] = [
     slug: 'pure-white-temple-dhoti',
     category: getCategory('dhoti'),
     price: 899,
+    originalPrice: 1199,
     images: ['https://picsum.photos/seed/product2/800/800', 'https://picsum.photos/seed/product2-2/800/800'],
     description: 'Feel divine in our pure white temple dhoti. Woven with care and precision, it offers unparalleled comfort and a graceful drape for all your spiritual occasions.',
     details: ['Premium Weave Cotton', 'Hand Wash Recommended', '4 meters length', 'Slightly starched for a crisp look'],
@@ -61,6 +64,7 @@ export const products: Product[] = [
     slug: 'party-flag-border-dhoti',
     category: getCategory('political-party'),
     price: 650,
+    originalPrice: 800,
     images: ['https://picsum.photos/seed/product4/800/800', 'https://picsum.photos/seed/product4-2/800/800'],
     description: 'Show your support with our special edition political party dhoti. Made with durable cotton and featuring the iconic party colors on the border.',
     details: ['100% Cotton', 'Bold Color Border', 'Ideal for rallies and events', 'Comfortable for long hours'],
@@ -82,8 +86,9 @@ export const products: Product[] = [
     id: 6,
     name: 'Striped Casual Lungi',
     slug: 'striped-casual-lungi',
-    category: getCategory('lungi'),
+    category: getCategory('casual-wear'),
     price: 550,
+    originalPrice: 699,
     images: ['https://picsum.photos/seed/product6/800/800', 'https://picsum.photos/seed/product6-2/800/800'],
     description: 'A modern take on the traditional lungi with stylish stripes. Perfect for lounging at home or a casual outing.',
     details: ['100% Cotton', 'Machine Washable', '2.25 meters length', 'Modern striped pattern'],
@@ -93,8 +98,9 @@ export const products: Product[] = [
     id: 7,
     name: 'Gold Border Wedding Dhoti',
     slug: 'gold-border-wedding-dhoti',
-    category: getCategory('dhoti'),
+    category: getCategory('wedding'),
     price: 1299,
+    originalPrice: 1799,
     images: ['https://picsum.photos/seed/product7/800/800'],
     description: 'A premium dhoti for weddings and special functions. The rich gold border adds a touch of grandeur to your look.',
     details: ['Premium Cotton', 'Hand Wash', '4.5 meters length', 'Wide gold zari border'],

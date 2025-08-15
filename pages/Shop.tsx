@@ -10,6 +10,7 @@ const ShopPage: React.FC = () => {
   const [sortOption, setSortOption] = useState('featured');
   
   const activeCategorySlug = categorySlug || 'all';
+  const activeCategory = categories.find(c => c.slug === activeCategorySlug) || { name: 'All Products' };
   
   // Close filter panel on route change
   useEffect(() => {
@@ -65,26 +66,13 @@ const ShopPage: React.FC = () => {
   const sidebarContent = (
     <div className="space-y-8">
       <div>
-        <h3 className="font-bold text-lg text-secondary mb-4">Categories</h3>
-        <div className="space-y-2">
+        <h3 className="font-bold text-lg text-secondary mb-4 px-4">Categories</h3>
+        <div className="space-y-1">
             <CategoryLink slug="all" name="All Products" />
             {categories.map(cat => (
               <CategoryLink key={cat.id} slug={cat.slug} name={cat.name} />
             ))}
         </div>
-      </div>
-      <div>
-         <h3 className="font-bold text-lg text-secondary mb-4">Sort By</h3>
-         <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
-          >
-            <option value="featured">Featured</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="name-asc">Alphabetical</option>
-          </select>
       </div>
     </div>
   );
@@ -94,11 +82,11 @@ const ShopPage: React.FC = () => {
       {/* Mobile Filter Button */}
       <div className="md:hidden flex items-center justify-between">
          <h1 className="text-xl font-bold text-secondary capitalize">
-            {activeCategorySlug.replace('-', ' ')}
+            {activeCategory.name}
         </h1>
         <button
           onClick={() => setIsFilterOpen(true)}
-          className="flex items-center space-x-2 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-secondary bg-white hover:bg-gray-50"
+          className="flex items-center space-x-2 py-2 px-4 border border-light-border rounded-md shadow-sm text-sm font-medium text-secondary bg-white hover:bg-gray-50"
         >
           <span>Filters</span>
           <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>
@@ -108,10 +96,10 @@ const ShopPage: React.FC = () => {
       {/* Mobile Filter Panel (Off-canvas) */}
       <div className={`fixed inset-0 z-50 transition-transform transform ${isFilterOpen ? 'translate-x-0' : 'translate-x-full'} md:hidden`}>
           <div className="absolute inset-0 bg-black/40" onClick={() => setIsFilterOpen(false)}></div>
-          <div className="relative z-10 w-4/5 max-w-sm h-full bg-white ml-auto p-6 overflow-y-auto">
+          <div className="relative z-10 w-4/5 max-w-sm h-full bg-white ml-auto p-6 overflow-y-auto shadow-xl">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold">Filters</h2>
-                <button onClick={() => setIsFilterOpen(false)} className="p-2 -mr-2">
+                <button onClick={() => setIsFilterOpen(false)} className="p-2 -mr-2 text-gray-500 hover:text-gray-800">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
@@ -120,23 +108,39 @@ const ShopPage: React.FC = () => {
       </div>
       
       {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-full md:w-1/4 lg:w-1/5">
+      <aside className="hidden md:block w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg border border-light-border self-start sticky top-24">
         {sidebarContent}
       </aside>
 
       {/* Products Grid */}
       <main className="w-full md:w-3/4 lg:w-4/5">
-        <h1 className="hidden md:block text-3xl font-bold text-secondary mb-6 capitalize">
-            {activeCategorySlug.replace('-', ' ')}
-        </h1>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+            <h1 className="hidden md:block text-3xl font-bold text-secondary">
+                {activeCategory.name}
+            </h1>
+            <div className="flex items-center gap-2">
+                <label htmlFor="sort" className="text-sm font-medium text-secondary-light">Sort by:</label>
+                <select
+                    id="sort"
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                    className="border-light-border rounded-md shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 text-sm py-2 pl-3 pr-8"
+                >
+                    <option value="featured">Featured</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="name-asc">Alphabetical</option>
+                </select>
+            </div>
+        </div>
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {filteredProducts.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white rounded-lg">
+          <div className="text-center py-16 bg-white rounded-lg border border-light-border">
             <p className="text-xl text-secondary-light">No products found in this category.</p>
           </div>
         )}

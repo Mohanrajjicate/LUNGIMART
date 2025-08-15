@@ -1,107 +1,141 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Swiper from 'swiper';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+
 import { products, categories } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
 
 const HomePage: React.FC = () => {
-    useEffect(() => {
-    new Swiper('.swiper-container', {
+  const heroSwiperRef = useRef(null);
+  const brandsSwiperRef = useRef(null);
+  
+  useEffect(() => {
+    heroSwiperRef.current = new Swiper('.hero-swiper-container', {
       modules: [Navigation, Pagination, Autoplay],
       loop: true,
-      autoplay: {
-        delay: 4000,
-        disableOnInteraction: false,
-      },
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
-      },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-      },
+      autoplay: { delay: 5000, disableOnInteraction: false },
+      pagination: { el: '.hero-swiper-pagination', clickable: true },
+      navigation: { nextEl: '.hero-swiper-button-next', prevEl: '.hero-swiper-button-prev' },
     });
-  }, []);
+    
+    brandsSwiperRef.current = new Swiper('.brands-swiper-container', {
+      modules: [Pagination],
+      slidesPerView: 1.5,
+      spaceBetween: 16,
+      pagination: { el: '.brands-swiper-pagination', clickable: true },
+      breakpoints: {
+        640: { slidesPerView: 2.5, spaceBetween: 20 },
+        768: { slidesPerView: 3, spaceBetween: 24 },
+        1024: { slidesPerView: 4, spaceBetween: 24 },
+      }
+    });
 
-  const heroImages = [
-    'https://picsum.photos/seed/hero1/1600/600',
-    'https://picsum.photos/seed/hero2/1600/600',
-    'https://picsum.photos/seed/hero3/1600/600',
-  ];
+    return () => {
+      if(heroSwiperRef.current) (heroSwiperRef.current as any).destroy();
+      if(brandsSwiperRef.current) (brandsSwiperRef.current as any).destroy();
+    }
+  }, []);
   
-  const featuredProducts = products.slice(0, 4);
+  const heroBanners = [
+      { 
+          title: "Best Deal Online on smart watches", 
+          subtitle: "SMART WEARABLE.", 
+          offer: "UP to 80% OFF", 
+          img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=1964&auto=format&fit=crop" 
+      },
+      { 
+          title: "Latest Collection of Traditional Wear", 
+          subtitle: "PURE COMFORT.", 
+          offer: "Starting at ₹499", 
+          img: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=1972&auto=format&fit=crop"
+      }
+  ];
+
+  const topCategories = categories.slice(0, 6);
+  const lungiProducts = products.filter(p => p.category.slug === 'lungi');
+  const dhotiProducts = products.filter(p => p.category.slug === 'dhoti');
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-12">
       {/* Hero Section */}
-      <section className="relative -mx-4 sm:-mx-6 lg:-mx-8 -mt-8">
-        <div className="swiper-container h-[50vh] md:h-[70vh] bg-gray-200">
+      <section className="relative -mx-4 sm:-mx-6 lg:-mx-8 -mt-6">
+        <div className="hero-swiper-container h-[50vh] md:h-[60vh] bg-gray-200">
           <div className="swiper-wrapper">
-            {heroImages.map((src, index) => (
-              <div key={index} className="swiper-slide">
-                <img src={src} alt={`Hero Banner ${index + 1}`} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex flex-col items-start justify-center text-white p-8 md:p-16 lg:p-24">
-                    <h1 className="text-4xl md:text-6xl font-extrabold drop-shadow-lg max-w-lg">The Komarapalayam Weave</h1>
-                    <p className="mt-4 max-w-md text-lg md:text-xl drop-shadow-md">Experience tradition, comfort, and quality in every thread.</p>
-                    <Link to="/shop" className="mt-8 bg-primary text-white font-bold py-3 px-8 rounded-md hover:bg-primary-dark transition-transform hover:scale-105 shadow-lg">
-                        Shop Collection
-                    </Link>
+            {heroBanners.map((banner, index) => (
+              <div key={index} className="swiper-slide relative">
+                <img src={banner.img} alt={`Hero Banner ${index + 1}`} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/20"></div>
+                <div className="absolute inset-0 container mx-auto px-8 sm:px-12 lg:px-16 flex flex-col items-start justify-center text-white">
+                    <p className="font-semibold">{banner.title}</p>
+                    <h1 className="text-4xl md:text-6xl font-extrabold my-2 uppercase">{banner.subtitle}</h1>
+                    <p className="text-2xl font-semibold opacity-90">{banner.offer}</p>
                 </div>
               </div>
             ))}
           </div>
-          <div className="swiper-pagination"></div>
-          <div className="swiper-button-prev text-white"></div>
-          <div className="swiper-button-next text-white"></div>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section>
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-secondary mb-8">Shop by Category</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-          {categories.map(category => (
-            <Link key={category.id} to={`/shop/${category.slug}`} className="group block text-center p-4 bg-white rounded-lg border border-gray-200/0 hover:border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="w-24 h-24 mx-auto bg-gray-100 rounded-full overflow-hidden flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-                  <img src={`https://picsum.photos/seed/${category.slug}/100/100`} alt={category.name} className="w-full h-full object-cover" />
-              </div>
-              <h3 className="font-semibold text-secondary group-hover:text-primary transition-colors">{category.name}</h3>
-            </Link>
-          ))}
+          <div className="hero-swiper-pagination swiper-pagination !bottom-4"></div>
+          <div className="hero-swiper-button-prev swiper-button-prev text-white !hidden sm:!flex"></div>
+          <div className="hero-swiper-button-next swiper-button-next text-white !hidden sm:!flex"></div>
         </div>
       </section>
       
-      {/* Promo Banners Section */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Link to="/shop/dhoti" className="group block rounded-lg overflow-hidden relative">
-            <img src="https://picsum.photos/seed/promo1/800/400" alt="Dhoti Collection" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"/>
-            <div className="absolute inset-0 bg-black/30 flex items-end p-6">
-                <h3 className="text-2xl font-bold text-white">Pristine Dhotis</h3>
-            </div>
-        </Link>
-         <Link to="/shop/lungi" className="group block rounded-lg overflow-hidden relative">
-            <img src="https://picsum.photos/seed/promo2/800/400" alt="Lungi Collection" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"/>
-             <div className="absolute inset-0 bg-black/30 flex items-end p-6">
-                <h3 className="text-2xl font-bold text-white">Casual Lungis</h3>
-            </div>
-        </Link>
-      </section>
-
-      {/* Featured Products Section */}
+      {/* Product Section 1 */}
       <section>
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-secondary mb-8">Top Picks For You</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map(product => (
-            <ProductCard key={product.id} product={product} />
+          <div className="flex justify-between items-baseline mb-4">
+              <h2 className="text-xl md:text-2xl font-bold text-secondary">Grab the best deal on <span className="text-primary">Lungis</span></h2>
+              <Link to="/shop/lungi" className="text-sm font-semibold text-primary hover:underline">View All &rarr;</Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+              {lungiProducts.slice(0, 5).map(p => <ProductCard key={p.id} product={p} />)}
+          </div>
+      </section>
+      
+      {/* Categories Section */}
+      <section>
+        <div className="flex justify-between items-baseline mb-4">
+            <h2 className="text-xl md:text-2xl font-bold text-secondary">Shop From <span className="text-primary">Top Categories</span></h2>
+            <Link to="/shop" className="text-sm font-semibold text-primary hover:underline">View All &rarr;</Link>
+        </div>
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
+          {topCategories.map(category => (
+            <Link key={category.id} to={`/shop/${category.slug}`} className="group block text-center transition-transform duration-300 hover:-translate-y-1">
+              <div className="w-24 h-24 mx-auto bg-white rounded-full overflow-hidden flex items-center justify-center mb-2 shadow-md group-hover:shadow-lg border-2 border-transparent group-hover:border-primary">
+                  <img src={category.icon} alt={category.name} className="w-full h-full object-cover" />
+              </div>
+              <h3 className="font-semibold text-sm text-secondary">{category.name}</h3>
+            </Link>
           ))}
         </div>
-         <div className="text-center mt-12">
-             <Link to="/shop" className="bg-secondary text-white font-bold py-3 px-12 rounded-md hover:bg-secondary/90 transition-transform hover:scale-105">
-                View All Products
-            </Link>
-        </div>
+      </section>
+
+      {/* Top Brands Section */}
+      <section>
+           <h2 className="text-xl md:text-2xl font-bold text-secondary mb-4">Top <span className="text-primary">Ethnic Brands</span></h2>
+           <div className="brands-swiper-container">
+                <div className="swiper-wrapper">
+                    <div className="swiper-slide"><img src="https://picsum.photos/seed/brand1/500/250" className="rounded-lg"/></div>
+                    <div className="swiper-slide"><img src="https://picsum.photos/seed/brand2/500/250" className="rounded-lg"/></div>
+                    <div className="swiper-slide"><img src="https://picsum.photos/seed/brand3/500/250" className="rounded-lg"/></div>
+                    <div className="swiper-slide"><img src="https://picsum.photos/seed/brand4/500/250" className="rounded-lg"/></div>
+                    <div className="swiper-slide"><img src="https://picsum.photos/seed/brand5/500/250" className="rounded-lg"/></div>
+                </div>
+                <div className="brands-swiper-pagination swiper-pagination !relative mt-4"></div>
+           </div>
+      </section>
+      
+      {/* Product Section 2 */}
+      <section>
+          <div className="flex justify-between items-baseline mb-4">
+              <h2 className="text-xl md:text-2xl font-bold text-secondary">Exquisite <span className="text-primary">Dhotis</span></h2>
+              <Link to="/shop/dhoti" className="text-sm font-semibold text-primary hover:underline">View All &rarr;</Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+              {dhotiProducts.slice(0, 5).map(p => <ProductCard key={p.id} product={p} />)}
+          </div>
       </section>
     </div>
   );
