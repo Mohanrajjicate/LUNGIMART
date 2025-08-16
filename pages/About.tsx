@@ -5,34 +5,34 @@ const AboutPage: React.FC = () => {
   return (
     <div className="bg-white py-12">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-extrabold text-center text-gray-900 uppercase tracking-tighter mb-4">Our Story</h1>
-        <p className="text-lg text-center text-gray-500 mb-12">From the looms of Komarapalayam to your wardrobe.</p>
+        <h1 className="text-4xl font-bold text-center text-primary mb-4">Our Story</h1>
+        <p className="text-lg text-center text-secondary mb-12">Crafting elegance, one stitch at a time.</p>
         
         <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="aspect-w-4 aspect-h-3">
-                <img src="https://picsum.photos/seed/about/600/450" alt="Loom in Komarapalayam" className="object-cover w-full h-full"/>
+            <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop" alt="Our team" className="object-cover w-full h-full"/>
             </div>
             <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">The Heritage of Komarapalayam</h2>
-                <p className="text-gray-600 leading-relaxed">
-                    Nestled on the banks of the Kaveri river, Komarapalayam is a town renowned for its vibrant textile industry. For generations, weavers in this town have perfected the art of creating high-quality lungis, dhotis, and towels. The rhythmic clatter of looms is the heartbeat of our town, a sound that signifies a legacy of craftsmanship passed down through families.
+                <h2 className="text-2xl font-bold text-primary mb-4">The Heritage of SilkStitch</h2>
+                <p className="text-secondary leading-relaxed">
+                    Founded on the principles of quality craftsmanship and timeless design, SilkStitch is more than just a brand; it's a legacy. We believe that clothing is a form of self-expression, and our collections are designed to empower individuals to feel confident and elegant every day.
                 </p>
             </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12 items-center mt-16">
-            <div className="md:order-2">
+            <div className="md:order-2 rounded-lg overflow-hidden">
                  <div className="aspect-w-4 aspect-h-3">
-                    <img src="https://picsum.photos/seed/about2/600/450" alt="Colorful textiles" className="object-cover w-full h-full"/>
+                    <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1784&auto=format&fit=crop" alt="Design process" className="object-cover w-full h-full"/>
                  </div>
             </div>
             <div className="md:order-1">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">LungiMart.in's Mission</h2>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                   LungiMart.in was born from a desire to bring this rich heritage to the world. We work directly with local weavers, ensuring they receive fair prices for their incredible skill. Our mission is to bridge the gap between traditional artisans and modern consumers, making authentic, high-quality traditional wear accessible to everyone.
+                <h2 className="text-2xl font-bold text-primary mb-4">Our Mission</h2>
+                <p className="text-secondary leading-relaxed mb-4">
+                   Our mission is to blend classic styles with contemporary fashion, creating pieces that are both sophisticated and wearable. We source the finest materials and partner with skilled artisans to ensure every garment meets our exacting standards of quality.
                 </p>
-                <p className="text-gray-600 leading-relaxed">
-                    Every product you purchase from us supports a local weaver and helps keep this beautiful tradition alive. We stand for quality, comfort, and culture.
+                <p className="text-secondary leading-relaxed">
+                    Every piece you purchase from SilkStitch is an investment in sustainable fashion and supports a community of craftsmen dedicated to their art.
                 </p>
             </div>
         </div>

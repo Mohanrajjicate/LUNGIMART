@@ -4,17 +4,13 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LungiMart.in - Traditional Wear from Komarapalayam</title>
+    <title>SilkStitch - Premium Fashion</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Swiper JS -->
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -22,17 +18,22 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['Poppins', 'sans-serif'],
           },
           colors: {
             primary: {
-              DEFAULT: '#111827', // Gray-900 for a near-black look
+              DEFAULT: '#222222', // Dark text
             },
             secondary: {
-              DEFAULT: '#6B7280', // Gray-500
-              light: '#9CA3AF', // Gray-400
+              DEFAULT: '#666666', // Lighter text
             },
-            'light-border': '#E5E7EB',
+            accent: {
+              DEFAULT: '#8B4513', // Brown accent for buttons
+              dark: '#5a2d0c'
+            },
+            background: '#FFFFFF',
+            surface: '#F8F8F8', // For light gray backgrounds
+            'light-border': '#E5E5E5',
           },
         }
       }
@@ -50,9 +51,8 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-white text-gray-800">
+<body class="bg-background text-primary">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
