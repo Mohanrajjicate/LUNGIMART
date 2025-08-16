@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -56,6 +57,7 @@ const Footer: React.FC = () => {
               <FooterLink to="#">Contact Us</FooterLink>
               <FooterLink to="#">Shipping Info</FooterLink>
               <FooterLink to="#">Returns</FooterLink>
+              <FooterLink to="/quiet-zone">Quiet Zone</FooterLink>
               <FooterLink to="#">FAQ</FooterLink>
             </ul>
           </div>

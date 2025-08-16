@@ -17,6 +17,8 @@ interface AppContextType {
   wishlistCount: number;
   login: (user: User) => void;
   logout: () => void;
+  isQuietZoneActive: boolean;
+  toggleQuietZone: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -35,6 +37,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [cart, setCart] = useState<CartItem[]>(() => getInitialState<CartItem[]>('cart', []));
   const [wishlist, setWishlist] = useState<Product[]>(() => getInitialState<Product[]>('wishlist', []));
   const [user, setUser] = useState<User | null>(() => getInitialState<User | null>('user', null));
+  const [isQuietZoneActive, setIsQuietZoneActive] = useState<boolean>(() => getInitialState<boolean>('quietZone', false));
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -47,6 +50,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     localStorage.setItem('user', JSON.stringify(user));
   }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive));
+  }, [isQuietZoneActive]);
 
   const addToCart = (product: Product, quantity = 1) => {
     setCart(prevCart => {
@@ -93,6 +100,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const login = (user: User) => setUser(user);
   const logout = () => setUser(null);
+  
+  const toggleQuietZone = () => setIsQuietZoneActive(prev => !prev);
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -113,7 +122,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       isInWishlist,
       wishlistCount,
       login,
-      logout
+      logout,
+      isQuietZoneActive,
+      toggleQuietZone
     }}>
       {children}
     </AppContext.Provider>

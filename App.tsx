@@ -12,6 +12,7 @@ import ProfilePage from './pages/Profile';
 import AboutPage from './pages/About';
 import BulkOrderPage from './pages/BulkOrder';
 import PoliticalPartyPage from './pages/PoliticalParty';
+import QuietZonePage from './pages/QuietZone';
 
 const App: React.FC = () => {
   return (
@@ -28,6 +29,7 @@ const App: React.FC = () => {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/bulk-order" element={<BulkOrderPage />} />
             <Route path="/political-party" element={<PoliticalPartyPage />} />
+            <Route path="/quiet-zone" element={<QuietZonePage />} />
           </Routes>
         </Layout>
       </HashRouter>
