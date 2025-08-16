@@ -13,11 +13,13 @@ import AboutPage from './pages/About';
 import BulkOrderPage from './pages/BulkOrder';
 import PoliticalPartyPage from './pages/PoliticalParty';
 import QuietZonePage from './pages/QuietZone';
+import ScrollToTop from './components/ScrollToTop';
 
 const App: React.FC = () => {
   return (
     <AppProvider>
       <HashRouter>
+        <ScrollToTop />
         <Layout>
           <Routes>
             <Route path="/" element={<HomePage />} />
