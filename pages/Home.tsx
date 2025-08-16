@@ -7,7 +7,7 @@ const HomePage: React.FC = () => {
 
   const featuredProducts = products.slice(0, 8);
   const exclusiveProducts = products.filter(p => ['matching-dhoti', 'political-party'].includes(p.category.slug)).slice(0, 3);
-  const mainCategories = categories.filter(c => !['all', 'political-party', 'all-products'].includes(c.slug));
+  const mainCategories = categories.filter(c => !['all', 'all-products'].includes(c.slug));
 
   return (
     <div className="space-y-16 md:space-y-24">
