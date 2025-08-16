@@ -1,13 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { products, categories } from '../services/mockData';
+import { products, categories, getProductsByCategory } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
 
 const HomePage: React.FC = () => {
 
-  const featuredProducts = products.slice(0, 8);
-  const exclusiveProducts = products.filter(p => ['matching-dhoti', 'political-party'].includes(p.category.slug)).slice(0, 3);
+  const bestSellingProducts = products.slice(0, 8);
   const mainCategories = categories.filter(c => !['all', 'all-products'].includes(c.slug));
+
+  const newArrivals = products.slice(-4).reverse();
+  const featuredProductsData = products.filter(p => [1, 3, 7, 9].includes(p.id));
+  const lungiProducts = getProductsByCategory('lungi').slice(0, 4);
+  const dhotiProducts = getProductsByCategory('dhoti').slice(0, 4);
+  const matchingDhotiProducts = getProductsByCategory('matching-dhoti').slice(0, 4);
 
   return (
     <div className="space-y-16 md:space-y-24">
@@ -48,18 +53,98 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* The Best items of Our Collection */}
+      {/* Best Selling */}
       <section>
         <div className="text-center mb-10">
-            <h2 className="text-4xl font-bold text-slate-900">Our Bestsellers</h2>
+            <h2 className="text-3xl font-bold text-slate-900">Best Selling</h2>
             <p className="text-slate-600 mt-2 max-w-lg mx-auto">Handpicked for quality and comfort, loved by our customers.</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {featuredProducts.map(p => <ProductCard key={p.id} product={p} />)}
+            {bestSellingProducts.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
         <div className="text-center mt-12">
             <Link to="/shop" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All Products
+                View All Best Sellers
+            </Link>
+        </div>
+      </section>
+
+      {/* New Arrivals */}
+      <section>
+        <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900">New Arrivals</h2>
+            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Check out the latest additions to our collection.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {newArrivals.map(p => <ProductCard key={p.id} product={p} />)}
+        </div>
+        <div className="text-center mt-12">
+            <Link to="/shop" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+                View All New Products
+            </Link>
+        </div>
+      </section>
+
+      {/* Featured Products */}
+      <section>
+        <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900">Featured Products</h2>
+            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Specially selected products we think you'll love.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {featuredProductsData.map(p => <ProductCard key={p.id} product={p} />)}
+        </div>
+        <div className="text-center mt-12">
+            <Link to="/shop" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+                View All Featured
+            </Link>
+        </div>
+      </section>
+
+      {/* Lungi Collection */}
+      <section>
+        <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900">Lungi Collection</h2>
+            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Explore our wide range of comfortable and stylish lungis.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {lungiProducts.map(p => <ProductCard key={p.id} product={p} />)}
+        </div>
+        <div className="text-center mt-12">
+            <Link to="/shop/lungi" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+                View All Lungis
+            </Link>
+        </div>
+      </section>
+
+      {/* Dhoti Collection */}
+      <section>
+        <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900">Dhoti Collection</h2>
+            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Traditional and elegant dhotis for every occasion.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {dhotiProducts.map(p => <ProductCard key={p.id} product={p} />)}
+        </div>
+        <div className="text-center mt-12">
+            <Link to="/shop/dhoti" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+                View All Dhotis
+            </Link>
+        </div>
+      </section>
+      
+      {/* Matching Sets */}
+      <section>
+        <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900">Matching Sets</h2>
+            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Complete your look with our matching dhoti and angavastram sets.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {matchingDhotiProducts.map(p => <ProductCard key={p.id} product={p} />)}
+        </div>
+        <div className="text-center mt-12">
+            <Link to="/shop/matching-dhoti" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+                View All Matching Sets
             </Link>
         </div>
       </section>
@@ -83,17 +168,6 @@ const HomePage: React.FC = () => {
             <h3 className="font-bold text-lg text-slate-800">Fair Prices, Lasting Quality</h3>
             <p className="text-sm text-slate-600 mt-2">Get premium traditional wear that lasts, at prices that are fair for you and the artisan.</p>
           </div>
-        </div>
-      </section>
-      
-      {/* Exclusive Collection */}
-      <section>
-        <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">Specialty Weaves</h2>
-            <p className="text-slate-600 mt-2">Discover our collection of matching dhotis, wedding sets, and political party wear.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {exclusiveProducts.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
 

@@ -19,62 +19,56 @@ const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 text-sm">
           
-          <div className="col-span-2 lg:col-span-1">
+          <div className="col-span-2 lg:col-span-2">
             <h3 className="text-2xl font-bold text-white">LungiMart.in</h3>
             <p className="mt-3 text-slate-400">Authentic weaves from Komarapalayam, connecting tradition with today's generation.</p>
             <div className="mt-6 flex items-center space-x-5">
                 <SocialIcon href="#" label="Facebook">
                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" /></svg>
                 </SocialIcon>
-                <SocialIcon href="#" label="Instagram">
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.012-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.345 2.525c.636-.247 1.363-.416 2.427-.465C9.793 2.013 10.147 2 12.315 2zM12 7a5 5 0 100 10 5 5 0 000-10zm0-2a7 7 0 110 14 7 7 0 010-14zm6.406-2.88a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clipRule="evenodd" /></svg>
+                 <SocialIcon href="#" label="Instagram">
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.012 3.584-.07 4.85c-.148 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.85s.012-3.584.07-4.85c.148-3.227 1.664-4.771 4.919-4.919A48.347 48.347 0 0112 2.163zm0 1.441c-3.117 0-3.482.01-4.71.068-2.68.122-3.832 1.27-3.955 3.955-.058 1.227-.068 1.592-.068 4.71s.01 3.482.068 4.71c.122 2.68 1.27 3.832 3.955 3.955 1.227.058 1.592.068 4.71.068s3.482-.01 4.71-.068c2.68-.122 3.832-1.27 3.955-3.955.058-1.227.068-1.592.068-4.71s-.01-3.482-.068-4.71c-.122-2.68-1.27-3.832-3.955-3.955A46.777 46.777 0 0012 3.604zm0 4.388a3.992 3.992 0 100 7.984 3.992 3.992 0 000-7.984zm0 6.552a2.56 2.56 0 110-5.12 2.56 2.56 0 010 5.12zm5.41-7.81a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4z" clipRule="evenodd" /></svg>
                 </SocialIcon>
                  <SocialIcon href="#" label="Twitter">
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.71v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg>
                 </SocialIcon>
             </div>
           </div>
           
-          <div>
-            <h4 className="font-semibold text-white tracking-wider uppercase">Shop</h4>
+          <div className="md:col-span-1">
+            <h3 className="font-semibold text-white tracking-wider uppercase">Shop</h3>
             <ul className="mt-4 space-y-3">
-              <FooterLink to="/shop">All Products</FooterLink>
               <FooterLink to="/shop/lungi">Lungi</FooterLink>
               <FooterLink to="/shop/dhoti">Dhoti</FooterLink>
-              <FooterLink to="/shop/towel">Towel</FooterLink>
+              <FooterLink to="/shop/matching-dhoti">Matching Sets</FooterLink>
+              <FooterLink to="/shop/towel">Towels</FooterLink>
+              <FooterLink to="/shop/political-party">Political Wear</FooterLink>
             </ul>
           </div>
-          
-          <div>
-            <h4 className="font-semibold text-white tracking-wider uppercase">Company</h4>
+
+          <div className="md:col-span-1">
+            <h3 className="font-semibold text-white tracking-wider uppercase">Company</h3>
             <ul className="mt-4 space-y-3">
               <FooterLink to="/about">About Us</FooterLink>
               <FooterLink to="/bulk-order">Bulk Orders</FooterLink>
-              <FooterLink to="/political-party">Political Wear</FooterLink>
+              <FooterLink to="/contact">Contact Us</FooterLink>
             </ul>
           </div>
           
-          <div className="col-span-2 md:col-span-2 lg:col-span-2">
-            <h4 className="font-semibold text-white tracking-wider uppercase">Join Our Newsletter</h4>
-            <p className="mt-4 text-slate-400">Get updates on new arrivals and special offers directly to your inbox.</p>
-            <form className="flex items-center mt-4 rounded-lg overflow-hidden max-w-sm">
-              <input type="email" placeholder="Enter your email" className="bg-slate-800 border-slate-700 border text-white px-4 py-2.5 w-full placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" />
-              <button type="submit" className="bg-primary text-white font-semibold px-5 py-2.5 hover:bg-primary-dark transition-colors text-sm">Sign Up</button>
-            </form>
+          <div className="md:col-span-1">
+            <h3 className="font-semibold text-white tracking-wider uppercase">Support</h3>
+            <ul className="mt-4 space-y-3">
+                <FooterLink to="#">FAQs</FooterLink>
+                <FooterLink to="#">Shipping & Returns</FooterLink>
+                <FooterLink to="#">Privacy Policy</FooterLink>
+                <FooterLink to="/quiet-zone">Quiet Zone</FooterLink>
+            </ul>
           </div>
-          
+
         </div>
-      </div>
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 border-t border-slate-800">
-        <div className="flex flex-col sm:flex-row justify-between items-center text-sm">
-          <p className="text-slate-500 order-2 sm:order-1 mt-4 sm:mt-0">
-            &copy; {new Date().getFullYear()} LungiMart.in. All rights reserved.
-          </p>
-          <div className="flex items-center space-x-6 order-1 sm:order-2">
-            <Link to="#" className="text-slate-500 hover:text-white">Privacy Policy</Link>
-            <Link to="#" className="text-slate-500 hover:text-white">Terms of Service</Link>
-          </div>
+
+        <div className="mt-12 border-t border-slate-700 pt-8 text-center text-sm text-slate-400">
+            <p>&copy; {new Date().getFullYear()} LungiMart.in. Weavers of Tradition. All Rights Reserved.</p>
         </div>
       </div>
     </footer>
