@@ -7,6 +7,10 @@ export const categories: Category[] = [
   { id: 4, name: 'Political Party', slug: 'political-party', image: 'https://picsum.photos/seed/cat4/600/400' },
   { id: 5, name: 'Towel', slug: 'towel', image: 'https://picsum.photos/seed/cat5/600/400' },
   { id: 6, name: 'All Products', slug: 'all', image: 'https://picsum.photos/seed/cat6/600/400' },
+  // Virtual categories for special filtered views
+  { id: 7, name: 'Best Selling', slug: 'best-selling' },
+  { id: 8, name: 'Recent Products', slug: 'new-arrivals' },
+  { id: 9, name: 'Featured Products', slug: 'featured-products' },
 ];
 
 const getCategory = (slug: string): Category => {
@@ -59,8 +63,8 @@ export const products: Product[] = [
     description: 'Exquisite silk-blend matching dhoti and angavastram set from the master weavers of Komarapalayam. Features a beautiful golden border for a regal touch.',
     details: ['Silk-Cotton Blend', 'Dry Clean Only', 'Dhoti: 4m, Angavastram: 2.5m', 'Intricate Zari Border'],
     reviews: [],
-    rating: 0,
-    reviewCount: 0,
+    rating: 4.8,
+    reviewCount: 5,
   },
    {
     id: 4,
@@ -87,8 +91,8 @@ export const products: Product[] = [
     description: 'A large, highly absorbent bath towel made from the finest Komarapalayam cotton. Soft to the touch and quick-drying.',
     details: ['Premium Terry Cotton', 'Machine Washable', 'Size: 75cm x 150cm', 'High GSM for absorbency'],
     reviews: [],
-    rating: 0,
-    reviewCount: 0,
+    rating: 4.7,
+    reviewCount: 3,
   },
   {
     id: 6,
@@ -129,8 +133,8 @@ export const products: Product[] = [
     description: 'The perfect blend of comfort and elegance. This soft cotton dhoti is enhanced with a shimmering silk border.',
     details: ['100% Cotton with Silk Border', 'Hand Wash Recommended', '4 meters length'],
     reviews: [],
-    rating: 0,
-    reviewCount: 0,
+    rating: 4.6,
+    reviewCount: 4,
   },
    {
     id: 9,
@@ -168,6 +172,22 @@ export const getProductBySlug = (slug: string): Product | undefined => {
 
 export const getProductsByCategory = (categorySlug: string): Product[] => {
     if (!categorySlug || categorySlug === 'all') return products;
+
+    // Handle special slugs for filtered views
+    if (categorySlug === 'best-selling') {
+        // Mock logic: products with high rating, sorted by review count
+        return products.filter(p => (p.rating || 0) >= 4.5).sort((a,b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+    }
+    if (categorySlug === 'new-arrivals') {
+        // Mock logic: Sort by ID descending to get newest first
+        return [...products].sort((a, b) => b.id - a.id);
+    }
+    if (categorySlug === 'featured-products') {
+        // Mock logic: specific product IDs
+        const featuredIds = [1, 3, 7, 9];
+        return products.filter(p => featuredIds.includes(p.id));
+    }
+
     const category = categories.find(c => c.slug === categorySlug);
     if (!category) return [];
     return products.filter(p => p.category.id === category.id);

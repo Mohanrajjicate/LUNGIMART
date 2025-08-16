@@ -6,9 +6,9 @@ import ProductCard from '../components/ProductCard';
 const HomePage: React.FC = () => {
 
   const bestSellingProducts = products.slice(0, 8);
-  const mainCategories = categories.filter(c => !['all', 'all-products'].includes(c.slug));
+  const mainCategories = categories.filter(c => !['all', 'all-products', 'best-selling', 'new-arrivals', 'featured-products'].includes(c.slug));
 
-  const newArrivals = products.slice(-4).reverse();
+  const recentProducts = products.slice(-4).reverse();
   const featuredProductsData = products.filter(p => [1, 3, 7, 9].includes(p.id));
   const lungiProducts = getProductsByCategory('lungi').slice(0, 4);
   const dhotiProducts = getProductsByCategory('dhoti').slice(0, 4);
@@ -65,24 +65,24 @@ const HomePage: React.FC = () => {
             {bestSellingProducts.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
         <div className="text-center mt-12">
-            <Link to="/shop" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+            <Link to="/shop/best-selling" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
                 View All Best Sellers
             </Link>
         </div>
       </section>
 
-      {/* New Arrivals */}
+      {/* Recent Products */}
       <section>
         <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">New Arrivals</h2>
+            <h2 className="text-3xl font-bold text-slate-900">Recent Products</h2>
             <p className="text-slate-600 mt-2 max-w-lg mx-auto">Check out the latest additions to our collection.</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {newArrivals.map(p => <ProductCard key={p.id} product={p} />)}
+            {recentProducts.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
         <div className="text-center mt-12">
-            <Link to="/shop" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All New Products
+            <Link to="/shop/new-arrivals" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+                View All Recent Products
             </Link>
         </div>
       </section>
@@ -97,7 +97,7 @@ const HomePage: React.FC = () => {
             {featuredProductsData.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
         <div className="text-center mt-12">
-            <Link to="/shop" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+            <Link to="/shop/featured-products" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
                 View All Featured
             </Link>
         </div>
