@@ -1,12 +1,14 @@
+
 import { Product, Category, Review } from '../types';
 
 export const categories: Category[] = [
-  { id: 1, name: 'Lungis', slug: 'lungis' },
-  { id: 2, name: 'Dhotis', slug: 'dhotis' },
-  { id: 3, name: 'Cotton', slug: 'cotton' },
-  { id: 4, name: 'Silk Blend', slug: 'silk-blend' },
-  { id: 5, name: 'Checked', slug: 'checked' },
-  { id: 6, name: 'Plain', slug: 'plain' },
+  { id: 1, name: 'Lungi', slug: 'lungi', icon: 'https://picsum.photos/seed/lungi-cat/100/100' },
+  { id: 2, name: 'Dhoti', slug: 'dhoti', icon: 'https://picsum.photos/seed/dhoti-cat/100/100' },
+  { id: 3, name: 'Matching Sets', slug: 'matching-dhoti', icon: 'https://picsum.photos/seed/matching-cat/100/100' },
+  { id: 4, name: 'Political', slug: 'political-party', icon: 'https://picsum.photos/seed/political-cat/100/100' },
+  { id: 5, name: 'Towel', slug: 'towel', icon: 'https://picsum.photos/seed/towel-cat/100/100' },
+  { id: 6, name: 'Wedding', slug: 'wedding', icon: 'https://picsum.photos/seed/wedding-cat/100/100' },
+  { id: 7, name: 'Casual Wear', slug: 'casual-wear', icon: 'https://picsum.photos/seed/casual-cat/100/100' },
 ];
 
 const getCategory = (slug: string): Category => {
@@ -14,118 +16,106 @@ const getCategory = (slug: string): Category => {
 };
 
 const reviews: Review[] = [
-    { id: 1, author: 'Suresh P.', rating: 5, comment: 'Excellent quality cotton, very comfortable for daily wear.' },
-    { id: 2, author: 'Rajesh K.', rating: 4, comment: 'Good value for money. The colors have not faded after many washes.' },
-    { id: 3, author: 'Anand V.', rating: 5, comment: 'Soft material, authentic Komarapalayam weave. Highly recommended!' },
+    { id: 1, author: 'Ramesh K.', rating: 5, comment: 'Excellent quality and very comfortable.' },
+    { id: 2, author: 'Suresh P.', rating: 4, comment: 'Good value for money. Color is vibrant.' },
+    { id: 3, author: 'Anitha', rating: 5, comment: 'Soft material, my husband loves it!' },
 ];
-
-export const availableColors = [
-    { name: 'Royal Blue', hex: '#4169E1' },
-    { name: 'Maroon', hex: '#800000' },
-    { name: 'Forest Green', hex: '#228B22' },
-    { name: 'Saffron Yellow', hex: '#F4C430' },
-    { name: 'Classic White', hex: '#FFFFFF' },
-    { name: 'Deep Black', hex: '#000000' },
-];
-
-export const availableSizes = ['2m', '2.25m', 'Free Size'];
 
 export const products: Product[] = [
   {
     id: 1,
-    name: 'Classic Checked Lungi',
-    slug: 'classic-checked-lungi',
-    category: getCategory('lungis'),
-    price: 8.00, // Prices in USD for consistency
-    originalPrice: 10.00,
-    images: ['https://i.imgur.com/gZ9a4bH.jpg'],
-    description: 'A timeless checked lungi made from high-quality, breathable cotton. Perfect for daily comfort and traditional style.',
-    details: ['100% Cotton', 'Machine Washable', '2.25 meters length'],
+    name: 'Classic Checkered Lungi',
+    slug: 'classic-checkered-lungi',
+    category: getCategory('lungi'),
+    price: 499,
+    originalPrice: 799,
+    images: ['https://picsum.photos/seed/product1/800/800', 'https://picsum.photos/seed/product1-2/800/800', 'https://picsum.photos/seed/product1-3/800/800'],
+    description: 'A timeless classic, this checkered lungi is made from 100% pure Komarapalayam cotton, known for its softness and durability. Perfect for daily wear.',
+    details: ['100% Cotton', 'Machine Washable', '2.25 meters length', 'Colorfast guarantee'],
     reviews: reviews.slice(0, 2),
-    colors: [availableColors[0], availableColors[1], availableColors[2]],
-    sizes: [availableSizes[1]],
-    rating: 4.8,
-    reviewCount: 152
   },
   {
     id: 2,
-    name: 'Pure Cotton Dhoti',
-    slug: 'pure-cotton-dhoti',
-    category: getCategory('dhotis'),
-    price: 12.00,
-    originalPrice: 15.00,
-    images: ['https://i.imgur.com/K12aZ0i.jpg'],
-    description: 'A comfortable and elegant pure cotton dhoti, ideal for religious ceremonies and traditional events.',
-    details: ['100% Mercerised Cotton', 'Hand Wash Recommended'],
+    name: 'Pure White Temple Dhoti',
+    slug: 'pure-white-temple-dhoti',
+    category: getCategory('dhoti'),
+    price: 899,
+    originalPrice: 1199,
+    images: ['https://picsum.photos/seed/product2/800/800', 'https://picsum.photos/seed/product2-2/800/800'],
+    description: 'Feel divine in our pure white temple dhoti. Woven with care and precision, it offers unparalleled comfort and a graceful drape for all your spiritual occasions.',
+    details: ['Premium Weave Cotton', 'Hand Wash Recommended', '4 meters length', 'Slightly starched for a crisp look'],
     reviews: [reviews[2]],
-    colors: [availableColors[4]],
-    sizes: ['Free Size'],
-    rating: 4.9,
-    reviewCount: 98
   },
   {
     id: 3,
-    name: 'Komarapalayam Silk Lungi',
-    slug: 'komarapalayam-silk-lungi',
-    category: getCategory('lungis'),
-    price: 25.00,
-    originalPrice: 30.00,
-    images: ['https://i.imgur.com/Wv2JB2E.jpg'],
-    description: 'Experience luxury with our authentic Komarapalayam silk blend lungi, featuring intricate patterns and a rich texture.',
-    details: ['70% Silk, 30% Cotton', 'Dry Clean Only', '2.25 meters length'],
+    name: 'Silk Matching Dhoti Set',
+    slug: 'silk-matching-dhoti-set',
+    category: getCategory('matching-dhoti'),
+    price: 1599,
+    originalPrice: 2199,
+    images: ['https://picsum.photos/seed/product3/800/800', 'https://picsum.photos/seed/product3-2/800/800'],
+    description: 'Elevate your traditional attire with this exquisite silk-blend matching dhoti and angavastram set. Features a beautiful golden border for a regal touch.',
+    details: ['Silk-Cotton Blend', 'Dry Clean Only', 'Dhoti: 4m, Angavastram: 2.5m', 'Intricate Zari Border'],
     reviews: [],
-    colors: [availableColors[1], availableColors[3]],
-    sizes: [availableSizes[1]],
-    rating: 4.9,
-    reviewCount: 75
   },
   {
     id: 4,
-    name: 'Plain Colored Lungi',
-    slug: 'plain-colored-lungi',
-    category: getCategory('lungis'),
-    price: 7.00,
-    originalPrice: 9.00,
-    images: ['https://i.imgur.com/pWp8Lzv.jpg'],
-    description: 'A versatile and comfortable plain colored lungi for everyday use. Made from soft, durable cotton.',
-    details: ['100% Cotton', 'Machine Washable', '2 meters length'],
+    name: 'Party Flag Border Dhoti',
+    slug: 'party-flag-border-dhoti',
+    category: getCategory('political-party'),
+    price: 650,
+    originalPrice: 800,
+    images: ['https://picsum.photos/seed/product4/800/800', 'https://picsum.photos/seed/product4-2/800/800'],
+    description: 'Show your support with our special edition political party dhoti. Made with durable cotton and featuring the iconic party colors on the border.',
+    details: ['100% Cotton', 'Bold Color Border', 'Ideal for rallies and events', 'Comfortable for long hours'],
     reviews: [reviews[0]],
-    colors: [availableColors[2], availableColors[0]],
-    sizes: [availableSizes[0]],
-    rating: 4.7,
-    reviewCount: 210
   },
   {
     id: 5,
-    name: 'Silk Blend Angavastram',
-    slug: 'silk-blend-angavastram',
-    category: getCategory('dhotis'),
-    price: 18.00,
-    originalPrice: 22.00,
-    images: ['https://i.imgur.com/mJ3r8pM.jpg'],
-    description: 'A matching silk blend angavastram to complete your traditional attire. Features a simple gold border.',
-    details: ['50% Silk, 50% Cotton', 'Gentle Wash'],
+    name: 'Ultra Absorbent Bath Towel',
+    slug: 'ultra-absorbent-bath-towel',
+    category: getCategory('towel'),
+    price: 350,
+    originalPrice: 500,
+    images: ['https://picsum.photos/seed/product5/800/800'],
+    description: 'Experience the softness of Komarapalayam cotton with our ultra-absorbent bath towels. Quick-drying and incredibly soft on the skin.',
+    details: ['100% Terry Cotton', 'High GSM for absorbency', 'Size: 75cm x 150cm', 'Available in multiple colors'],
     reviews: [],
-    colors: [availableColors[4]],
-    sizes: ['Free Size'],
-    rating: 4.8,
-    reviewCount: 64
   },
    {
     id: 6,
-    name: 'Maroon Striped Lungi',
-    slug: 'maroon-striped-lungi',
-    category: getCategory('lungis'),
-    price: 9.00,
-    originalPrice: 11.00,
-    images: ['https://i.imgur.com/c6kln3I.jpg'],
-    description: 'An elegant maroon lungi with subtle stripes, crafted from fine cotton for a comfortable fit.',
-    details: ['100% Cotton', 'Machine Washable', '2.25 meters length'],
+    name: 'Striped Casual Lungi',
+    slug: 'striped-casual-lungi',
+    category: getCategory('casual-wear'),
+    price: 550,
+    originalPrice: 699,
+    images: ['https://picsum.photos/seed/product6/800/800', 'https://picsum.photos/seed/product6-2/800/800'],
+    description: 'A modern take on the traditional lungi with stylish stripes. Perfect for lounging at home or a casual outing.',
+    details: ['100% Cotton', 'Machine Washable', '2.25 meters length', 'Modern striped pattern'],
     reviews: [reviews[1]],
-    colors: [availableColors[1]],
-    sizes: [availableSizes[1]],
-    rating: 4.9,
-    reviewCount: 88
+  },
+  {
+    id: 7,
+    name: 'Gold Border Wedding Dhoti',
+    slug: 'gold-border-wedding-dhoti',
+    category: getCategory('wedding'),
+    price: 1299,
+    originalPrice: 1799,
+    images: ['https://picsum.photos/seed/product7/800/800'],
+    description: 'A premium dhoti for weddings and special functions. The rich gold border adds a touch of grandeur to your look.',
+    details: ['Premium Cotton', 'Hand Wash', '4.5 meters length', 'Wide gold zari border'],
+    reviews: [],
+  },
+  {
+    id: 8,
+    name: 'DMK Flag Border Dhoti',
+    slug: 'dmk-flag-border-dhoti',
+    category: getCategory('political-party'),
+    price: 650,
+    images: ['https://picsum.photos/seed/product8/800/800', 'https://picsum.photos/seed/product8-2/800/800'],
+    description: 'Show your support for the DMK party with this dhoti featuring their signature black and red border. Made for comfort during campaigns.',
+    details: ['100% Cotton', 'Black & Red Border', 'Ideal for party meetings', 'Breathable fabric'],
+    reviews: [],
   },
 ];
 
@@ -140,9 +130,6 @@ export const getProductsByCategory = (categorySlug: string): Product[] => {
     return products.filter(p => p.category.id === category.id);
 }
 
-export const getRelatedProducts = (currentProductSlug: string): Product[] => {
-    const currentProduct = getProductBySlug(currentProductSlug);
-    if (!currentProduct) return products.slice(0, 4);
-
-    return products.filter(p => p.category.id === currentProduct.category.id && p.slug !== currentProductSlug).slice(0, 4);
+export const getRelatedProducts = (currentProductId: number): Product[] => {
+    return products.filter(p => p.id !== currentProductId).slice(0, 4);
 }

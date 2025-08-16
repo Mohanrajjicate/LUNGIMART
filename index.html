@@ -4,13 +4,17 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LungiMart.in - Traditional Indian Wear</title>
+    <title>LungiMart.in - Traditional Wear from Komarapalayam</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Swiper JS -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -18,22 +22,19 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Hind', 'sans-serif'],
+            sans: ['Poppins', 'sans-serif'],
           },
           colors: {
             primary: {
-              DEFAULT: '#1E2A4A', // Deep Indigo
+              DEFAULT: '#0A68FF',
+              dark: '#0052CC'
             },
             secondary: {
-              DEFAULT: '#555555', // Medium Gray
+              DEFAULT: '#1F2937', // Dark Gray for text
+              light: '#6B7280', // Lighter Gray for subtitles
             },
-            accent: {
-              DEFAULT: '#FF9933', // Saffron
-              dark: '#E68A2E'
-            },
-            background: '#FEFDFB', // Warm Off-white
-            surface: '#F7F5F2', // Light cream for surfaces
-            'light-border': '#EAEAEA',
+            'light-bg': '#F9FAFB', // Very light gray for page background
+            'light-border': '#E5E7EB',
           },
         }
       }
@@ -44,15 +45,15 @@
   "imports": {
     "swiper/": "https://esm.sh/swiper@^11.2.10/",
     "swiper": "https://esm.sh/swiper@^11.2.10",
-    "react/": "https://esm.sh/react@^18.2.0/",
-    "react": "https://esm.sh/react@^18.2.0",
-    "react-dom/": "https://esm.sh/react-dom@^18.2.0/",
-    "react-router-dom": "https://esm.sh/react-router-dom@^6.23.1"
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "react": "https://esm.sh/react@^19.1.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.8.0"
   }
 }
 </script>
 </head>
-<body class="bg-background text-primary">
+<body class="bg-light-bg text-secondary">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

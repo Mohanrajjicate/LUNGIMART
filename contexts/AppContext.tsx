@@ -6,9 +6,9 @@ interface AppContextType {
   cart: CartItem[];
   wishlist: Product[];
   user: User | null;
-  addToCart: (product: Product, quantity: number, color: { name: string; hex: string }, size: string) => void;
-  removeFromCart: (productId: number, size: string, color: string) => void;
-  updateQuantity: (productId: number, size: string, color: string, quantity: number) => void;
+  addToCart: (product: Product, quantity?: number) => void;
+  removeFromCart: (productId: number) => void;
+  updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
@@ -48,31 +48,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     localStorage.setItem('user', JSON.stringify(user));
   }, [user]);
 
-  const addToCart = (product: Product, quantity: number, color: { name: string; hex: string }, size: string) => {
+  const addToCart = (product: Product, quantity = 1) => {
     setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id && item.size === size && item.color.name === color.name);
+      const existingItem = prevCart.find(item => item.id === product.id);
       if (existingItem) {
         return prevCart.map(item =>
-          (item.id === product.id && item.size === size && item.color.name === color.name)
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
+          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      return [...prevCart, { ...product, quantity, color, size }];
+      return [...prevCart, { ...product, quantity }];
     });
   };
 
-  const removeFromCart = (productId: number, size: string, colorName: string) => {
-    setCart(prevCart => prevCart.filter(item => !(item.id === productId && item.size === size && item.color.name === colorName)));
+  const removeFromCart = (productId: number) => {
+    setCart(prevCart => prevCart.filter(item => item.id !== productId));
   };
 
-  const updateQuantity = (productId: number, size: string, colorName: string, quantity: number) => {
+  const updateQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(productId, size, colorName);
+      removeFromCart(productId);
     } else {
       setCart(prevCart =>
         prevCart.map(item =>
-          (item.id === productId && item.size === size && item.color.name === colorName) ? { ...item, quantity } : item
+          item.id === productId ? { ...item, quantity } : item
         )
       );
     }

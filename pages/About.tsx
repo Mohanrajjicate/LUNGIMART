@@ -2,36 +2,36 @@ import React from 'react';
 
 const AboutPage: React.FC = () => {
   return (
-    <div className="bg-background py-12">
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-center text-primary mb-4">Our Story</h1>
-        <p className="text-lg text-center text-secondary mb-12">Weaving tradition into everyday life, from the looms of Komarapalayam.</p>
+    <div className="bg-white p-6 sm:p-8 lg:p-12 rounded-lg shadow-sm">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-extrabold text-center text-secondary mb-6">Our Story</h1>
+        <p className="text-lg text-center text-secondary-light mb-12">From the looms of Komarapalayam to your wardrobe.</p>
         
         <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden">
-                <img src="https://i.imgur.com/3ZIVgAm.jpg" alt="A weaver at a loom" className="object-cover w-full h-full"/>
+                <img src="https://picsum.photos/seed/about/600/450" alt="Loom in Komarapalayam" className="object-cover w-full h-full"/>
             </div>
             <div>
-                <h2 className="text-2xl font-bold text-primary mb-4">The Heritage of LungiMart.in</h2>
-                <p className="text-secondary leading-relaxed">
-                    LungiMart.in was born from a deep respect for the rich weaving traditions of Komarapalayam, a town renowned for its textile mastery. We are more than just a store; we are a bridge connecting the skilled artisans of our hometown to the world, bringing you authentic, comfortable, and high-quality lungis and dhotis.
+                <h2 className="text-2xl font-bold text-primary mb-4">The Heritage of Komarapalayam</h2>
+                <p className="text-secondary-light leading-relaxed">
+                    Nestled on the banks of the Kaveri river, Komarapalayam is a town renowned for its vibrant textile industry. For generations, weavers in this town have perfected the art of creating high-quality lungis, dhotis, and towels. The rhythmic clatter of looms is the heartbeat of our town, a sound that signifies a legacy of craftsmanship passed down through families.
                 </p>
             </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12 items-center mt-16">
-            <div className="md:order-2 rounded-lg overflow-hidden">
-                 <div className="aspect-w-4 aspect-h-3">
-                    <img src="https://i.imgur.com/K12aZ0i.jpg" alt="Folded dhotis" className="object-cover w-full h-full"/>
+            <div className="md:order-2">
+                 <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden">
+                    <img src="https://picsum.photos/seed/about2/600/450" alt="Colorful textiles" className="object-cover w-full h-full"/>
                  </div>
             </div>
             <div className="md:order-1">
-                <h2 className="text-2xl font-bold text-primary mb-4">Our Mission</h2>
-                <p className="text-secondary leading-relaxed mb-4">
-                   Our mission is to preserve and promote the timeless craft of handloom weaving. We work directly with local weavers, ensuring they receive fair compensation for their incredible skill. We aim to make traditional Indian wear accessible, stylish, and an integral part of modern wardrobes.
+                <h2 className="text-2xl font-bold text-primary mb-4">LungiMart.in's Mission</h2>
+                <p className="text-secondary-light leading-relaxed mb-4">
+                   LungiMart.in was born from a desire to bring this rich heritage to the world. We work directly with local weavers, ensuring they receive fair prices for their incredible skill. Our mission is to bridge the gap between traditional artisans and modern consumers, making authentic, high-quality traditional wear accessible to everyone.
                 </p>
-                <p className="text-secondary leading-relaxed">
-                    Every piece you purchase from LungiMart.in is an investment in sustainable livelihoods and helps keep a beautiful cultural heritage alive for generations to come.
+                <p className="text-secondary-light leading-relaxed">
+                    Every product you purchase from us supports a local weaver and helps keep this beautiful tradition alive. We stand for quality, comfort, and culture.
                 </p>
             </div>
         </div>
