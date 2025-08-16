@@ -9,12 +9,8 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Swiper JS -->
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -22,25 +18,25 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Hind', 'sans-serif'],
+            sans: ['Inter', 'sans-serif'],
           },
           colors: {
             primary: {
-              DEFAULT: '#4F46E5', // Indigo
-              dark: '#3730A3'
+              DEFAULT: '#2563EB', // Blue 600
+              dark: '#1D4ED8' // Blue 700
             },
-            accent: {
-              DEFAULT: '#F97316', // Saffron/Orange
-              dark: '#EA580C'
+            slate: {
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
             },
-            light: {
-              DEFAULT: '#F9FAFB', // Very light gray background
-              '200': '#F3F4F6',
-            },
-            dark: {
-              'DEFAULT': '#1F2937',
-              'light': '#4B5563'
-            }
+            light: '#f8fafc', // Slate 50
           },
         }
       }
@@ -49,8 +45,6 @@
 <script type="importmap">
 {
   "imports": {
-    "swiper/": "https://esm.sh/swiper@^11.2.10/",
-    "swiper": "https://esm.sh/swiper@^11.2.10",
     "react/": "https://esm.sh/react@^18.2.0/",
     "react": "https://esm.sh/react@^18.2.0",
     "react-dom/": "https://esm.sh/react-dom@^18.2.0/",
@@ -59,7 +53,7 @@
 }
 </script>
 </head>
-<body class="bg-light text-dark-light">
+<body class="bg-light text-slate-700">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
