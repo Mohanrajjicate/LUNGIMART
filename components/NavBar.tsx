@@ -11,7 +11,7 @@ const NavBar: React.FC = () => {
         <div className="flex h-20 items-center justify-between">
           <div className="flex-shrink-0">
             <Link to="/" className="text-2xl font-bold tracking-tight text-slate-900">
-              StyleCrafted
+              LungiMart.in
             </Link>
           </div>
           

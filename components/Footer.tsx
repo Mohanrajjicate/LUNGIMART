@@ -13,20 +13,20 @@ const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8">
           <div className="md:col-span-2 lg:col-span-5">
-            <h3 className="text-2xl font-bold text-slate-900">StyleCrafted</h3>
+            <h3 className="text-2xl font-bold text-slate-900">LungiMart.in</h3>
             <div className="mt-8 space-y-2 text-sm">
                 <FooterLink to="/about">About Us</FooterLink>
-                <FooterLink to="#">Support</FooterLink>
-                <FooterLink to="#">Contact Us</FooterLink>
-                <FooterLink to="#">FAQ</FooterLink>
-                <FooterLink to="/quiet-zone">Help</FooterLink>
+                <FooterLink to="/shop">Shop</FooterLink>
+                <FooterLink to="/bulk-order">Bulk Orders</FooterLink>
+                <FooterLink to="/political-party">Political Party Wear</FooterLink>
+                <FooterLink to="/quiet-zone">Quiet Zone</FooterLink>
             </div>
           </div>
           
           <div className="lg:col-span-6 lg:col-start-7">
             <h4 className="font-semibold text-slate-900 mb-4 tracking-wider">Subscribe</h4>
             <p className="text-slate-500 text-sm mb-4">
-              By subscribing you agree to our Privacy Policy
+              Get updates on new arrivals and special offers.
             </p>
             <form className="flex items-center border border-slate-300 rounded-lg overflow-hidden max-w-sm mt-6">
               <input type="email" placeholder="Enter your email" className="bg-transparent px-4 py-2.5 w-full text-slate-700 placeholder-slate-400 focus:outline-none text-sm" />
@@ -42,7 +42,7 @@ const Footer: React.FC = () => {
             <Link to="#" className="text-slate-500 hover:text-primary">Cookies Settings</Link>
           </div>
           <p className="text-sm text-slate-400 text-center mt-4 sm:mt-0">
-            &copy; {new Date().getFullYear()} Clothshop. All rights reserved.
+            &copy; {new Date().getFullYear()} LungiMart.in. All rights reserved.
           </p>
         </div>
       </div>
