@@ -12,7 +12,6 @@ export interface Product {
   reviews: Review[];
   rating?: number;
   reviewCount?: number;
-  gender: 'Men' | 'Women' | 'Kids' | 'Unisex';
 }
 
 export interface Category {
@@ -20,6 +19,7 @@ export interface Category {
   name: string;
   slug: string;
   icon?: string;
+  image?: string;
 }
 
 export interface Review {

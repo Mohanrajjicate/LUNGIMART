@@ -9,7 +9,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Swiper JS -->
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
@@ -22,19 +22,25 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Poppins', 'sans-serif'],
+            sans: ['Hind', 'sans-serif'],
           },
           colors: {
             primary: {
-              DEFAULT: '#1a1a1a', // Dark Gray / Near Black
-              dark: '#000000'
+              DEFAULT: '#4F46E5', // Indigo
+              dark: '#3730A3'
             },
-            secondary: {
-              DEFAULT: '#333333', // Darker text
-              light: '#666666', // Lighter text
+            accent: {
+              DEFAULT: '#F97316', // Saffron/Orange
+              dark: '#EA580C'
             },
-            'light-bg': '#f5f5f5',
-            'light-border': '#e5e5e5',
+            light: {
+              DEFAULT: '#F9FAFB', // Very light gray background
+              '200': '#F3F4F6',
+            },
+            dark: {
+              'DEFAULT': '#1F2937',
+              'light': '#4B5563'
+            }
           },
         }
       }
@@ -53,7 +59,7 @@
 }
 </script>
 </head>
-<body class="bg-light-bg text-secondary">
+<body class="bg-light text-dark-light">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
