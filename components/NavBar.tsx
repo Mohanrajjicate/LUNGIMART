@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -26,23 +25,23 @@ const NavBar: React.FC = () => {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm shadow-sm">
+    <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm shadow-sm">
       <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="text-2xl font-bold text-primary tracking-wide">
-              SilkStitch
+              LungiMart.in
             </Link>
           </div>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center space-x-8">
              <NavItem to="/">Home</NavItem>
-             <NavItem to="/shop" hasDropdown>Shop</NavItem>
+             <NavItem to="/shop/lungis">Lungis</NavItem>
+             <NavItem to="/shop/dhotis">Dhotis</NavItem>
              <NavItem to="/about">About Us</NavItem>
-             <NavItem to="/blog">Blog</NavItem>
-             <NavItem to="/contact">Contact Us</NavItem>
+             <NavItem to="/contact">Contact</NavItem>
           </nav>
           
           {/* Right Icons */}
@@ -85,7 +84,8 @@ const NavBar: React.FC = () => {
               <h2 className="text-xl font-bold text-primary mb-6">Menu</h2>
               <nav className="flex flex-col space-y-4">
                   <NavLink to="/" onClick={closeMobileMenu} className={({isActive}) => `font-medium ${isActive ? 'text-primary' : 'text-secondary'}`}>Home</NavLink>
-                  <NavLink to="/shop" onClick={closeMobileMenu} className={({isActive}) => `font-medium ${isActive ? 'text-primary' : 'text-secondary'}`}>Shop</NavLink>
+                  <NavLink to="/shop/lungis" onClick={closeMobileMenu} className={({isActive}) => `font-medium ${isActive ? 'text-primary' : 'text-secondary'}`}>Lungis</NavLink>
+                  <NavLink to="/shop/dhotis" onClick={closeMobileMenu} className={({isActive}) => `font-medium ${isActive ? 'text-primary' : 'text-secondary'}`}>Dhotis</NavLink>
                   <NavLink to="/about" onClick={closeMobileMenu} className={({isActive}) => `font-medium ${isActive ? 'text-primary' : 'text-secondary'}`}>About Us</NavLink>
                   <NavLink to="/profile" onClick={closeMobileMenu} className={({isActive}) => `font-medium ${isActive ? 'text-primary' : 'text-secondary'}`}>Account</NavLink>
                   <NavLink to="/contact" onClick={closeMobileMenu} className={({isActive}) => `font-medium ${isActive ? 'text-primary' : 'text-secondary'}`}>Contact</NavLink>

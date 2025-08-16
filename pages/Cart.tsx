@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -8,7 +7,7 @@ import ProductCard from '../components/ProductCard';
 const CartPage: React.FC = () => {
   const { cart, updateQuantity, removeFromCart, cartTotal } = useAppContext();
   
-  const relatedProducts = getRelatedProducts(cart[0]?.slug || 'classy-light-coat');
+  const relatedProducts = getRelatedProducts(cart[0]?.slug || 'classic-checked-lungi');
 
   if (cart.length === 0) {
     return (

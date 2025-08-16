@@ -1,16 +1,7 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { products, categories, availableColors, availableSizes } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
-
-const PRICE_RANGES = [
-    { min: 0, max: 50, label: '$0 - $50' },
-    { min: 50, max: 100, label: '$50 - $100' },
-    { min: 100, max: 200, label: '$100 - $200' },
-    { min: 200, max: 500, label: '$200 - $500' },
-    { min: 500, max: 1000, label: '$500+' },
-];
 
 const ITEMS_PER_PAGE = 9;
 
@@ -18,7 +9,7 @@ const ShopPage: React.FC = () => {
     const { categorySlug } = useParams<{ categorySlug?: string }>();
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 1000 });
+    const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 100 });
     const [selectedColors, setSelectedColors] = useState<string[]>([]);
     const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
     const [sortOption, setSortOption] = useState('newest');
@@ -26,6 +17,7 @@ const ShopPage: React.FC = () => {
 
     useEffect(() => {
         setSelectedCategories(categorySlug ? [categorySlug] : []);
+        setCurrentPage(1);
     }, [categorySlug]);
 
     const handleCategoryChange = (slug: string) => {
@@ -42,14 +34,14 @@ const ShopPage: React.FC = () => {
     
     const clearFilters = () => {
         setSelectedCategories([]);
-        setPriceRange({ min: 0, max: 1000});
+        setPriceRange({ min: 0, max: 100});
         setSelectedColors([]);
         setSelectedSizes([]);
     };
 
     const filteredAndSortedProducts = useMemo(() => {
         let filtered = products.filter(product => {
-            const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(product.category.slug);
+            const categoryMatch = selectedCategories.length === 0 || selectedCategories.some(slug => product.category.slug === slug);
             const priceMatch = product.price >= priceRange.min && product.price <= priceRange.max;
             const colorMatch = selectedColors.length === 0 || selectedColors.some(color => product.colors.map(c => c.name).includes(color));
             const sizeMatch = selectedSizes.length === 0 || selectedSizes.some(size => product.sizes.includes(size));
@@ -69,10 +61,10 @@ const ShopPage: React.FC = () => {
     const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE);
     const paginatedProducts = filteredAndSortedProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-    const activeFiltersCount = selectedCategories.length + selectedColors.length + selectedSizes.length + (priceRange.min !== 0 || priceRange.max !== 1000 ? 1 : 0);
+    const activeFiltersCount = selectedCategories.length + selectedColors.length + selectedSizes.length + (priceRange.min !== 0 || priceRange.max !== 100 ? 1 : 0);
 
     const FilterPill: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
-        <span className="flex items-center bg-gray-800 text-white text-xs font-medium px-3 py-1 rounded-full">
+        <span className="flex items-center bg-primary text-white text-xs font-medium px-3 py-1 rounded-full">
             {label}
             <button onClick={onRemove} className="ml-2 text-white hover:text-gray-300">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -83,7 +75,7 @@ const ShopPage: React.FC = () => {
     return (
         <div>
             <div className="text-center bg-surface py-12 px-4 rounded-md">
-                <h1 className="text-4xl font-bold text-primary">All Product</h1>
+                <h1 className="text-4xl font-bold text-primary">Our Finest Collection</h1>
                 <div className="text-sm text-secondary mt-2">
                     <Link to="/" className="hover:text-primary">Home</Link> / <span>Shop</span>
                 </div>
@@ -160,7 +152,7 @@ const ShopPage: React.FC = () => {
                             })}
                             {selectedColors.map(color => <FilterPill key={color} label={color} onRemove={() => handleColorChange(color)} />)}
                             {selectedSizes.map(size => <FilterPill key={size} label={size} onRemove={() => handleSizeChange(size)} />)}
-                             {(priceRange.min !== 0 || priceRange.max !== 1000) && <FilterPill label={`$${priceRange.min} - $${priceRange.max}`} onRemove={() => setPriceRange({min:0, max:1000})} />}
+                             {(priceRange.min !== 0 || priceRange.max !== 100) && <FilterPill label={`$${priceRange.min} - $${priceRange.max}`} onRemove={() => setPriceRange({min:0, max:100})} />}
                             <button onClick={clearFilters} className="text-sm text-accent hover:underline">Clear All</button>
                         </div>
                     )}

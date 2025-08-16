@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductBySlug, getRelatedProducts } from '../services/mockData';
@@ -142,7 +141,7 @@ const ProductDetailPage: React.FC = () => {
                     <p>{product.description}</p>
                 </AccordionItem>
                 <AccordionItem title="Shipping & Returns">
-                    <p>Free standard shipping on orders over $100. Express shipping available. We accept returns within 30 days of delivery. Please see our full policy for details.</p>
+                    <p>Standard shipping across India. We accept returns within 15 days of delivery. Please see our full policy for details.</p>
                 </AccordionItem>
                 <AccordionItem title="Details">
                     <ul className="list-disc list-inside space-y-2">

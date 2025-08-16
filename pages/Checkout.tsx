@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -10,7 +9,7 @@ const CheckoutPage: React.FC = () => {
   const handlePayNow = (e: React.FormEvent) => {
     e.preventDefault();
     // Simulate payment success
-    alert('Successful Payment!');
+    alert('Payment Successful! Thank you for your order.');
     clearCart();
     navigate('/');
   };

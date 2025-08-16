@@ -1,12 +1,11 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { Order } from '../types';
 import ProductCard from '../components/ProductCard';
 
 const mockOrders: Order[] = [
-  { id: 'SS-1024', date: '2023-10-15', total: 139.80, status: 'Delivered', items: [] },
-  { id: 'SS-1021', date: '2023-09-28', total: 65.00, status: 'Delivered', items: [] },
+  { id: 'LM-1024', date: '2023-10-15', total: 18.00, status: 'Delivered', items: [] },
+  { id: 'LM-1021', date: '2023-09-28', total: 12.00, status: 'Delivered', items: [] },
 ];
 
 const LoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
@@ -89,9 +88,9 @@ const ProfilePage: React.FC = () => {
                <h3 className="text-xl font-bold text-primary mb-4">Address Book</h3>
                <div className="space-y-1 text-secondary">
                     <p className="font-semibold text-primary">{user.name}</p>
-                    <p>123 Fashion Ave</p>
-                    <p>New York, NY</p>
-                    <p>USA, 10001</p>
+                    <p>123 Weavers Colony</p>
+                    <p>Komarapalayam, Tamil Nadu</p>
+                    <p>India, 638183</p>
                </div>
             </div>
         );
