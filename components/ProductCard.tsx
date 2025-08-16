@@ -1,39 +1,49 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types';
+import { useAppContext } from '../contexts/AppContext';
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const { toggleWishlist, isInWishlist } = useAppContext();
   const hasDiscount = product.originalPrice && product.originalPrice > product.price;
-  const discount = hasDiscount ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) : 0;
-  const saveAmount = hasDiscount ? (product.originalPrice! - product.price).toFixed(2) : '0';
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product);
+  }
 
   return (
-    <Link to={`/product/${product.slug}`} className="group block overflow-hidden bg-white rounded-lg border border-light-border/80 hover:shadow-lg transition-shadow duration-300">
-      <div className="relative p-2">
-        <div className="aspect-w-1 aspect-h-1 bg-gray-100 rounded-md overflow-hidden">
-          <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105" />
-        </div>
-        {hasDiscount && (
-          <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-2 py-1 rounded-md z-10">
-            {discount}% OFF
-          </div>
-        )}
+    <Link to={`/product/${product.slug}`} className="group block bg-white">
+      <div className="relative overflow-hidden border border-light-border">
+        <img 
+          src={product.images[0]} 
+          alt={product.name} 
+          className="h-auto w-full object-cover transition-transform duration-300 group-hover:scale-105 aspect-[4/5]" 
+        />
+        <button 
+          onClick={handleWishlistToggle}
+          className="absolute top-3 right-3 p-2 bg-white/80 rounded-full hover:bg-white transition-colors z-10"
+          aria-label="Toggle Wishlist"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-secondary" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+        </button>
       </div>
 
-      <div className="px-4 pb-4">
-        <h3 className="text-sm font-medium text-secondary truncate">
+      <div className="pt-4 text-center">
+        <h3 className="text-sm font-semibold text-secondary truncate">
           {product.name}
         </h3>
-        <div className="mt-2">
-            <div className="flex items-baseline gap-2">
-                <p className="text-lg font-bold text-secondary">₹{product.price}</p>
-                {hasDiscount && <p className="text-sm text-secondary-light line-through">₹{product.originalPrice}</p>}
-            </div>
-            {hasDiscount && <p className="mt-1 text-sm text-green-600 font-medium">Save ₹{saveAmount}</p>}
+        <p className="text-xs text-secondary-light mt-1">MRP inclusive of all Taxes</p>
+        <div className="mt-2 flex items-baseline justify-center gap-2">
+            <p className="text-md font-bold text-secondary">₹{product.price.toFixed(2)}</p>
+            {hasDiscount && <p className="text-sm text-secondary-light line-through">₹{product.originalPrice?.toFixed(2)}</p>}
         </div>
       </div>
     </Link>

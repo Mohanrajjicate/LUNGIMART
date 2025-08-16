@@ -10,13 +10,16 @@ export interface Product {
   description: string;
   details: string[];
   reviews: Review[];
+  rating?: number;
+  reviewCount?: number;
+  gender: 'Men' | 'Women' | 'Kids' | 'Unisex';
 }
 
 export interface Category {
   id: number;
   name: string;
   slug: string;
-  icon: string;
+  icon?: string;
 }
 
 export interface Review {

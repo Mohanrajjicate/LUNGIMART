@@ -10,8 +10,6 @@ import ProductDetailPage from './pages/ProductDetail';
 import CartPage from './pages/Cart';
 import ProfilePage from './pages/Profile';
 import AboutPage from './pages/About';
-import BulkOrderPage from './pages/BulkOrder';
-import PoliticalPartyPage from './pages/PoliticalParty';
 
 const App: React.FC = () => {
   return (
@@ -26,8 +24,6 @@ const App: React.FC = () => {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/about" element={<AboutPage />} />
-            <Route path="/bulk-order" element={<BulkOrderPage />} />
-            <Route path="/political-party" element={<PoliticalPartyPage />} />
           </Routes>
         </Layout>
       </HashRouter>

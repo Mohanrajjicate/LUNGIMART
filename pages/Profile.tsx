@@ -10,19 +10,19 @@ const mockOrders: Order[] = [
 
 const LoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
   return (
-    <div className="w-full max-w-sm mx-auto bg-white p-8 rounded-lg shadow-md">
+    <div className="w-full max-w-sm mx-auto bg-white p-8">
         <h2 className="text-2xl font-bold text-center text-secondary mb-2">Welcome Back!</h2>
         <p className="text-center text-secondary-light mb-6">Log in to manage your account.</p>
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onLogin(); }}>
             <div>
                 <label className="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" defaultValue="customer@example.com" />
+                <input type="email" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary/20" defaultValue="customer@example.com" />
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" defaultValue="password" />
+                <input type="password" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary/20" defaultValue="password" />
             </div>
-            <button type="submit" className="w-full bg-primary text-white font-bold py-2 px-4 rounded-md hover:bg-primary-dark transition-colors">
+            <button type="submit" className="w-full bg-primary text-white font-bold py-2.5 px-4 rounded-full hover:bg-secondary transition-colors">
                 Log In
             </button>
             <p className="text-center text-sm text-gray-500">Don't have an account? <a href="#" className="font-medium text-primary hover:underline">Sign Up</a></p>
@@ -50,7 +50,7 @@ const ProfilePage: React.FC = () => {
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-secondary mb-4">Order History</h2>
             {mockOrders.map(order => (
-                <div key={order.id} className="bg-white p-4 rounded-lg shadow-sm border">
+                <div key={order.id} className="bg-white p-4 rounded-lg border">
                     <div className="flex flex-wrap justify-between items-center gap-4">
                         <div>
                             <p className="font-bold text-secondary">Order ID: {order.id}</p>
@@ -76,7 +76,7 @@ const ProfilePage: React.FC = () => {
                     {wishlist.map(product => <ProductCard key={product.id} product={product} />)}
                 </div>
             ) : (
-                <div className="bg-white text-center py-16 rounded-lg shadow-sm border">
+                <div className="bg-white text-center py-16 rounded-lg border">
                     <p className="text-secondary-light">Your wishlist is empty.</p>
                 </div>
             )}
@@ -84,7 +84,7 @@ const ProfilePage: React.FC = () => {
         );
       case 'address':
         return (
-            <div className="bg-white p-6 rounded-lg shadow-sm border max-w-md">
+            <div className="bg-white p-6 rounded-lg border max-w-md">
                <h3 className="text-xl font-bold text-secondary mb-4">Address Book</h3>
                <div className="space-y-1 text-secondary-light">
                     <p className="font-semibold text-secondary">{user.name}</p>
@@ -102,7 +102,7 @@ const ProfilePage: React.FC = () => {
     <div>
         <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
             <h1 className="text-3xl font-bold text-secondary">Welcome, {user.name}</h1>
-            <button onClick={logout} className="bg-secondary text-white font-semibold py-2 px-4 rounded-md hover:bg-secondary/90 transition-colors self-start sm:self-center">
+            <button onClick={logout} className="bg-secondary text-white font-semibold py-2 px-6 rounded-full hover:bg-primary transition-colors self-start sm:self-center">
                 Logout
             </button>
         </div>
@@ -111,9 +111,9 @@ const ProfilePage: React.FC = () => {
             {/* Desktop Sidebar Nav */}
             <div className="hidden md:block md:col-span-3 lg:col-span-2">
                  <nav className="flex flex-col space-y-2" aria-label="Tabs">
-                    <button onClick={() => setActiveTab('orders')} className={`text-left px-4 py-2 rounded-md font-medium text-sm ${activeTab === 'orders' ? 'bg-primary/10 text-primary' : 'text-secondary-light hover:bg-gray-100'}`}>Order History</button>
-                    <button onClick={() => setActiveTab('wishlist')} className={`text-left px-4 py-2 rounded-md font-medium text-sm ${activeTab === 'wishlist' ? 'bg-primary/10 text-primary' : 'text-secondary-light hover:bg-gray-100'}`}>Wishlist</button>
-                    <button onClick={() => setActiveTab('address')} className={`text-left px-4 py-2 rounded-md font-medium text-sm ${activeTab === 'address' ? 'bg-primary/10 text-primary' : 'text-secondary-light hover:bg-gray-100'}`}>Address Book</button>
+                    <button onClick={() => setActiveTab('orders')} className={`text-left px-4 py-2 rounded-md font-medium text-sm ${activeTab === 'orders' ? 'bg-primary/10 text-primary font-bold' : 'text-secondary-light hover:bg-gray-100'}`}>Order History</button>
+                    <button onClick={() => setActiveTab('wishlist')} className={`text-left px-4 py-2 rounded-md font-medium text-sm ${activeTab === 'wishlist' ? 'bg-primary/10 text-primary font-bold' : 'text-secondary-light hover:bg-gray-100'}`}>Wishlist</button>
+                    <button onClick={() => setActiveTab('address')} className={`text-left px-4 py-2 rounded-md font-medium text-sm ${activeTab === 'address' ? 'bg-primary/10 text-primary font-bold' : 'text-secondary-light hover:bg-gray-100'}`}>Address Book</button>
                 </nav>
             </div>
 

@@ -55,13 +55,15 @@ const ShopPage: React.FC = () => {
         end // Important for 'All Products' link to not stay active
         className={({ isActive }) => 
             `block w-full text-left px-4 py-2 rounded-md transition-colors text-sm font-medium ${
-                isActive ? 'bg-primary text-white' : 'text-secondary hover:bg-gray-100'
+                isActive ? 'bg-primary/10 text-primary font-bold' : 'text-secondary hover:bg-gray-100'
             }`
         }
     >
         {name}
     </NavLink>
   );
+  
+  const shopCategories = categories.filter(c => ['men', 'women', 'kids', 'accessories', 'gifts', 'lungi', 'dhoti'].includes(c.slug));
 
   const sidebarContent = (
     <div className="space-y-8">
@@ -69,7 +71,7 @@ const ShopPage: React.FC = () => {
         <h3 className="font-bold text-lg text-secondary mb-4 px-4">Categories</h3>
         <div className="space-y-1">
             <CategoryLink slug="all" name="All Products" />
-            {categories.map(cat => (
+            {shopCategories.map(cat => (
               <CategoryLink key={cat.id} slug={cat.slug} name={cat.name} />
             ))}
         </div>
@@ -94,9 +96,9 @@ const ShopPage: React.FC = () => {
       </div>
 
       {/* Mobile Filter Panel (Off-canvas) */}
-      <div className={`fixed inset-0 z-50 transition-transform transform ${isFilterOpen ? 'translate-x-0' : 'translate-x-full'} md:hidden`}>
+      <div className={`fixed inset-0 z-50 transition-transform transform ${isFilterOpen ? 'translate-x-0' : '-translate-x-full'} md:hidden`}>
           <div className="absolute inset-0 bg-black/40" onClick={() => setIsFilterOpen(false)}></div>
-          <div className="relative z-10 w-4/5 max-w-sm h-full bg-white ml-auto p-6 overflow-y-auto shadow-xl">
+          <div className="relative z-10 w-4/5 max-w-sm h-full bg-white p-6 overflow-y-auto shadow-xl">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold">Filters</h2>
                 <button onClick={() => setIsFilterOpen(false)} className="p-2 -mr-2 text-gray-500 hover:text-gray-800">
@@ -108,23 +110,24 @@ const ShopPage: React.FC = () => {
       </div>
       
       {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg border border-light-border self-start sticky top-24">
+      <aside className="hidden md:block w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg self-start sticky top-28">
         {sidebarContent}
       </aside>
 
       {/* Products Grid */}
       <main className="w-full md:w-3/4 lg:w-4/5">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
-            <h1 className="hidden md:block text-3xl font-bold text-secondary">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4 p-4 bg-white rounded-lg">
+            <h1 className="hidden md:block text-2xl font-bold text-secondary">
                 {activeCategory.name}
             </h1>
+            <p className="text-sm text-secondary-light">{filteredProducts.length} Products Found</p>
             <div className="flex items-center gap-2">
                 <label htmlFor="sort" className="text-sm font-medium text-secondary-light">Sort by:</label>
                 <select
                     id="sort"
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
-                    className="border-light-border rounded-md shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 text-sm py-2 pl-3 pr-8"
+                    className="border-light-border rounded-md shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-2 text-sm py-2 pl-3 pr-8"
                 >
                     <option value="featured">Featured</option>
                     <option value="price-asc">Price: Low to High</option>
@@ -134,13 +137,13 @@ const ShopPage: React.FC = () => {
             </div>
         </div>
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-6 gap-y-10">
             {filteredProducts.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white rounded-lg border border-light-border">
+          <div className="text-center py-16 bg-white rounded-lg">
             <p className="text-xl text-secondary-light">No products found in this category.</p>
           </div>
         )}
