@@ -13,6 +13,8 @@ const HomePage: React.FC = () => {
   const lungiProducts = getProductsByCategory('lungi').slice(0, 4);
   const dhotiProducts = getProductsByCategory('dhoti').slice(0, 4);
   const matchingDhotiProducts = getProductsByCategory('matching-dhoti').slice(0, 4);
+  const politicalProducts = getProductsByCategory('political-party').slice(0, 4);
+  const towelProducts = getProductsByCategory('towel').slice(0, 4);
 
   return (
     <div className="space-y-16 md:space-y-24">
@@ -145,6 +147,38 @@ const HomePage: React.FC = () => {
         <div className="text-center mt-12">
             <Link to="/shop/matching-dhoti" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
                 View All Matching Sets
+            </Link>
+        </div>
+      </section>
+
+      {/* Political Party Wear */}
+      <section>
+        <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900">Political Party Wear</h2>
+            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Show your support with our premium quality collection.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {politicalProducts.map(p => <ProductCard key={p.id} product={p} />)}
+        </div>
+        <div className="text-center mt-12">
+            <Link to="/shop/political-party" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+                View All Political Wear
+            </Link>
+        </div>
+      </section>
+
+       {/* Towel Collection */}
+      <section>
+        <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900">Our Towel Collection</h2>
+            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Soft, absorbent, and durable towels for everyday use.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {towelProducts.map(p => <ProductCard key={p.id} product={p} />)}
+        </div>
+        <div className="text-center mt-12">
+            <Link to="/shop/towel" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+                View All Towels
             </Link>
         </div>
       </section>
