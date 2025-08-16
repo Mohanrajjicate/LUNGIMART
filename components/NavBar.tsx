@@ -3,22 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 import { products } from '../services/mockData';
 import { Product } from '../types';
-
-const SearchResult: React.FC<{ product: Product, onNavigate: () => void }> = ({ product, onNavigate }) => (
-  <li>
-    <Link 
-      to={`/product/${product.slug}`} 
-      onClick={onNavigate}
-      className="flex items-center p-3 hover:bg-slate-100 rounded-lg transition-colors"
-    >
-      <img src={product.images[0]} alt={product.name} className="w-16 h-16 rounded-md object-cover mr-4" />
-      <div>
-        <p className="font-semibold text-slate-800">{product.name}</p>
-        <p className="text-sm text-slate-600">₹{product.price.toFixed(2)}</p>
-      </div>
-    </Link>
-  </li>
-);
+import ProductCard from './ProductCard';
 
 const SearchOverlay: React.FC<{onClose: () => void}> = ({ onClose }) => {
     const [query, setQuery] = useState('');
@@ -47,7 +32,7 @@ const SearchOverlay: React.FC<{onClose: () => void}> = ({ onClose }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex justify-center items-start pt-20 sm:pt-24 p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
-            <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="relative w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center border-b border-slate-200">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -67,9 +52,13 @@ const SearchOverlay: React.FC<{onClose: () => void}> = ({ onClose }) => {
                 {query.trim().length > 1 && (
                     <div className="max-h-[60vh] overflow-y-auto p-4">
                         {results.length > 0 ? (
-                             <ul className="space-y-2">
-                                {results.map(product => <SearchResult key={product.id} product={product} onNavigate={onClose} />)}
-                            </ul>
+                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {results.map(product => (
+                                    <div key={product.id} onClick={onClose}>
+                                        <ProductCard product={product} />
+                                    </div>
+                                ))}
+                            </div>
                         ) : (
                             <div className="text-center py-12">
                                 <p className="text-slate-600">No results found for "{query}"</p>
