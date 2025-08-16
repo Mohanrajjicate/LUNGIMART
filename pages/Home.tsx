@@ -6,13 +6,14 @@ import ProductCard from '../components/ProductCard';
 const HomePage: React.FC = () => {
 
   const bestSellingProducts = products.slice(0, 8);
-  const mainCategories = categories.filter(c => !['all', 'all-products', 'best-selling', 'new-arrivals', 'featured-products'].includes(c.slug));
+  const mainCategories = categories.filter(c => !['all', 'all-products', 'best-selling', 'new-arrivals', 'featured-products', 'temple-vibe'].includes(c.slug));
 
   const recentProducts = products.slice(-4).reverse();
   const featuredProductsData = products.filter(p => [1, 3, 7, 9].includes(p.id));
   const lungiProducts = getProductsByCategory('lungi').slice(0, 4);
   const dhotiProducts = getProductsByCategory('dhoti').slice(0, 4);
   const matchingDhotiProducts = getProductsByCategory('matching-dhoti').slice(0, 4);
+  const templeVibeProducts = getProductsByCategory('temple-vibe').slice(0, 4);
   const politicalProducts = getProductsByCategory('political-party').slice(0, 4);
   const towelProducts = getProductsByCategory('towel').slice(0, 4);
 
@@ -147,6 +148,22 @@ const HomePage: React.FC = () => {
         <div className="text-center mt-12">
             <Link to="/shop/matching-dhoti" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
                 View All Matching Sets
+            </Link>
+        </div>
+      </section>
+
+      {/* Temple Vibe */}
+      <section>
+        <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900">Temple Vibe</h2>
+            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Pure and elegant wear for your spiritual occasions.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {templeVibeProducts.map(p => <ProductCard key={p.id} product={p} />)}
+        </div>
+        <div className="text-center mt-12">
+            <Link to="/shop/temple-vibe" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
+                View All Temple Wear
             </Link>
         </div>
       </section>

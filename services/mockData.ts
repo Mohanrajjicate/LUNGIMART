@@ -11,6 +11,7 @@ export const categories: Category[] = [
   { id: 7, name: 'Best Selling', slug: 'best-selling' },
   { id: 8, name: 'Recent Products', slug: 'new-arrivals' },
   { id: 9, name: 'Featured Products', slug: 'featured-products' },
+  { id: 10, name: 'Temple Vibe', slug: 'temple-vibe' },
 ];
 
 const getCategory = (slug: string): Category => {
@@ -186,6 +187,11 @@ export const getProductsByCategory = (categorySlug: string): Product[] => {
         // Mock logic: specific product IDs
         const featuredIds = [1, 3, 7, 9];
         return products.filter(p => featuredIds.includes(p.id));
+    }
+    if (categorySlug === 'temple-vibe') {
+        // Mock logic: specific product IDs suitable for temple
+        const templeProductIds = [2, 3, 8, 9];
+        return products.filter(p => templeProductIds.includes(p.id));
     }
 
     const category = categories.find(c => c.slug === categorySlug);
