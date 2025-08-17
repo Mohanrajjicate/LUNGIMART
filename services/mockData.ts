@@ -4,6 +4,7 @@ export const categories: Category[] = [
   { id: 1, name: 'Lungi', slug: 'lungi', image: 'https://picsum.photos/seed/cat1/600/400' },
   { id: 2, name: 'Dhoti', slug: 'dhoti', image: 'https://picsum.photos/seed/cat2/600/400' },
   { id: 3, name: 'Matching Dhoti', slug: 'matching-dhoti', image: 'https://picsum.photos/seed/cat3/600/400' },
+  { id: 10, name: 'Temple Vibe', slug: 'temple-vibe', image: 'https://picsum.photos/seed/cat10/600/400' },
   { id: 4, name: 'Political Party', slug: 'political-party', image: 'https://picsum.photos/seed/cat4/600/400' },
   { id: 5, name: 'Towel', slug: 'towel', image: 'https://picsum.photos/seed/cat5/600/400' },
   { id: 6, name: 'All Products', slug: 'all', image: 'https://picsum.photos/seed/cat6/600/400' },
@@ -11,7 +12,6 @@ export const categories: Category[] = [
   { id: 7, name: 'Best Selling', slug: 'best-selling', image: 'https://picsum.photos/seed/cat7/600/400' },
   { id: 8, name: 'Recent Products', slug: 'new-arrivals', image: 'https://picsum.photos/seed/cat8/600/400' },
   { id: 9, name: 'Featured Products', slug: 'featured-products', image: 'https://picsum.photos/seed/cat9/600/400' },
-  { id: 10, name: 'Temple Vibe', slug: 'temple-vibe', image: 'https://picsum.photos/seed/cat10/600/400' },
 ];
 
 const getCategory = (slug: string): Category => {
