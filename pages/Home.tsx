@@ -94,7 +94,7 @@ const HomePage: React.FC = () => {
         <h2 className="text-3xl font-bold text-center text-slate-900 mb-10">Our Collections</h2>
         <div
           ref={scrollContainerRef}
-          className="flex items-start gap-4 md:gap-8 overflow-x-auto pb-4 no-scrollbar scroll-smooth"
+          className="flex justify-center items-start gap-4 md:gap-8 overflow-x-auto pb-4 no-scrollbar scroll-smooth"
         >
           {mainCategories.map((cat) => (
             <Link key={cat.id} to={`/shop/${cat.slug}`} className="text-center group flex-shrink-0">
