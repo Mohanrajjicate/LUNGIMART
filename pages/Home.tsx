@@ -7,7 +7,7 @@ import ProductCard from '../components/ProductCard';
 const HomePage: React.FC = () => {
 
   const bestSellingProducts = products.slice(0, 8);
-  const mainCategories = categories.filter(c => !['all', 'all-products', 'best-selling', 'new-arrivals', 'featured-products', 'temple-vibe'].includes(c.slug));
+  const mainCategories = categories.filter(c => !['all', 'all-products', 'best-selling', 'new-arrivals', 'featured-products'].includes(c.slug));
 
   const recentProducts = products.slice(-4).reverse();
   const featuredProductsData = products.filter(p => [1, 3, 7, 9].includes(p.id));
