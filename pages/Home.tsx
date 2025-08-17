@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { products, categories, getProductsByCategory } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
@@ -18,6 +18,32 @@ const HomePage: React.FC = () => {
   const politicalProducts = getProductsByCategory('political-party').slice(0, 4);
   const towelProducts = getProductsByCategory('towel').slice(0, 4);
 
+  const heroImages = [
+    { src: 'https://picsum.photos/seed/hero-main/1200/800', alt: 'Weaving loom' },
+    { src: 'https://picsum.photos/seed/hero-alt1/1200/800', alt: 'Colorful threads' },
+    { src: 'https://picsum.photos/seed/hero-alt2/1200/800', alt: 'Handcrafted textile' },
+  ];
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const slideInterval = setInterval(() => {
+      setCurrentSlide((prev) => (prev === heroImages.length - 1 ? 0 : prev + 1));
+    }, 5000);
+    return () => clearInterval(slideInterval);
+  }, [heroImages.length]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev === heroImages.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1));
+  };
+  
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
   return (
     <div className="space-y-16 md:space-y-24">
       {/* Hero Section */}
@@ -35,9 +61,28 @@ const HomePage: React.FC = () => {
                     </Link>
                 </div>
             </div>
-            <div className="relative h-64 md:h-auto md:aspect-[4/3] rounded-2xl overflow-hidden">
-                <img src="https://picsum.photos/seed/hero-main/800/600" alt="Weaving loom" className="w-full h-full object-cover" />
+            <div className="relative h-64 md:h-auto md:aspect-[4/3] rounded-2xl overflow-hidden group">
+                <div className="flex transition-transform duration-700 ease-in-out h-full" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+                    {heroImages.map((image, index) => (
+                        <img key={index} src={image.src} alt={image.alt} className="w-full h-full object-cover flex-shrink-0" />
+                    ))}
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/10"></div>
+                
+                 {/* Navigation Buttons */}
+                <button onClick={prevSlide} className="absolute top-1/2 left-3 -translate-y-1/2 bg-white/50 p-2 rounded-full text-slate-800 hover:bg-white transition opacity-0 group-hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-white" aria-label="Previous image">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button onClick={nextSlide} className="absolute top-1/2 right-3 -translate-y-1/2 bg-white/50 p-2 rounded-full text-slate-800 hover:bg-white transition opacity-0 group-hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-white" aria-label="Next image">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </button>
+
+                {/* Navigation Dots */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+                    {heroImages.map((_, index) => (
+                        <button key={index} onClick={() => goToSlide(index)} className={`w-2.5 h-2.5 rounded-full transition-colors ${currentSlide === index ? 'bg-white' : 'bg-white/50 hover:bg-white/80'}`} aria-label={`Go to slide ${index + 1}`}></button>
+                    ))}
+                </div>
             </div>
         </div>
       </section>
