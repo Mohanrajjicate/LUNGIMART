@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import { categories, getProductsByCategory } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
@@ -36,12 +36,51 @@ const ShopPage: React.FC = () => {
         }
     });
   }, [activeCategorySlug, sortOption]);
+
+  // Category Scroller Logic
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollButtons = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (el) {
+        const tolerance = 1;
+        const isScrollable = el.scrollWidth > el.clientWidth + tolerance;
+        setCanScrollLeft(el.scrollLeft > tolerance);
+        setCanScrollRight(isScrollable && el.scrollLeft < el.scrollWidth - el.clientWidth - tolerance);
+    }
+  }, []);
+
+  useEffect(() => {
+      const el = scrollContainerRef.current;
+      if (el) {
+          const timer = setTimeout(checkScrollButtons, 100);
+          window.addEventListener('resize', checkScrollButtons);
+          return () => {
+              clearTimeout(timer);
+              window.removeEventListener('resize', checkScrollButtons);
+          };
+      }
+  }, [checkScrollButtons]);
+
+  const handleScroll = (direction: 'left' | 'right') => {
+      const el = scrollContainerRef.current;
+      if (el) {
+          const scrollAmount = el.clientWidth * 0.7;
+          el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+      }
+  };
   
   return (
     <div className="space-y-8 md:space-y-12">
       {/* Categories Section */}
-      <section className="-mt-4 md:-mt-8">
-        <div className="flex items-center gap-4 md:gap-6 overflow-x-auto pb-4 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 snap-x">
+      <section className="-mt-4 md:-mt-8 relative group">
+        <div 
+          ref={scrollContainerRef}
+          onScroll={checkScrollButtons}
+          className="flex items-center gap-4 md:gap-6 overflow-x-auto pb-4 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 snap-x no-scrollbar scroll-smooth"
+        >
           {shopCategories.map((cat) => {
             const isActive = activeCategorySlug === cat.slug;
             return (
@@ -59,6 +98,22 @@ const ShopPage: React.FC = () => {
             );
           })}
         </div>
+        <button
+            onClick={() => handleScroll('left')}
+            className="absolute top-12 md:top-14 -translate-y-1/2 left-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-opacity opacity-0 group-hover:opacity-100 disabled:opacity-0 disabled:cursor-default z-10 hidden md:flex"
+            disabled={!canScrollLeft}
+            aria-label="Scroll left"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <button
+            onClick={() => handleScroll('right')}
+            className="absolute top-12 md:top-14 -translate-y-1/2 right-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-opacity opacity-0 group-hover:opacity-100 disabled:opacity-0 disabled:cursor-default z-10 hidden md:flex"
+            disabled={!canScrollRight}
+            aria-label="Scroll right"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </button>
       </section>
 
       {/* Products Grid */}

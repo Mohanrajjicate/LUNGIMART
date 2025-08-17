@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { products, categories, getProductsByCategory } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
@@ -42,6 +42,41 @@ const HomePage: React.FC = () => {
   
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
+  };
+
+  // Category Scroller Logic
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollButtons = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (el) {
+        const tolerance = 1;
+        const isScrollable = el.scrollWidth > el.clientWidth + tolerance;
+        setCanScrollLeft(el.scrollLeft > tolerance);
+        setCanScrollRight(isScrollable && el.scrollLeft < el.scrollWidth - el.clientWidth - tolerance);
+    }
+  }, []);
+
+  useEffect(() => {
+      const el = scrollContainerRef.current;
+      if (el) {
+          const timer = setTimeout(checkScrollButtons, 100);
+          window.addEventListener('resize', checkScrollButtons);
+          return () => {
+              clearTimeout(timer);
+              window.removeEventListener('resize', checkScrollButtons);
+          };
+      }
+  }, [checkScrollButtons]);
+
+  const handleScroll = (direction: 'left' | 'right') => {
+      const el = scrollContainerRef.current;
+      if (el) {
+          const scrollAmount = el.clientWidth * 0.7;
+          el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+      }
   };
 
   return (
@@ -90,15 +125,37 @@ const HomePage: React.FC = () => {
       {/* Categories Section */}
       <section>
         <h2 className="text-3xl font-bold text-center text-slate-900 mb-10">Our Collections</h2>
-        <div className="flex justify-center items-center gap-4 md:gap-8 overflow-x-auto pb-4">
-          {mainCategories.map((cat) => (
-            <Link key={cat.id} to={`/shop/${cat.slug}`} className="text-center group flex-shrink-0">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg transform group-hover:scale-105 group-hover:shadow-xl transition-all duration-300">
-                <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
-              </div>
-              <p className="mt-4 font-semibold text-slate-700 group-hover:text-primary transition-colors">{cat.name}</p>
-            </Link>
-          ))}
+        <div className="relative group">
+          <div
+            ref={scrollContainerRef}
+            onScroll={checkScrollButtons}
+            className="flex items-start gap-4 md:gap-8 overflow-x-auto pb-4 no-scrollbar scroll-smooth"
+          >
+            {mainCategories.map((cat) => (
+              <Link key={cat.id} to={`/shop/${cat.slug}`} className="text-center group flex-shrink-0">
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg transform group-hover:scale-105 group-hover:shadow-xl transition-all duration-300">
+                  <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                </div>
+                <p className="mt-4 font-semibold text-slate-700 group-hover:text-primary transition-colors">{cat.name}</p>
+              </Link>
+            ))}
+          </div>
+          <button
+            onClick={() => handleScroll('left')}
+            className="absolute top-16 md:top-20 -translate-y-1/2 left-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-opacity opacity-0 group-hover:opacity-100 disabled:opacity-0 disabled:cursor-default z-10 hidden md:flex"
+            disabled={!canScrollLeft}
+            aria-label="Scroll left"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <button
+            onClick={() => handleScroll('right')}
+            className="absolute top-16 md:top-20 -translate-y-1/2 right-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-opacity opacity-0 group-hover:opacity-100 disabled:opacity-0 disabled:cursor-default z-10 hidden md:flex"
+            disabled={!canScrollRight}
+            aria-label="Scroll right"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </button>
         </div>
       </section>
 
