@@ -1,8 +1,17 @@
+
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductBySlug, getRelatedProducts } from '../services/mockData';
 import { useAppContext } from '../contexts/AppContext';
 import ProductCard from '../components/ProductCard';
+import StarRating from '../components/StarRating';
+
+const SocialShareIcon: React.FC<{ href: string; children: React.ReactNode; label: string }> = ({ href, children, label }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-600 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+        {children}
+    </a>
+);
+
 
 const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -10,7 +19,11 @@ const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('details');
-  const { addToCart } = useAppContext();
+  const { addToCart, toggleWishlist, isInWishlist } = useAppContext();
+  const navigate = useNavigate();
+
+  const [pincode, setPincode] = useState('');
+  const [deliveryMessage, setDeliveryMessage] = useState('');
 
   if (!product) {
     return (
@@ -22,9 +35,33 @@ const ProductDetailPage: React.FC = () => {
       </div>
     );
   }
+
+  const handleBuyNow = () => {
+    addToCart(product, quantity);
+    navigate('/cart');
+  };
+
+  const handleToggleWishlist = () => {
+    toggleWishlist(product);
+  };
   
-  const relatedProducts = getRelatedProducts(product.id);
+  const handleCheckDelivery = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (/^\d{6}$/.test(pincode)) {
+        const deliveryDate = new Date();
+        deliveryDate.setDate(deliveryDate.getDate() + 5);
+        setDeliveryMessage(`✅ Estimated delivery by ${deliveryDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}.`);
+    } else {
+        setDeliveryMessage('❌ Please enter a valid 6-digit pincode.');
+    }
+  };
+
+
+  const inWishlist = isInWishlist(product.id);
   const hasDiscount = product.originalPrice && product.originalPrice > product.price;
+  const discountPercentage = hasDiscount ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) : 0;
+  const relatedProducts = getRelatedProducts(product.id);
+
 
   return (
     <div className="space-y-16">
@@ -49,25 +86,35 @@ const ProductDetailPage: React.FC = () => {
           </div>
 
           {/* Product Info */}
-          <div className="lg:sticky lg:top-28 lg:self-start">
-              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">{product.category.name}</p>
-              <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mt-1">{product.name}</h1>
+          <div className="lg:sticky lg:top-28 lg:self-start flex flex-col gap-4">
+              <div>
+                <Link to={`/shop/${product.category.slug}`} className="text-sm font-medium text-primary hover:underline uppercase tracking-wider">{product.category.name}</Link>
+                <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mt-1">{product.name}</h1>
+                <div className="mt-2">
+                    <StarRating rating={product.rating || 0} reviewCount={product.reviewCount} />
+                </div>
+              </div>
               
-              <div className="flex items-baseline space-x-3 mt-4">
+              <div className="flex items-baseline space-x-3">
                   <p className="text-3xl font-bold text-slate-900">₹{product.price.toFixed(2)}</p>
                   {hasDiscount && <p className="text-xl text-slate-400 line-through">₹{product.originalPrice?.toFixed(2)}</p>}
+                  {hasDiscount && <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-md">{discountPercentage}% OFF</span>}
               </div>
-              <p className="text-base text-slate-600 mt-4 leading-relaxed">{product.description}</p>
               
-              <div className="mt-8">
-                  <div className="flex items-center space-x-4 mb-6">
-                      <p className="text-sm font-medium text-slate-700">Quantity:</p>
-                      <div className="flex items-center border border-slate-300 rounded-lg">
-                          <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-2 text-lg text-slate-600 hover:bg-slate-100 rounded-l-lg transition">-</button>
-                          <span className="px-5 py-2 font-semibold text-lg">{quantity}</span>
-                          <button onClick={() => setQuantity(q => q + 1)} className="px-4 py-2 text-lg text-slate-600 hover:bg-slate-100 rounded-r-lg transition">+</button>
-                      </div>
+              <p className="text-base text-slate-600 leading-relaxed">{product.description}</p>
+              
+              <p className="font-semibold text-green-600">In Stock</p>
+
+              <div className="flex items-center space-x-4">
+                  <p className="text-sm font-medium text-slate-700">Quantity:</p>
+                  <div className="flex items-center border border-slate-300 rounded-lg">
+                      <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-2 text-lg text-slate-600 hover:bg-slate-100 rounded-l-lg transition">-</button>
+                      <span className="px-5 py-2 font-semibold text-lg">{quantity}</span>
+                      <button onClick={() => setQuantity(q => q + 1)} className="px-4 py-2 text-lg text-slate-600 hover:bg-slate-100 rounded-r-lg transition">+</button>
                   </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button 
                       onClick={() => addToCart(product, quantity)}
                       className="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-dark transition-colors duration-300 flex items-center justify-center gap-2"
@@ -75,6 +122,46 @@ const ProductDetailPage: React.FC = () => {
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                       ADD TO CART
                   </button>
+                   <button 
+                      onClick={handleBuyNow}
+                      className="w-full bg-slate-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition-colors duration-300 flex items-center justify-center gap-2"
+                  >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                      BUY NOW
+                  </button>
+              </div>
+               <button 
+                    onClick={handleToggleWishlist}
+                    className="w-full border-2 border-slate-200 text-slate-600 font-bold py-3 px-6 rounded-lg hover:border-primary hover:text-primary transition-colors duration-300 flex items-center justify-center gap-2"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={inWishlist ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    {inWishlist ? 'Added to Wishlist' : 'Add to Wishlist'}
+                </button>
+              
+              <div className="border-t border-slate-200 pt-4">
+                    <p className="font-semibold text-slate-800 mb-2">Check Delivery</p>
+                    <form onSubmit={handleCheckDelivery} className="flex gap-2">
+                        <input type="text" value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="flex-grow w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1 text-sm"/>
+                        <button type="submit" className="bg-slate-100 text-slate-700 font-semibold py-2 px-4 rounded-lg hover:bg-slate-200 transition-colors text-sm">Check</button>
+                    </form>
+                    {deliveryMessage && <p className={`text-sm mt-2 ${deliveryMessage.startsWith('❌') ? 'text-red-500' : 'text-slate-600'}`}>{deliveryMessage}</p>}
+              </div>
+
+              <div className="border-t border-slate-200 pt-4 flex items-center gap-4">
+                  <p className="font-semibold text-slate-800">Share:</p>
+                  <div className="flex gap-2">
+                    <SocialShareIcon href={`https://wa.me/?text=Check%20out%20this%20product:%20${window.location.href}`} label="Share on WhatsApp">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.269.655 4.512 1.924 6.362l-1.212 4.422 4.572-1.195z" /></svg>
+                    </SocialShareIcon>
+                    <SocialShareIcon href={`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`} label="Share on Facebook">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z" /></svg>
+                    </SocialShareIcon>
+                     <SocialShareIcon href={`https://twitter.com/intent/tweet?url=${window.location.href}&text=Check%20out%20this%20product:`} label="Share on Twitter">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616v.064c0 2.298 1.634 4.212 3.791 4.649-.69.188-1.432.23-2.164.083.608 1.923 2.368 3.268 4.448 3.306-1.785 1.4-4.037 2.223-6.392 2.223-.414 0-.82-.024-1.22-.074 2.298 1.474 5.031 2.34 8.016 2.34 9.621 0 14.885-7.98 14.885-14.886v-.672c1.016-.732 1.885-1.649 2.582-2.678z" /></svg>
+                    </SocialShareIcon>
+                  </div>
               </div>
           </div>
         </div>
@@ -96,10 +183,8 @@ const ProductDetailPage: React.FC = () => {
                         <div key={review.id} className="border-b border-slate-200 pb-4 last:border-b-0">
                             <div className="flex items-center mb-1">
                                 <p className="font-semibold text-slate-800">{review.author}</p>
-                                <div className="flex items-center ml-4">
-                                   {Array.from({length: 5}).map((_, i) => (
-                                     <svg key={i} className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-slate-300'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                   ))}
+                                <div className="ml-4">
+                                   <StarRating rating={review.rating} />
                                 </div>
                             </div>
                             <p>{review.comment}</p>
