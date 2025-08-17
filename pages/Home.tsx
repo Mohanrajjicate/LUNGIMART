@@ -58,145 +58,145 @@ const HomePage: React.FC = () => {
 
       {/* Best Selling */}
       <section>
-        <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">Best Selling</h2>
-            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Handpicked for quality and comfort, loved by our customers.</p>
+        <div className="flex justify-between items-baseline mb-8">
+            <div>
+                <h2 className="text-3xl font-bold text-slate-900">Best Selling</h2>
+                <p className="text-slate-600 mt-2">Handpicked for quality and comfort, loved by our customers.</p>
+            </div>
+            <Link to="/shop/best-selling" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
+                View All &rarr;
+            </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {bestSellingProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="text-center mt-12">
-            <Link to="/shop/best-selling" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All Best Sellers
-            </Link>
         </div>
       </section>
 
       {/* Recent Products */}
       <section>
-        <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">Recent Products</h2>
-            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Check out the latest additions to our collection.</p>
+        <div className="flex justify-between items-baseline mb-8">
+            <div>
+                <h2 className="text-3xl font-bold text-slate-900">Recent Products</h2>
+                <p className="text-slate-600 mt-2">Check out the latest additions to our collection.</p>
+            </div>
+            <Link to="/shop/new-arrivals" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
+                View All &rarr;
+            </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {recentProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="text-center mt-12">
-            <Link to="/shop/new-arrivals" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All Recent Products
-            </Link>
         </div>
       </section>
 
       {/* Featured Products */}
       <section>
-        <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">Featured Products</h2>
-            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Specially selected products we think you'll love.</p>
+        <div className="flex justify-between items-baseline mb-8">
+            <div>
+                <h2 className="text-3xl font-bold text-slate-900">Featured Products</h2>
+                <p className="text-slate-600 mt-2">Specially selected products we think you'll love.</p>
+            </div>
+            <Link to="/shop/featured-products" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
+                View All &rarr;
+            </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {featuredProductsData.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="text-center mt-12">
-            <Link to="/shop/featured-products" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All Featured
-            </Link>
         </div>
       </section>
 
       {/* Lungi Collection */}
       <section>
-        <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">Lungi Collection</h2>
-            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Explore our wide range of comfortable and stylish lungis.</p>
+        <div className="flex justify-between items-baseline mb-8">
+            <div>
+                <h2 className="text-3xl font-bold text-slate-900">Lungi Collection</h2>
+                <p className="text-slate-600 mt-2">Explore our wide range of comfortable and stylish lungis.</p>
+            </div>
+            <Link to="/shop/lungi" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
+                View All &rarr;
+            </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {lungiProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="text-center mt-12">
-            <Link to="/shop/lungi" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All Lungis
-            </Link>
         </div>
       </section>
 
       {/* Dhoti Collection */}
       <section>
-        <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">Dhoti Collection</h2>
-            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Traditional and elegant dhotis for every occasion.</p>
+        <div className="flex justify-between items-baseline mb-8">
+            <div>
+                <h2 className="text-3xl font-bold text-slate-900">Dhoti Collection</h2>
+                <p className="text-slate-600 mt-2">Traditional and elegant dhotis for every occasion.</p>
+            </div>
+            <Link to="/shop/dhoti" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
+                View All &rarr;
+            </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {dhotiProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="text-center mt-12">
-            <Link to="/shop/dhoti" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All Dhotis
-            </Link>
         </div>
       </section>
       
       {/* Matching Sets */}
       <section>
-        <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">Matching Sets</h2>
-            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Complete your look with our matching dhoti and angavastram sets.</p>
+        <div className="flex justify-between items-baseline mb-8">
+            <div>
+                <h2 className="text-3xl font-bold text-slate-900">Matching Sets</h2>
+                <p className="text-slate-600 mt-2">Complete your look with our matching dhoti and angavastram sets.</p>
+            </div>
+            <Link to="/shop/matching-dhoti" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
+                View All &rarr;
+            </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {matchingDhotiProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="text-center mt-12">
-            <Link to="/shop/matching-dhoti" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All Matching Sets
-            </Link>
         </div>
       </section>
 
       {/* Temple Vibe */}
       <section>
-        <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">Temple Vibe</h2>
-            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Pure and elegant wear for your spiritual occasions.</p>
+        <div className="flex justify-between items-baseline mb-8">
+            <div>
+                <h2 className="text-3xl font-bold text-slate-900">Temple Vibe</h2>
+                <p className="text-slate-600 mt-2">Pure and elegant wear for your spiritual occasions.</p>
+            </div>
+            <Link to="/shop/temple-vibe" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
+                View All &rarr;
+            </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {templeVibeProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="text-center mt-12">
-            <Link to="/shop/temple-vibe" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All Temple Wear
-            </Link>
         </div>
       </section>
 
       {/* Political Party Wear */}
       <section>
-        <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">Political Party Wear</h2>
-            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Show your support with our premium quality collection.</p>
+        <div className="flex justify-between items-baseline mb-8">
+            <div>
+                <h2 className="text-3xl font-bold text-slate-900">Political Party Wear</h2>
+                <p className="text-slate-600 mt-2">Show your support with our premium quality collection.</p>
+            </div>
+            <Link to="/shop/political-party" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
+                View All &rarr;
+            </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {politicalProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="text-center mt-12">
-            <Link to="/shop/political-party" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All Political Wear
-            </Link>
         </div>
       </section>
 
        {/* Towel Collection */}
       <section>
-        <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">Our Towel Collection</h2>
-            <p className="text-slate-600 mt-2 max-w-lg mx-auto">Soft, absorbent, and durable towels for everyday use.</p>
+        <div className="flex justify-between items-baseline mb-8">
+            <div>
+                <h2 className="text-3xl font-bold text-slate-900">Our Towel Collection</h2>
+                <p className="text-slate-600 mt-2">Soft, absorbent, and durable towels for everyday use.</p>
+            </div>
+            <Link to="/shop/towel" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
+                View All &rarr;
+            </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {towelProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="text-center mt-12">
-            <Link to="/shop/towel" className="bg-primary/10 text-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/20 transition-colors duration-300">
-                View All Towels
-            </Link>
         </div>
       </section>
       
