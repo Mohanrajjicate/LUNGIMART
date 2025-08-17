@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -107,7 +108,17 @@ const ProfilePage: React.FC = () => {
   return (
     <div>
         <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
-            <h1 className="text-3xl font-bold text-slate-900">Welcome, {user.name}</h1>
+            <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                </div>
+                <div>
+                    <p className="text-sm text-slate-500">Welcome back,</p>
+                    <h1 className="text-3xl font-bold text-slate-900">{user.name}</h1>
+                </div>
+            </div>
             <button onClick={logout} className="bg-slate-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-slate-700 transition-colors self-start sm:self-center">
                 Logout
             </button>
