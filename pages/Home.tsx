@@ -72,6 +72,39 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Two Banner Section */}
+      <section>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Banner 1: Temple Collection */}
+          <Link to="/shop/temple-vibe" className="group relative block h-80 rounded-2xl overflow-hidden">
+            <img 
+              src="https://picsum.photos/seed/banner-temple/800/500" 
+              alt="Temple Vibe Collection" 
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div className="relative h-full p-6 flex flex-col justify-end text-white">
+              <h3 className="text-3xl font-bold">Temple Vibe</h3>
+              <p className="mt-1 text-white/90">Pure & Divine Wear for Spiritual Occasions</p>
+            </div>
+          </Link>
+          
+          {/* Banner 2: Political Wear */}
+          <Link to="/shop/political-party" className="group relative block h-80 rounded-2xl overflow-hidden">
+            <img 
+              src="https://picsum.photos/seed/banner-political/800/500" 
+              alt="Political Party Wear" 
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div className="relative h-full p-6 flex flex-col justify-end text-white">
+              <h3 className="text-3xl font-bold">Wear Your Support</h3>
+              <p className="mt-1 text-white/90">Premium Dhotis for Political Events</p>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* Recent Products */}
       <section>
         <div className="flex justify-between items-baseline mb-8">
