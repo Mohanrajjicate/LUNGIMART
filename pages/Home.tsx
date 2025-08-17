@@ -104,6 +104,21 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Festival Offer Banner */}
+      {/* TODO: The backgroundImage URL and offer details can be fetched from a database. */}
+      <section className="relative -mx-4 sm:-mx-6 lg:-mx-8 p-16 rounded-2xl bg-slate-800 bg-cover bg-center text-center" style={{backgroundImage: `url('https://picsum.photos/seed/festival-offer/1200/400')`}}>
+          <div className="absolute inset-0 bg-primary/60 rounded-2xl"></div>
+          <div className="relative text-white">
+            <h2 className="text-4xl font-bold">Festive Season Sale</h2>
+            <p className="mt-2 text-lg">Up to 40% off on selected traditional wear.</p>
+            <div className="mt-6">
+                <Link to="/shop/featured-products" className="bg-white text-primary font-bold py-3 px-8 rounded-lg hover:bg-slate-200 transition-colors">
+                    Shop The Sale
+                </Link>
+            </div>
+          </div>
+       </section>
+
       {/* Lungi Collection */}
       <section>
         <div className="flex justify-between items-baseline mb-8">
