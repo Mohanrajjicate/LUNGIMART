@@ -9,6 +9,7 @@ export interface Product {
   images: string[];
   description: string;
   details: string[];
+  // These will now be populated dynamically
   reviews: Review[];
   rating?: number;
   reviewCount?: number;
@@ -24,9 +25,12 @@ export interface Category {
 
 export interface Review {
   id: number;
+  productId: number;
   author: string;
   rating: number;
   comment: string;
+  date: string;
+  verifiedBuyer: boolean;
 }
 
 export interface CartItem extends Product {
@@ -45,4 +49,5 @@ export interface Order {
   items: CartItem[];
   total: number;
   status: 'Processing' | 'Shipped' | 'Delivered';
+  reviewedProducts: { [productId: number]: boolean };
 }

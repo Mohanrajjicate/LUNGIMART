@@ -1,10 +1,13 @@
+
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import { categories, getProductsByCategory } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
+import { useAppContext } from '../contexts/AppContext';
 
 const ShopPage: React.FC = () => {
   const { categorySlug } = useParams<{ categorySlug?: string }>();
+  const { reviews } = useAppContext();
   const [sortOption, setSortOption] = useState('featured');
   
   const activeCategorySlug = categorySlug || 'all';
@@ -21,7 +24,7 @@ const ShopPage: React.FC = () => {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    let productsToShow = getProductsByCategory(activeCategorySlug);
+    let productsToShow = getProductsByCategory(activeCategorySlug, reviews);
 
     return [...productsToShow].sort((a, b) => {
         switch (sortOption) {
@@ -35,9 +38,9 @@ const ShopPage: React.FC = () => {
                 return 0; // 'featured'
         }
     });
-  }, [activeCategorySlug, sortOption]);
+  }, [activeCategorySlug, sortOption, reviews]);
   
-  const recommendedProducts = useMemo(() => getProductsByCategory('featured-products').slice(0, 4), []);
+  const recommendedProducts = useMemo(() => getProductsByCategory('featured-products', reviews).slice(0, 4), [reviews]);
   const recommendedProductIds = useMemo(() => new Set(recommendedProducts.map(p => p.id)), [recommendedProducts]);
 
   const otherCategories = useMemo(() => {
@@ -48,13 +51,13 @@ const ShopPage: React.FC = () => {
   const exploreProducts = useMemo(() => {
     // Get a variety of products from other categories, avoiding duplicates from recommended section
     const productsFromCategories = otherCategories
-        .flatMap(cat => getProductsByCategory(cat.slug))
+        .flatMap(cat => getProductsByCategory(cat.slug, reviews))
         .filter(p => p && !recommendedProductIds.has(p.id));
 
     const uniqueProducts = Array.from(new Map(productsFromCategories.map(p => [p.id, p])).values());
     
     return uniqueProducts.slice(0, 4);
-  }, [otherCategories, recommendedProductIds]);
+  }, [otherCategories, recommendedProductIds, reviews]);
 
   // Category Scroller Logic
   const scrollContainerRef = useRef<HTMLDivElement>(null);

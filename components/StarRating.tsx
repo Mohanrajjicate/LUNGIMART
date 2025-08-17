@@ -4,11 +4,12 @@ import React from 'react';
 interface StarRatingProps {
   rating: number;
   reviewCount?: number;
+  onReviewClick?: () => void;
 }
 
-const StarRating: React.FC<StarRatingProps> = ({ rating, reviewCount }) => {
-  return (
-    <div className="flex items-center gap-2">
+const StarRating: React.FC<StarRatingProps> = ({ rating, reviewCount, onReviewClick }) => {
+  const mainContent = (
+    <>
       <div className="flex items-center">
         {[...Array(5)].map((_, i) => (
           <svg
@@ -24,9 +25,22 @@ const StarRating: React.FC<StarRatingProps> = ({ rating, reviewCount }) => {
         ))}
       </div>
       {reviewCount !== undefined && (
-        <a href="#reviews" className="text-sm text-slate-500 hover:underline">
+        <span className="text-sm text-slate-500">
           ({reviewCount} review{reviewCount !== 1 ? 's' : ''})
-        </a>
+        </span>
+      )}
+    </>
+  );
+
+  return (
+    <div className="flex items-center gap-2">
+      {onReviewClick && reviewCount > 0 ? (
+        <button onClick={onReviewClick} className="flex items-center gap-2 group">
+          {mainContent}
+          <span className="text-sm text-slate-500 group-hover:underline">Read reviews</span>
+        </button>
+      ) : (
+         <div className="flex items-center gap-2">{mainContent}</div>
       )}
     </div>
   );

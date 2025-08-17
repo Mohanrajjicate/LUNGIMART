@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { products } from '../services/mockData';
+import React, { useState, useEffect, useMemo } from 'react';
+import { getAllProducts } from '../services/mockData';
 import { Product } from '../types';
 import ProductCard from './ProductCard';
+import { useAppContext } from '../contexts/AppContext';
 
 const SearchOverlay: React.FC<{onClose: () => void}> = ({ onClose }) => {
+    const { reviews } = useAppContext();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<Product[]>([]);
+
+    const allProducts = useMemo(() => getAllProducts(reviews), [reviews]);
 
     useEffect(() => {
         if (query.trim().length > 1) {
             const lowerCaseQuery = query.toLowerCase();
-            const filteredProducts = products.filter(p => 
+            const filteredProducts = allProducts.filter(p => 
                 p.name.toLowerCase().includes(lowerCaseQuery) || 
                 p.category.name.toLowerCase().includes(lowerCaseQuery)
             );
@@ -18,7 +22,7 @@ const SearchOverlay: React.FC<{onClose: () => void}> = ({ onClose }) => {
         } else {
             setResults([]);
         }
-    }, [query]);
+    }, [query, allProducts]);
     
     // Prevent body scroll when overlay is open
     useEffect(() => {

@@ -1,22 +1,25 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { products, categories, getProductsByCategory } from '../services/mockData';
+import { categories, getProductsByCategory, getAllProducts } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
+import { useAppContext } from '../contexts/AppContext';
 
 const HomePage: React.FC = () => {
+  const { reviews } = useAppContext();
 
-  const bestSellingProducts = products.slice(0, 8);
+  const allProducts = getAllProducts(reviews);
+  const bestSellingProducts = allProducts.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0)).slice(0, 8);
   const mainCategories = categories.filter(c => !['all', 'all-products', 'best-selling', 'new-arrivals', 'featured-products'].includes(c.slug));
 
-  const recentProducts = products.slice(-4).reverse();
-  const featuredProductsData = products.filter(p => [1, 3, 7, 9].includes(p.id));
-  const lungiProducts = getProductsByCategory('lungi').slice(0, 4);
-  const dhotiProducts = getProductsByCategory('dhoti').slice(0, 4);
-  const matchingDhotiProducts = getProductsByCategory('matching-dhoti').slice(0, 4);
-  const templeVibeProducts = getProductsByCategory('temple-vibe').slice(0, 4);
-  const politicalProducts = getProductsByCategory('political-party').slice(0, 4);
-  const towelProducts = getProductsByCategory('towel').slice(0, 4);
+  const recentProducts = [...allProducts].sort((a, b) => b.id - a.id).slice(0, 4);
+  const featuredProductsData = allProducts.filter(p => [1, 3, 7, 9].includes(p.id));
+  const lungiProducts = getProductsByCategory('lungi', reviews).slice(0, 4);
+  const dhotiProducts = getProductsByCategory('dhoti', reviews).slice(0, 4);
+  const matchingDhotiProducts = getProductsByCategory('matching-dhoti', reviews).slice(0, 4);
+  const templeVibeProducts = getProductsByCategory('temple-vibe', reviews).slice(0, 4);
+  const politicalProducts = getProductsByCategory('political-party', reviews).slice(0, 4);
+  const towelProducts = getProductsByCategory('towel', reviews).slice(0, 4);
 
   const heroImages = [
     { src: 'https://picsum.photos/seed/hero-main/1200/800', alt: 'Weaving loom' },

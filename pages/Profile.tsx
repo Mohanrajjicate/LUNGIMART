@@ -1,14 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
-import { Order } from '../types';
+import { Product } from '../types';
 import ProductCard from '../components/ProductCard';
-
-const mockOrders: Order[] = [
-  { id: 'LM-1024', date: '2023-10-15', total: 1398, status: 'Delivered', items: [] },
-  { id: 'LM-1021', date: '2023-09-28', total: 650, status: 'Delivered', items: [] },
-];
+import ReviewModal from '../components/ReviewModal';
 
 const LoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
   return (
@@ -34,13 +30,34 @@ const LoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
 };
 
 const ProfilePage: React.FC = () => {
-  const { user, login, logout, wishlist } = useAppContext();
+  const { user, login, logout, wishlist, orders, addReview } = useAppContext();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.state?.tab || 'orders');
   
+  const [isReviewModalOpen, setReviewModalOpen] = useState(false);
+  const [productToReview, setProductToReview] = useState<{product: Product, orderId: string} | null>(null);
+
   useEffect(() => {
     setActiveTab(location.state?.tab || 'orders');
   }, [location.state]);
+
+  const handleOpenReviewModal = (product: Product, orderId: string) => {
+    setProductToReview({ product, orderId });
+    setReviewModalOpen(true);
+  };
+
+  const handleCloseReviewModal = () => {
+    setReviewModalOpen(false);
+    setProductToReview(null);
+  };
+
+  const handleReviewSubmit = (rating: number, comment: string) => {
+    if (productToReview) {
+      addReview(productToReview.product.id, productToReview.orderId, rating, comment);
+    }
+    handleCloseReviewModal();
+  };
+
 
   if (!user) {
     return (
@@ -54,11 +71,11 @@ const ProfilePage: React.FC = () => {
     switch (activeTab) {
       case 'orders':
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <h2 className="text-xl font-bold text-slate-900 mb-4">Order History</h2>
-            {mockOrders.map(order => (
+            {orders.map(order => (
                 <div key={order.id} className="bg-white p-4 rounded-xl border border-slate-200">
-                    <div className="flex flex-wrap justify-between items-center gap-4">
+                    <div className="flex flex-wrap justify-between items-center gap-4 border-b border-slate-200 pb-4 mb-4">
                         <div>
                             <p className="font-bold text-primary">Order ID: {order.id}</p>
                             <p className="text-sm text-slate-500">Date: {order.date}</p>
@@ -69,6 +86,33 @@ const ProfilePage: React.FC = () => {
                                 {order.status}
                             </span>
                         </div>
+                    </div>
+                    <div className="space-y-4">
+                      {order.items.map(item => (
+                        <div key={item.id} className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <img src={item.images[0]} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
+                            <div>
+                               <Link to={`/product/${item.slug}`} className="font-semibold text-slate-800 hover:text-primary">{item.name}</Link>
+                               <p className="text-sm text-slate-500">Qty: {item.quantity}</p>
+                            </div>
+                          </div>
+                          {order.status === 'Delivered' && (
+                            <div>
+                              {order.reviewedProducts[item.id] ? (
+                                  <p className="text-sm font-medium text-green-600">✓ Reviewed</p>
+                              ) : (
+                                <button 
+                                    onClick={() => handleOpenReviewModal(item, order.id)}
+                                    className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+                                >
+                                    Write a Review
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                 </div>
             ))}
@@ -106,6 +150,14 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
+    <>
+    {isReviewModalOpen && productToReview && (
+      <ReviewModal
+        productName={productToReview.product.name}
+        onClose={handleCloseReviewModal}
+        onSubmit={handleReviewSubmit}
+      />
+    )}
     <div>
         <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
             <div className="flex items-center gap-4">
@@ -149,6 +201,7 @@ const ProfilePage: React.FC = () => {
             </div>
         </div>
     </div>
+    </>
   );
 };
 

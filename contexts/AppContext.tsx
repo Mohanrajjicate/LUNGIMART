@@ -1,11 +1,15 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { CartItem, Product, User } from '../types';
+import { CartItem, Product, User, Review, Order } from '../types';
+import { baseReviews, mockOrders } from '../services/mockData';
 
 interface AppContextType {
   cart: CartItem[];
   wishlist: Product[];
   user: User | null;
+  reviews: Review[];
+  orders: Order[];
+  addReview: (productId: number, orderId: string, rating: number, comment: string) => void;
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
@@ -38,22 +42,46 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [wishlist, setWishlist] = useState<Product[]>(() => getInitialState<Product[]>('wishlist', []));
   const [user, setUser] = useState<User | null>(() => getInitialState<User | null>('user', null));
   const [isQuietZoneActive, setIsQuietZoneActive] = useState<boolean>(() => getInitialState<boolean>('quietZone', false));
+  const [reviews, setReviews] = useState<Review[]>(() => getInitialState<Review[]>('reviews', baseReviews));
+  const [orders, setOrders] = useState<Order[]>(() => getInitialState<Order[]>('orders', mockOrders));
 
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
-  }, [cart]);
+  useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
+  useEffect(() => { localStorage.setItem('wishlist', JSON.stringify(wishlist)); }, [wishlist]);
+  useEffect(() => { localStorage.setItem('user', JSON.stringify(user)); }, [user]);
+  useEffect(() => { localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive)); }, [isQuietZoneActive]);
+  useEffect(() => { localStorage.setItem('reviews', JSON.stringify(reviews)); }, [reviews]);
+  useEffect(() => { localStorage.setItem('orders', JSON.stringify(orders)); }, [orders]);
 
-  useEffect(() => {
-    localStorage.setItem('wishlist', JSON.stringify(wishlist));
-  }, [wishlist]);
-  
-  useEffect(() => {
-    localStorage.setItem('user', JSON.stringify(user));
-  }, [user]);
 
-  useEffect(() => {
-    localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive));
-  }, [isQuietZoneActive]);
+  const addReview = (productId: number, orderId: string, rating: number, comment: string) => {
+    if (!user) return; // Must be logged in
+    
+    const newReview: Review = {
+        id: Date.now(),
+        productId,
+        author: user.name,
+        rating,
+        comment,
+        date: new Date().toISOString().split('T')[0],
+        verifiedBuyer: true,
+    };
+    
+    setReviews(prev => [...prev, newReview]);
+    
+    // Mark product as reviewed in the specific order
+    setOrders(prevOrders => prevOrders.map(order => {
+        if (order.id === orderId) {
+            return {
+                ...order,
+                reviewedProducts: {
+                    ...order.reviewedProducts,
+                    [productId]: true,
+                }
+            };
+        }
+        return order;
+    }));
+  };
 
   const addToCart = (product: Product, quantity = 1) => {
     setCart(prevCart => {
@@ -112,6 +140,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       cart,
       wishlist,
       user,
+      reviews,
+      orders,
+      addReview,
       addToCart,
       removeFromCart,
       updateQuantity,

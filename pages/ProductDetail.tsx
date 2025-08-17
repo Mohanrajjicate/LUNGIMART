@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductBySlug, getRelatedProducts } from '../services/mockData';
 import { useAppContext } from '../contexts/AppContext';
@@ -15,15 +15,14 @@ const SocialShareIcon: React.FC<{ href: string; children: React.ReactNode; label
 
 const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const product = getProductBySlug(slug || '');
+  const { reviews, addToCart, toggleWishlist, isInWishlist } = useAppContext();
+  
+  const product = useMemo(() => getProductBySlug(slug || '', reviews), [slug, reviews]);
+  
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('details');
-  const { addToCart, toggleWishlist, isInWishlist } = useAppContext();
   const navigate = useNavigate();
-
-  const [pincode, setPincode] = useState('');
-  const [deliveryMessage, setDeliveryMessage] = useState('');
 
   if (!product) {
     return (
@@ -45,23 +44,16 @@ const ProductDetailPage: React.FC = () => {
     toggleWishlist(product);
   };
   
-  const handleCheckDelivery = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (/^\d{6}$/.test(pincode)) {
-        const deliveryDate = new Date();
-        deliveryDate.setDate(deliveryDate.getDate() + 5);
-        setDeliveryMessage(`✅ Estimated delivery by ${deliveryDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}.`);
-    } else {
-        setDeliveryMessage('❌ Please enter a valid 6-digit pincode.');
-    }
-  };
-
-
   const inWishlist = isInWishlist(product.id);
   const hasDiscount = product.originalPrice && product.originalPrice > product.price;
   const discountPercentage = hasDiscount ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) : 0;
-  const relatedProducts = getRelatedProducts(product.id);
+  const relatedProducts = getRelatedProducts(product.id, reviews);
 
+  const reviewsRef = React.useRef<HTMLDivElement>(null);
+  const handleReviewsLinkClick = () => {
+      setActiveTab('reviews');
+      reviewsRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }
 
   return (
     <div className="space-y-16">
@@ -91,7 +83,7 @@ const ProductDetailPage: React.FC = () => {
                 <Link to={`/shop/${product.category.slug}`} className="text-sm font-medium text-primary hover:underline uppercase tracking-wider">{product.category.name}</Link>
                 <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mt-1">{product.name}</h1>
                 <div className="mt-2">
-                    <StarRating rating={product.rating || 0} reviewCount={product.reviewCount} />
+                    <StarRating rating={product.rating || 0} reviewCount={product.reviewCount} onReviewClick={handleReviewsLinkClick} />
                 </div>
               </div>
               
@@ -140,15 +132,6 @@ const ProductDetailPage: React.FC = () => {
                     {inWishlist ? 'Added to Wishlist' : 'Add to Wishlist'}
                 </button>
               
-              <div className="border-t border-slate-200 pt-4">
-                    <p className="font-semibold text-slate-800 mb-2">Check Delivery</p>
-                    <form onSubmit={handleCheckDelivery} className="flex gap-2">
-                        <input type="text" value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="flex-grow w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1 text-sm"/>
-                        <button type="submit" className="bg-slate-100 text-slate-700 font-semibold py-2 px-4 rounded-lg hover:bg-slate-200 transition-colors text-sm">Check</button>
-                    </form>
-                    {deliveryMessage && <p className={`text-sm mt-2 ${deliveryMessage.startsWith('❌') ? 'text-red-500' : 'text-slate-600'}`}>{deliveryMessage}</p>}
-              </div>
-
               <div className="border-t border-slate-200 pt-4 flex items-center gap-4">
                   <p className="font-semibold text-slate-800">Share:</p>
                   <div className="flex gap-2">
@@ -168,7 +151,7 @@ const ProductDetailPage: React.FC = () => {
       </div>
       
       {/* Description, Details, Reviews Tabs */}
-       <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-md">
+       <div ref={reviewsRef} className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-md">
          <div className="border-b border-slate-200">
             <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                 <button onClick={() => setActiveTab('details')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>Details</button>
@@ -181,12 +164,14 @@ const ProductDetailPage: React.FC = () => {
                 <div className="space-y-6">
                     {product.reviews.length > 0 ? product.reviews.map(review => (
                         <div key={review.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                            <div className="flex items-center mb-1">
+                            <div className="flex flex-wrap items-center mb-2 gap-x-4 gap-y-1">
                                 <p className="font-semibold text-slate-800">{review.author}</p>
-                                <div className="ml-4">
+                                <div className="flex-shrink-0">
                                    <StarRating rating={review.rating} />
                                 </div>
+                                <time className="text-xs text-slate-500" dateTime={review.date}>{new Date(review.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
                             </div>
+                            {review.verifiedBuyer && <p className="text-xs font-semibold text-green-600 mb-2">✓ Verified Buyer</p>}
                             <p>{review.comment}</p>
                         </div>
                     )) : <p>No reviews yet for this product.</p>}
