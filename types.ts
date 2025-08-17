@@ -46,3 +46,8 @@ export interface Order {
   total: number;
   status: 'Processing' | 'Shipped' | 'Delivered';
 }
+
+export interface ChatMessage {
+    role: 'user' | 'model';
+    text: string;
+}
