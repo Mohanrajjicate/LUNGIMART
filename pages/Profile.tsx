@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 import { Order } from '../types';
 import ProductCard from '../components/ProductCard';
@@ -33,7 +34,12 @@ const LoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
 
 const ProfilePage: React.FC = () => {
   const { user, login, logout, wishlist } = useAppContext();
-  const [activeTab, setActiveTab] = useState('orders');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.tab || 'orders');
+  
+  useEffect(() => {
+    setActiveTab(location.state?.tab || 'orders');
+  }, [location.state]);
 
   if (!user) {
     return (
