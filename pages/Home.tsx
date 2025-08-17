@@ -44,13 +44,13 @@ const HomePage: React.FC = () => {
       {/* Categories Section */}
       <section>
         <h2 className="text-3xl font-bold text-center text-slate-900 mb-10">Our Collections</h2>
-        <div className="flex items-start gap-4 md:gap-6 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex justify-center items-center gap-4 md:gap-8 overflow-x-auto pb-4">
           {mainCategories.map((cat) => (
-            <Link key={cat.id} to={`/shop/${cat.slug}`} className="text-center group flex-shrink-0 w-24 md:w-32">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-lg transform group-hover:scale-105 group-hover:shadow-xl transition-all duration-300">
+            <Link key={cat.id} to={`/shop/${cat.slug}`} className="text-center group flex-shrink-0">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg transform group-hover:scale-105 group-hover:shadow-xl transition-all duration-300">
                 <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
               </div>
-              <p className="mt-2 font-semibold text-slate-700 group-hover:text-primary transition-colors text-sm truncate">{cat.name}</p>
+              <p className="mt-4 font-semibold text-slate-700 group-hover:text-primary transition-colors">{cat.name}</p>
             </Link>
           ))}
         </div>
