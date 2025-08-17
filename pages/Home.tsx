@@ -47,37 +47,61 @@ const HomePage: React.FC = () => {
   // Category Scroller Logic
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [isAutoplaying, setIsAutoplaying] = useState(true);
 
   const checkScrollButtons = useCallback(() => {
     const el = scrollContainerRef.current;
     if (el) {
-        const tolerance = 1;
-        const isScrollable = el.scrollWidth > el.clientWidth + tolerance;
+        const tolerance = 5; // A bit of tolerance
         setCanScrollLeft(el.scrollLeft > tolerance);
-        setCanScrollRight(isScrollable && el.scrollLeft < el.scrollWidth - el.clientWidth - tolerance);
+        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - tolerance);
     }
   }, []);
-
+  
   useEffect(() => {
       const el = scrollContainerRef.current;
       if (el) {
           const timer = setTimeout(checkScrollButtons, 100);
+          el.addEventListener('scroll', checkScrollButtons);
           window.addEventListener('resize', checkScrollButtons);
           return () => {
               clearTimeout(timer);
+              el.removeEventListener('scroll', checkScrollButtons);
               window.removeEventListener('resize', checkScrollButtons);
           };
       }
   }, [checkScrollButtons]);
 
+  useEffect(() => {
+    let intervalId: number | undefined;
+    if (isAutoplaying) {
+        const el = scrollContainerRef.current;
+        if (el) {
+            intervalId = window.setInterval(() => {
+                if (!canScrollRight) {
+                    el.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    el.scrollBy({ left: el.clientWidth * 0.7, behavior: 'smooth' });
+                }
+            }, 3000);
+        }
+    }
+    return () => clearInterval(intervalId);
+  }, [isAutoplaying, canScrollRight]);
+
   const handleScroll = (direction: 'left' | 'right') => {
+      setIsAutoplaying(false);
       const el = scrollContainerRef.current;
       if (el) {
           const scrollAmount = el.clientWidth * 0.7;
           el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
       }
   };
+
+  const toggleAutoplay = () => {
+    setIsAutoplaying(prev => !prev);
+  }
 
   return (
     <div className="space-y-16 md:space-y-24">
@@ -125,10 +149,9 @@ const HomePage: React.FC = () => {
       {/* Categories Section */}
       <section>
         <h2 className="text-3xl font-bold text-center text-slate-900 mb-10">Our Collections</h2>
-        <div className="relative group">
+        <div>
           <div
             ref={scrollContainerRef}
-            onScroll={checkScrollButtons}
             className="flex items-start gap-4 md:gap-8 overflow-x-auto pb-4 no-scrollbar scroll-smooth"
           >
             {mainCategories.map((cat) => (
@@ -140,22 +163,41 @@ const HomePage: React.FC = () => {
               </Link>
             ))}
           </div>
-          <button
-            onClick={() => handleScroll('left')}
-            className="absolute top-16 md:top-20 -translate-y-1/2 left-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-opacity opacity-0 group-hover:opacity-100 disabled:opacity-0 disabled:cursor-default z-10 hidden md:flex"
-            disabled={!canScrollLeft}
-            aria-label="Scroll left"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </button>
-          <button
-            onClick={() => handleScroll('right')}
-            className="absolute top-16 md:top-20 -translate-y-1/2 right-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-opacity opacity-0 group-hover:opacity-100 disabled:opacity-0 disabled:cursor-default z-10 hidden md:flex"
-            disabled={!canScrollRight}
-            aria-label="Scroll right"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-          </button>
+          <div className="mt-6 flex justify-center items-center gap-4">
+              <button
+                onClick={() => handleScroll('left')}
+                className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-default"
+                disabled={!canScrollLeft}
+                aria-label="Scroll left"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+
+              <button
+                onClick={toggleAutoplay}
+                className="w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-dark transition"
+                aria-label={isAutoplaying ? 'Pause auto-scroll' : 'Play auto-scroll'}
+              >
+                {isAutoplaying ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 00-1 1v2a1 1 0 001 1h1a1 1 0 001-1V9a1 1 0 00-1-1H7zm5 0a1 1 0 00-1 1v2a1 1 0 001 1h1a1 1 0 001-1V9a1 1 0 00-1-1h-1z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+
+              <button
+                onClick={() => handleScroll('right')}
+                className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-default"
+                disabled={!canScrollRight}
+                aria-label="Scroll right"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+              </button>
+          </div>
         </div>
       </section>
 
