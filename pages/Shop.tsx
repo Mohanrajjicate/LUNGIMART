@@ -1,8 +1,23 @@
-
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { useParams, NavLink } from 'react-router-dom';
+import { useParams, NavLink, Link } from 'react-router-dom';
 import { categories, getProductsByCategory } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
+import { Category } from '../types';
+
+const OtherCategoryCard: React.FC<{ category: Category }> = ({ category }) => (
+  <Link to={`/shop/${category.slug}`} className="group relative block aspect-video rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+    <img 
+      src={category.image} 
+      alt={category.name} 
+      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+    <div className="relative h-full p-4 flex flex-col justify-end text-white">
+      <h3 className="text-xl font-bold">{category.name}</h3>
+    </div>
+  </Link>
+);
+
 
 const ShopPage: React.FC = () => {
   const { categorySlug } = useParams<{ categorySlug?: string }>();
@@ -37,6 +52,13 @@ const ShopPage: React.FC = () => {
         }
     });
   }, [activeCategorySlug, sortOption]);
+  
+  const recommendedProducts = useMemo(() => getProductsByCategory('featured-products').slice(0, 4), []);
+
+  const otherCategories = useMemo(() => {
+      const virtualSlugs = ['all', 'best-selling', 'new-arrivals', 'featured-products'];
+      return categories.filter(c => c.slug !== activeCategorySlug && !virtualSlugs.includes(c.slug));
+  }, [activeCategorySlug]);
 
   // Category Scroller Logic
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -76,7 +98,7 @@ const ShopPage: React.FC = () => {
   };
   
   return (
-    <div className="space-y-8 md:space-y-12">
+    <div className="space-y-8 md:space-y-16">
       {/* Categories Section */}
       <section className="-mt-4 md:-mt-8">
         <div 
@@ -158,6 +180,24 @@ const ShopPage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Explore Other Categories Section */}
+      {otherCategories.length > 0 && (
+          <section>
+            <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">Explore Other Categories</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                {otherCategories.map(cat => <OtherCategoryCard key={cat.id} category={cat} />)}
+            </div>
+          </section>
+      )}
+
+      {/* Recommended Section */}
+      <section>
+        <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">Recommended For You</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {recommendedProducts.map(p => <ProductCard key={p.id} product={p} />)}
+        </div>
+      </section>
     </div>
   );
 };
