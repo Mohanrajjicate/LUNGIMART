@@ -280,7 +280,11 @@ const HomePage: React.FC = () => {
           <div className="bg-white p-6 rounded-xl">
             <p className="text-slate-600">"The quality of the checkered lungi is fantastic. It's so soft and comfortable for daily wear. Truly authentic Komarapalayam quality."</p>
             <div className="mt-4 flex items-center">
-              <img src="https://i.pravatar.cc/150?u=ramesh" alt="Ramesh Kumar" className="w-12 h-12 rounded-full" />
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+              </div>
               <div className="ml-4">
                 <p className="font-bold text-slate-800">Ramesh Kumar</p>
                 <p className="text-sm text-slate-500">Chennai Resident</p>
@@ -290,7 +294,11 @@ const HomePage: React.FC = () => {
            <div className="bg-white p-6 rounded-xl">
             <p className="text-slate-600">"I ordered the Pure White Temple Dhoti for a ceremony. The material is divine and feels very premium. Delivery was prompt too. Highly recommended."</p>
             <div className="mt-4 flex items-center">
-              <img src="https://i.pravatar.cc/150?u=priya" alt="Priya Selvam" className="w-12 h-12 rounded-full" />
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+              </div>
               <div className="ml-4">
                 <p className="font-bold text-slate-800">Priya Selvam</p>
                 <p className="text-sm text-slate-500">Temple Priest</p>
@@ -300,7 +308,11 @@ const HomePage: React.FC = () => {
            <div className="bg-white p-6 rounded-xl">
             <p className="text-slate-600">"I purchase dhotis in bulk for my shop from LungiMart. The process is smooth and the quality is always consistent. My customers are very happy."</p>
             <div className="mt-4 flex items-center">
-              <img src="https://i.pravatar.cc/150?u=anand" alt="Anand Rao" className="w-12 h-12 rounded-full" />
+               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+              </div>
               <div className="ml-4">
                 <p className="font-bold text-slate-800">Anand Rao</p>
                 <p className="text-sm text-slate-500">Retail Business Owner</p>
