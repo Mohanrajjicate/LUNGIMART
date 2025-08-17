@@ -3,7 +3,6 @@ import NavBar from './NavBar';
 import Footer from './Footer';
 import BottomNavBar from './BottomNavBar';
 import SearchOverlay from './SearchOverlay';
-import Chatbot from './Chatbot';
 
 interface LayoutProps {
   children: ReactNode;
@@ -21,7 +20,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Footer />
       <BottomNavBar onSearchClick={() => setIsSearchOpen(true)} />
       {isSearchOpen && <SearchOverlay onClose={() => setIsSearchOpen(false)} />}
-      <Chatbot />
     </div>
   );
 };
