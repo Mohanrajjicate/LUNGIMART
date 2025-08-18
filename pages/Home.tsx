@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { categories } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
 
 const HomePage: React.FC = () => {
-  const { products, banners } = useAppContext();
+  const { products, banners, categories } = useAppContext();
 
   const getBannerUrl = (id: string, fallback: string) => {
     const banner = banners.find(b => b.id === id);
@@ -47,7 +46,7 @@ const HomePage: React.FC = () => {
   const politicalProducts = useMemo(() => getProductsByCategorySlug('political-party').slice(0, 4), [products]);
   const towelProducts = useMemo(() => getProductsByCategorySlug('towel').slice(0, 4), [products]);
   
-  const mainCategories = categories.filter(c => !['all', 'all-products', 'best-selling', 'new-arrivals', 'featured-products'].includes(c.slug));
+  const mainCategories = useMemo(() => categories.filter(c => !['all', 'all-products', 'best-selling', 'new-arrivals', 'featured-products'].includes(c.slug)), [categories]);
 
 
   const heroImages = [

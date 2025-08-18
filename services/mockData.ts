@@ -1,6 +1,6 @@
 import { Product, Category, Review, Order, Coupon, User, Address, Banner } from '../types';
 
-export const categories: Category[] = [
+export const baseCategories: Category[] = [
   { id: 1, name: 'Lungi', slug: 'lungi', image: 'https://picsum.photos/seed/cat1/600/400' },
   { id: 2, name: 'Dhoti', slug: 'dhoti', image: 'https://picsum.photos/seed/cat2/600/400' },
   { id: 3, name: 'Matching Dhoti', slug: 'matching-dhoti', image: 'https://picsum.photos/seed/cat3/600/400' },
@@ -15,7 +15,7 @@ export const categories: Category[] = [
 ];
 
 const getCategory = (slug: string): Category => {
-    return categories.find(c => c.slug === slug) || categories[0];
+    return baseCategories.find(c => c.slug === slug) || baseCategories[0];
 };
 
 // Base reviews - managed by AppContext
@@ -349,7 +349,7 @@ export const getAvailableCouponsForProduct = (productId: number): Coupon[] => {
 };
 
 export const getProductsByCategory = (slug: string, allProducts: Product[]): Product[] => {
-    const category = categories.find(c => c.slug === slug);
+    const category = baseCategories.find(c => c.slug === slug);
     if (!category) {
         return [];
     }

@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner } from '../types';
-import { baseReviews, baseOrders, getCouponByCode, baseProducts, attachReviewData, mockUsers, categories, baseBanners } from '../services/mockData';
+import { baseReviews, baseOrders, getCouponByCode, baseProducts, attachReviewData, mockUsers, baseCategories, baseBanners } from '../services/mockData';
 
 interface AppContextType {
   cart: CartItem[];
@@ -13,7 +13,8 @@ interface AppContextType {
   categories: Category[];
   notifications: Notification[];
   banners: Banner[];
-  updateBannerImage: (bannerId: string, newImageUrl: string) => void;
+  setBanners: (banners: Banner[]) => void;
+  setCategories: (categories: Category[]) => void;
   addNotification: (message: string, target: 'user' | 'admin', link?: string) => void;
   markAsRead: (notificationId: number) => void;
   markAllAsRead: (target: 'user' | 'admin') => void;
@@ -71,6 +72,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [products, setProducts] = useState<Product[]>(() => getInitialState<Product[]>('products', []));
   const [notifications, setNotifications] = useState<Notification[]>(() => getInitialState<Notification[]>('notifications', []));
   const [banners, setBanners] = useState<Banner[]>(() => getInitialState<Banner[]>('banners', baseBanners));
+  const [categories, setCategories] = useState<Category[]>(() => getInitialState<Category[]>('categories', baseCategories));
 
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => getInitialState<Coupon | null>('appliedCoupon', null));
 
@@ -116,6 +118,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => { localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon)); }, [appliedCoupon]);
   useEffect(() => { localStorage.setItem('notifications', JSON.stringify(notifications)); }, [notifications]);
   useEffect(() => { localStorage.setItem('banners', JSON.stringify(banners)); }, [banners]);
+  useEffect(() => { localStorage.setItem('categories', JSON.stringify(categories)); }, [categories]);
 
   const addNotification = (message: string, target: 'user' | 'admin', link?: string) => {
       const newNotification: Notification = {
@@ -361,13 +364,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   }, [cart, cartTotal, appliedCoupon]);
 
-  const updateBannerImage = (bannerId: string, newImageUrl: string) => {
-    setBanners(prevBanners => 
-      prevBanners.map(banner => 
-        banner.id === bannerId ? { ...banner, imageUrl: newImageUrl } : banner
-      )
-    );
-    addNotification(`Banner image for "${banners.find(b => b.id === bannerId)?.name}" was updated.`, 'admin', '/admin/appearance');
+  const updateAllBanners = (newBanners: Banner[]) => {
+      setBanners(newBanners);
+  };
+
+  const updateAllCategories = (newCategories: Category[]) => {
+      setCategories(newCategories);
   };
 
   return (
@@ -381,7 +383,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       categories,
       notifications,
       banners,
-      updateBannerImage,
+      setBanners: updateAllBanners,
+      setCategories: updateAllCategories,
       addNotification,
       markAsRead,
       markAllAsRead,
