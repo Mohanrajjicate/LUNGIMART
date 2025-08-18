@@ -23,6 +23,10 @@ const CheckoutPage: React.FC = () => {
     const [newAddress, setNewAddress] = useState<Omit<Address, 'id' | 'isDefault'>>({ name: '', street: '', city: '', zip: '' });
     const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
     
+    // State for success animation
+    const [animationStep, setAnimationStep] = useState(0); // 0: packing, 1: shipping, 2: done
+    const [showFinalSuccess, setShowFinalSuccess] = useState(false);
+    
     // Set default selected address on load or user change
     useEffect(() => {
         if (user && user.addresses?.length > 0) {
@@ -39,6 +43,21 @@ const CheckoutPage: React.FC = () => {
             navigate('/cart');
         }
     }, [cart, navigate, activeStep]);
+
+    // Handle success page animation
+    useEffect(() => {
+        if (activeStep === 5) {
+            const timer1 = setTimeout(() => setAnimationStep(1), 1500);
+            const timer2 = setTimeout(() => setAnimationStep(2), 3000);
+            const timer3 = setTimeout(() => setShowFinalSuccess(true), 4000);
+
+            return () => {
+                clearTimeout(timer1);
+                clearTimeout(timer2);
+                clearTimeout(timer3);
+            };
+        }
+    }, [activeStep]);
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
@@ -72,15 +91,67 @@ const CheckoutPage: React.FC = () => {
 
     // --- Success Screen --- //
     if (activeStep === 5) {
+        const animationSteps = [
+            {
+                name: 'Packing',
+                icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>,
+                statusText: "Packing your order..."
+            },
+            {
+                name: 'Shipping',
+                icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h8a1 1 0 001-1z" /><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h2a1 1 0 001-1V7a1 1 0 00-1-1h-2" /></svg>,
+                statusText: "Shipping to your address..."
+            },
+            {
+                name: 'Done',
+                icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+                statusText: "Order Placed Successfully!"
+            }
+        ];
+
         return (
-            <div className="bg-white rounded-xl shadow-md text-center py-20">
-                 <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                 <h1 className="mt-4 text-3xl font-bold text-slate-900">Order Placed Successfully!</h1>
-                 <p className="mt-2 text-slate-600">Thank you for shopping with LungiMart.in.</p>
-                 <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link to="/" className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-dark transition-colors">Continue Shopping</Link>
-                    <Link to="/profile" state={{ tab: 'orders' }} className="bg-slate-100 text-slate-800 font-bold py-3 px-6 rounded-lg hover:bg-slate-200 transition-colors">View Orders</Link>
-                 </div>
+            <div className="bg-white rounded-xl shadow-md text-center py-12 px-4 sm:px-8 transition-all duration-500">
+                {!showFinalSuccess ? (
+                    <div className="max-w-md mx-auto">
+                        <div className="flex justify-between items-start relative mb-4">
+                            <div className="absolute top-6 left-0 w-full h-1 bg-slate-200 -z-10">
+                                <div 
+                                    className="h-full bg-primary transition-all duration-1000 ease-in-out"
+                                    style={{ width: `${animationStep * 50}%` }}
+                                />
+                            </div>
+                            {animationSteps.map((step, index) => (
+                                <div key={step.name} className="flex flex-col items-center w-20 text-center z-10">
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors duration-300 ${animationStep >= index ? 'bg-primary text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                        {animationStep > index ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        ) : (
+                                            step.icon
+                                        )}
+                                    </div>
+                                    <p className={`mt-2 text-xs sm:text-sm font-semibold transition-colors ${animationStep >= index ? 'text-primary' : 'text-slate-500'}`}>{step.name}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-8 min-h-[2.5rem]">
+                            <h2 className="text-xl font-bold text-slate-800">
+                                {animationSteps[animationStep]?.statusText}
+                            </h2>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="animate-fade-in">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <h1 className="mt-4 text-3xl font-bold text-slate-900">Order Placed Successfully!</h1>
+                        <p className="mt-2 text-slate-600">Thank you for shopping with LungiMart.in.</p>
+                        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link to="/" className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-dark transition-colors">Continue Shopping</Link>
+                            <Link to="/profile" state={{ tab: 'orders' }} className="bg-slate-100 text-slate-800 font-bold py-3 px-6 rounded-lg hover:bg-slate-200 transition-colors">View Orders</Link>
+                        </div>
+                    </div>
+                )}
             </div>
         )
     }
