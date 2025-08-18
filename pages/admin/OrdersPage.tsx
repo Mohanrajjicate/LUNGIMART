@@ -106,7 +106,12 @@ const OrdersPage: React.FC = () => {
                                         <Link to={`/invoice/${btoa(order.id)}`} target="_blank" title="Download Invoice" className="text-slate-500 hover:text-primary">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                         </Link>
-                                        <button onClick={() => handleFulfillClick(order)} title="Fulfill & Ship" className="text-slate-500 hover:text-primary">
+                                        <button 
+                                            onClick={() => handleFulfillClick(order)} 
+                                            title={order.status !== 'Processing' ? 'Order has been processed' : 'Fulfill & Ship'}
+                                            className={`transition-colors ${order.status !== 'Processing' ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-primary'}`}
+                                            disabled={order.status !== 'Processing'}
+                                        >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h8a1 1 0 001-1z" /><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h2a1 1 0 001-1V7a1 1 0 00-1-1h-2" /></svg>
                                         </button>
                                         <button onClick={() => showCustomerDetails(order)} title="Customer Details" className="text-slate-500 hover:text-primary">
