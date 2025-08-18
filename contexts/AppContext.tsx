@@ -15,6 +15,7 @@ interface AppContextType {
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   updateProduct: (updatedProduct: Product) => void;
   addProduct: (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => void;
+  addOrder: (items: CartItem[], total: number) => void;
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
@@ -150,6 +151,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
       setProducts(prev => [...prev, newProduct]);
   };
+  
+  const addOrder = (items: CartItem[], total: number) => {
+      if (!user) return;
+
+      const newOrder: Order = {
+          id: `LM-${Date.now().toString().slice(-6)}`,
+          date: new Date().toISOString().split('T')[0],
+          items: items,
+          total: total,
+          status: 'Processing',
+          customerName: user.name,
+          reviewedProducts: {},
+      };
+
+      setOrders(prevOrders => [newOrder, ...prevOrders]);
+  };
 
 
   const addToCart = (product: Product, quantity = 1) => {
@@ -282,6 +299,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       updateOrderStatus,
       updateProduct,
       addProduct,
+      addOrder,
       addToCart,
       removeFromCart,
       updateQuantity,

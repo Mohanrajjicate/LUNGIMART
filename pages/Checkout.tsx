@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -13,6 +14,7 @@ const CheckoutPage: React.FC = () => {
     const { 
         user, login, logout, cart, cartCount, cartTotal, 
         appliedCoupon, cartDiscount, cartFinalTotal,
+        addOrder,
         clearCart
     } = useAppContext();
     const navigate = useNavigate();
@@ -86,6 +88,7 @@ const CheckoutPage: React.FC = () => {
     };
 
     const processOrderCompletion = () => {
+        addOrder(cart, cartFinalTotal);
         clearCart();
         setActiveStep(5); // Go to success/confirmation step
     };
