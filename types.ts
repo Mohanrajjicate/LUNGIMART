@@ -15,6 +15,7 @@ export interface Product {
   reviews: Review[];
   rating?: number;
   reviewCount?: number;
+  virtualCategories?: string[]; // e.g., ['best-selling', 'featured-products']
 }
 
 export interface Category {
@@ -23,6 +24,7 @@ export interface Category {
   slug: string;
   icon?: string;
   image?: string;
+  parentId?: number;
 }
 
 export interface Review {

@@ -1,14 +1,23 @@
 import { Product, Category, Review, Order, Coupon, User, Address, Banner } from '../types';
 
 export const baseCategories: Category[] = [
-  { id: 1, name: 'Lungi', slug: 'lungi', image: 'https://picsum.photos/seed/cat1/600/400' },
-  { id: 2, name: 'Dhoti', slug: 'dhoti', image: 'https://picsum.photos/seed/cat2/600/400' },
-  { id: 3, name: 'Matching Dhoti', slug: 'matching-dhoti', image: 'https://picsum.photos/seed/cat3/600/400' },
-  { id: 10, name: 'Temple Vibe', slug: 'temple-vibe', image: 'https://picsum.photos/seed/cat10/600/400' },
+  // Parent Categories
+  { id: 1, name: 'Lungi', slug: 'lungi' },
+  { id: 2, name: 'Dhoti', slug: 'dhoti' },
   { id: 4, name: 'Political Party', slug: 'political-party', image: 'https://picsum.photos/seed/cat4/600/400' },
   { id: 5, name: 'Towel', slug: 'towel', image: 'https://picsum.photos/seed/cat5/600/400' },
+
+  // Lungi Sub-categories
+  { id: 11, name: 'Checkered Lungi', slug: 'checkered-lungi', parentId: 1, image: 'https://picsum.photos/seed/cat1/600/400' },
+  { id: 12, name: 'Striped Lungi', slug: 'striped-lungi', parentId: 1, image: 'https://picsum.photos/seed/cat6/600/400' },
+
+  // Dhoti Sub-categories
+  { id: 3, name: 'Matching Dhoti', slug: 'matching-dhoti', parentId: 2, image: 'https://picsum.photos/seed/cat3/600/400' },
+  { id: 10, name: 'Temple Dhoti', slug: 'temple-dhoti', parentId: 2, image: 'https://picsum.photos/seed/cat10/600/400' },
+  { id: 13, name: 'Silk Border Dhoti', slug: 'silk-border-dhoti', parentId: 2, image: 'https://picsum.photos/seed/cat8/600/400' },
+
+  // Special Virtual/Filter categories (not for direct assignment)
   { id: 6, name: 'All Products', slug: 'all', image: 'https://picsum.photos/seed/cat6/600/400' },
-  // Virtual categories for special filtered views
   { id: 7, name: 'Best Selling', slug: 'best-selling', image: 'https://picsum.photos/seed/cat7/600/400' },
   { id: 8, name: 'Recent Products', slug: 'new-arrivals', image: 'https://picsum.photos/seed/cat8/600/400' },
   { id: 9, name: 'Featured Products', slug: 'featured-products', image: 'https://picsum.photos/seed/cat9/600/400' },
@@ -32,19 +41,20 @@ export const baseProducts: Omit<Product, 'reviews' | 'rating' | 'reviewCount'>[]
     id: 1,
     name: 'Classic Checkered Lungi',
     slug: 'classic-checkered-lungi',
-    category: getCategory('lungi'),
+    category: getCategory('checkered-lungi'),
     price: 499,
     originalPrice: 799,
     images: ['https://picsum.photos/seed/product1/800/800', 'https://picsum.photos/seed/product1-2/800/800', 'https://picsum.photos/seed/product1-3/800/800'],
     description: 'A timeless classic, this checkered lungi is made from 100% pure Komarapalayam cotton, known for its softness and durability. Perfect for daily wear.',
     details: ['100% Cotton', 'Machine Washable', '2.25 meters length', 'Colorfast guarantee'],
     stock: 120,
+    virtualCategories: ['best-selling', 'featured-products'],
   },
   {
     id: 2,
     name: 'Pure White Temple Dhoti',
     slug: 'pure-white-temple-dhoti',
-    category: getCategory('dhoti'),
+    category: getCategory('temple-dhoti'),
     price: 899,
     originalPrice: 1199,
     images: ['https://picsum.photos/seed/product2/800/800', 'https://picsum.photos/seed/product2-2/800/800'],
@@ -63,6 +73,7 @@ export const baseProducts: Omit<Product, 'reviews' | 'rating' | 'reviewCount'>[]
     description: 'Exquisite silk-blend matching dhoti and angavastram set from the master weavers of Komarapalayam. Features a beautiful golden border for a regal touch.',
     details: ['Silk-Cotton Blend', 'Dry Clean Only', 'Dhoti: 4m, Angavastram: 2.5m', 'Intricate Zari Border'],
     stock: 40,
+    virtualCategories: ['featured-products'],
   },
    {
     id: 4,
@@ -87,12 +98,13 @@ export const baseProducts: Omit<Product, 'reviews' | 'rating' | 'reviewCount'>[]
     description: 'A large, highly absorbent bath towel made from the finest Komarapalayam cotton. Soft to the touch and quick-drying.',
     details: ['Premium Terry Cotton', 'Machine Washable', 'Size: 75cm x 150cm', 'High GSM for absorbency'],
     stock: 150,
+    virtualCategories: ['best-selling'],
   },
   {
     id: 6,
     name: 'Striped Casual Lungi',
     slug: 'striped-casual-lungi',
-    category: getCategory('lungi'),
+    category: getCategory('striped-lungi'),
     price: 550,
     originalPrice: 699,
     images: ['https://picsum.photos/seed/product6/800/800', 'https://picsum.photos/seed/product6-2/800/800'],
@@ -111,12 +123,13 @@ export const baseProducts: Omit<Product, 'reviews' | 'rating' | 'reviewCount'>[]
     description: 'Represent your party with pride. This pure cotton dhoti features the signature black, white, and red border, perfectly woven for political events and daily wear.',
     details: ['100% Premium Cotton', 'Colorfast Guarantee', '4 meters length', 'Authentic Party Colors'],
     stock: 5,
+    virtualCategories: ['featured-products'],
   },
    {
     id: 8,
     name: 'Cotton Dhoti with Silk Border',
     slug: 'cotton-dhoti-silk-border',
-    category: getCategory('dhoti'),
+    category: getCategory('silk-border-dhoti'),
     price: 1100,
     originalPrice: 1400,
     images: ['https://picsum.photos/seed/product8/800/800'],
@@ -135,6 +148,7 @@ export const baseProducts: Omit<Product, 'reviews' | 'rating' | 'reviewCount'>[]
     description: 'A complete set for the groom, featuring a luxurious silk-blend dhoti and a matching towel, both with ornate zari borders.',
     details: ['Silk-Cotton Blend', 'Dry Clean Only', 'Perfect for wedding ceremonies'],
     stock: 30,
+    virtualCategories: ['featured-products'],
   },
   {
     id: 10,
@@ -353,5 +367,12 @@ export const getProductsByCategory = (slug: string, allProducts: Product[]): Pro
     if (!category) {
         return [];
     }
+    // If it's a parent category, get all products from its sub-categories too
+    if (!category.parentId) {
+        const subCategoryIds = baseCategories.filter(c => c.parentId === category.id).map(c => c.id);
+        const allCategoryIds = [category.id, ...subCategoryIds];
+        return allProducts.filter(p => allCategoryIds.includes(p.category.id));
+    }
+    // It's a sub-category, just get its products
     return allProducts.filter(p => p.category.id === category.id);
 };
