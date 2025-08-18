@@ -323,6 +323,8 @@ export const mockCoupons: Coupon[] = [
     discountType: 'percentage',
     discountValue: 10,
     minPurchase: 1000,
+    trigger: 'none',
+    isActive: true,
   },
   {
     id: 2,
@@ -331,6 +333,8 @@ export const mockCoupons: Coupon[] = [
     discountType: 'fixed',
     discountValue: 150,
     applicableProductIds: [1],
+    trigger: 'none',
+    isActive: true,
   },
   {
     id: 3,
@@ -338,8 +342,36 @@ export const mockCoupons: Coupon[] = [
     description: 'Flat ₹50 off on your first order',
     discountType: 'fixed',
     discountValue: 50,
+    trigger: 'first_order',
+    isActive: true,
+  },
+  {
+    id: 4,
+    code: 'HBD20',
+    description: '20% off on your birthday! Happy Birthday!',
+    discountType: 'percentage',
+    discountValue: 20,
+    trigger: 'birthday',
+    isActive: true,
   },
 ];
+
+export const getAvailableCouponsForProduct = (productId: number): Coupon[] => {
+  return mockCoupons.filter(coupon => {
+    // Must be active and not a special user-triggered coupon
+    if (!coupon.isActive || coupon.trigger !== 'none') {
+      return false;
+    }
+    
+    // If it's a generic coupon (no specific products), it applies.
+    if (!coupon.applicableProductIds || coupon.applicableProductIds.length === 0) {
+      return true;
+    }
+    
+    // If it's product-specific, check if this product is included.
+    return coupon.applicableProductIds.includes(productId);
+  });
+};
 
 export const baseBanners: Banner[] = [
   { id: 'hero-slider-1', name: 'Hero Slider Image 1', imageUrl: 'https://picsum.photos/seed/hero-main/1200/800' },
@@ -351,16 +383,6 @@ export const baseBanners: Banner[] = [
   { id: 'bulk-order-promo', name: 'Bulk Order Promo Banner', imageUrl: 'https://picsum.photos/seed/promo/1200/400' },
 ];
 
-
-export const getCouponByCode = (code: string): Coupon | undefined => {
-    return mockCoupons.find(c => c.code.toLowerCase() === code.toLowerCase());
-};
-
-export const getAvailableCouponsForProduct = (productId: number): Coupon[] => {
-    return mockCoupons.filter(coupon => 
-        !coupon.applicableProductIds || coupon.applicableProductIds.includes(productId)
-    );
-};
 
 export const getProductsByCategory = (slug: string, allProducts: Product[]): Product[] => {
     const category = baseCategories.find(c => c.slug === slug);

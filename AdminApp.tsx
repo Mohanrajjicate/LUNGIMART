@@ -9,6 +9,8 @@ import CustomersPage from './pages/admin/CustomersPage';
 import ImageGalleryPage from './pages/admin/ImageGalleryPage';
 import ReviewsPage from './pages/admin/ReviewsPage';
 import AppearancePage from './pages/admin/AppearancePage';
+import CouponsPage from './pages/admin/CouponsPage';
+import CouponEditPage from './pages/admin/CouponEditPage';
 
 const AdminApp: React.FC = () => {
   const navigate = useNavigate();
@@ -42,6 +44,9 @@ const AdminApp: React.FC = () => {
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="image-gallery" element={<ImageGalleryPage />} />
         <Route path="appearance" element={<AppearancePage />} />
+        <Route path="coupons" element={<CouponsPage />} />
+        <Route path="coupons/new" element={<CouponEditPage />} />
+        <Route path="coupons/edit/:couponId" element={<CouponEditPage />} />
       </Routes>
     </AdminLayout>
   );

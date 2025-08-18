@@ -81,6 +81,8 @@ export interface Coupon {
   discountValue: number;
   minPurchase?: number;
   applicableProductIds?: number[]; // for product-specific coupons
+  trigger: 'none' | 'first_order' | 'birthday';
+  isActive: boolean;
 }
 
 export interface Notification {

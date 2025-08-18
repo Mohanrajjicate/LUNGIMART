@@ -1,12 +1,13 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
-import { Product, Address, Order, User } from '../types';
+import { Product, Address, Order, User, Coupon } from '../types';
 import ProductCard from '../components/ProductCard';
 import ReviewModal from '../components/ReviewModal';
 import OrderTrackingModal from '../components/OrderTrackingModal';
-import { mockUsers, mockCoupons } from '../services/mockData';
+import { mockUsers } from '../services/mockData';
 
 // --- Authentication Components (for logged-out users) --- //
 const AuthComponent: React.FC = () => {
@@ -104,7 +105,7 @@ const AuthComponent: React.FC = () => {
 
 // --- Main Profile Page Component --- //
 const ProfilePage: React.FC = () => {
-  const { user, login, logout, wishlist, orders, addReview } = useAppContext();
+  const { user, login, logout, wishlist, orders, addReview, coupons } = useAppContext();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
@@ -184,7 +185,7 @@ const ProfilePage: React.FC = () => {
       case 'wishlist':
         return <WishlistSection wishlist={wishlist} />;
       case 'coupons':
-        return <CouponsSection />;
+        return <CouponsSection user={user} orders={orders} coupons={coupons} />;
       case 'profile':
         return <ProfileInfoSection />;
       case 'address':
@@ -354,8 +355,39 @@ const WishlistSection: React.FC<{wishlist: Product[]}> = ({ wishlist }) => (
     </Section>
 );
 
-const CouponsSection: React.FC = () => {
+const CouponsSection: React.FC<{ user: User, orders: Order[], coupons: Coupon[] }> = ({ user, orders, coupons }) => {
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+    const isBirthday = () => {
+        if (!user || !user.birthday) return false;
+        const today = new Date();
+        const userBday = new Date(user.birthday);
+        // Using UTC to avoid timezone issues.
+        const todayMonth = today.getUTCMonth();
+        const todayDate = today.getUTCDate();
+        const bdayMonth = userBday.getUTCMonth();
+        const bdayDate = userBday.getUTCDate();
+        return todayMonth === bdayMonth && todayDate === bdayDate;
+    };
+
+    const isFirstOrder = () => {
+        if (!user) return false;
+        return orders.filter(o => o.customerName === user.name).length === 0;
+    };
+    
+    const availableCoupons = coupons.filter(coupon => {
+        if (!coupon.isActive) return false;
+        switch (coupon.trigger) {
+            case 'first_order':
+                return isFirstOrder();
+            case 'birthday':
+                return isBirthday();
+            case 'none':
+            default:
+                return true;
+        }
+    });
+
     const handleCopy = (code: string) => {
         navigator.clipboard.writeText(code);
         setCopiedCode(code);
@@ -364,22 +396,28 @@ const CouponsSection: React.FC = () => {
 
     return (
         <Section title="Available Coupons">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {mockCoupons.map(coupon => (
-                    <div key={coupon.id} className="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
-                        <div>
-                            <p className="font-bold text-slate-800">{coupon.code}</p>
-                            <p className="text-sm text-slate-500">{coupon.description}</p>
+            {availableCoupons.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {availableCoupons.map(coupon => (
+                        <div key={coupon.id} className="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                            <div>
+                                <p className="font-bold text-slate-800">{coupon.code}</p>
+                                <p className="text-sm text-slate-500">{coupon.description}</p>
+                            </div>
+                            <button 
+                                onClick={() => handleCopy(coupon.code)}
+                                className="bg-slate-100 text-slate-700 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors"
+                            >
+                                {copiedCode === coupon.code ? 'Copied!' : 'Copy'}
+                            </button>
                         </div>
-                        <button 
-                            onClick={() => handleCopy(coupon.code)}
-                            className="bg-slate-100 text-slate-700 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors"
-                        >
-                            {copiedCode === coupon.code ? 'Copied!' : 'Copy'}
-                        </button>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            ) : (
+                 <div className="bg-white text-center py-16 rounded-xl border border-slate-200">
+                    <p className="text-slate-500">No coupons available for you at the moment.</p>
+                </div>
+            )}
         </Section>
     );
 };

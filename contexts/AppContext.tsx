@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner } from '../types';
-import { baseReviews, baseOrders, getCouponByCode, baseProducts, attachReviewData, mockUsers, baseCategories, baseBanners } from '../services/mockData';
+import { baseReviews, baseOrders, baseProducts, attachReviewData, mockUsers, baseCategories, baseBanners, mockCoupons } from '../services/mockData';
 
 interface AppContextType {
   cart: CartItem[];
@@ -14,6 +14,7 @@ interface AppContextType {
   categories: Category[];
   notifications: Notification[];
   banners: Banner[];
+  coupons: Coupon[];
   setBanners: (banners: Banner[]) => void;
   setCategories: (categories: Category[]) => void;
   addNotification: (message: string, target: 'user' | 'admin', link?: string) => void;
@@ -48,6 +49,9 @@ interface AppContextType {
   logout: () => void;
   isQuietZoneActive: boolean;
   toggleQuietZone: () => void;
+  addCoupon: (coupon: Omit<Coupon, 'id'>) => void;
+  updateCoupon: (coupon: Coupon) => void;
+  deleteCoupon: (couponId: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -75,6 +79,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [notifications, setNotifications] = useState<Notification[]>(() => getInitialState<Notification[]>('notifications', []));
   const [banners, setBanners] = useState<Banner[]>(() => getInitialState<Banner[]>('banners', baseBanners));
   const [categories, setCategories] = useState<Category[]>(() => getInitialState<Category[]>('categories', baseCategories));
+  const [coupons, setCoupons] = useState<Coupon[]>(() => getInitialState<Coupon[]>('coupons', mockCoupons));
 
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => getInitialState<Coupon | null>('appliedCoupon', null));
 
@@ -121,6 +126,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => { localStorage.setItem('notifications', JSON.stringify(notifications)); }, [notifications]);
   useEffect(() => { localStorage.setItem('banners', JSON.stringify(banners)); }, [banners]);
   useEffect(() => { localStorage.setItem('categories', JSON.stringify(categories)); }, [categories]);
+  useEffect(() => { localStorage.setItem('coupons', JSON.stringify(coupons)); }, [coupons]);
 
   const addNotification = (message: string, target: 'user' | 'admin', link?: string) => {
       const newNotification: Notification = {
@@ -334,16 +340,42 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const wishlistCount = wishlist.length;
 
   const applyCoupon = (couponCode: string): { success: boolean; message: string } => {
-    const coupon = getCouponByCode(couponCode);
+    const coupon = coupons.find(c => c.code.toLowerCase() === couponCode.toLowerCase());
+    
     if (!coupon) {
-      return { success: false, message: "Invalid coupon code." };
+        return { success: false, message: "Invalid coupon code." };
+    }
+
+    if (!coupon.isActive) {
+        return { success: false, message: "This coupon is currently inactive." };
+    }
+
+    if (coupon.trigger === 'first_order') {
+        if (!user) return { success: false, message: "You must be logged in to use this coupon." };
+        const userOrders = orders.filter(o => o.customerName === user.name);
+        if (userOrders.length > 0) {
+            return { success: false, message: "This coupon is only for your first order." };
+        }
+    }
+
+    if (coupon.trigger === 'birthday') {
+        if (!user) return { success: false, message: "You must be logged in to use this coupon." };
+        if (!user.birthday) return { success: false, message: "Please set your birthday in your profile to use this coupon." };
+        
+        const today = new Date();
+        const userBday = new Date(user.birthday);
+        
+        // Note: This simple check ignores year and timezone differences, which is okay for this app.
+        if (today.getMonth() !== userBday.getMonth() || today.getDate() !== userBday.getDate()) {
+            return { success: false, message: "It's not your birthday yet!" };
+        }
     }
 
     if (coupon.minPurchase && cartTotal < coupon.minPurchase) {
         return { success: false, message: `Minimum purchase of ₹${coupon.minPurchase} required.` };
     }
     
-    if (coupon.applicableProductIds) {
+    if (coupon.applicableProductIds && coupon.applicableProductIds.length > 0) {
         const isApplicable = cart.some(item => coupon.applicableProductIds!.includes(item.id));
         if (!isApplicable) {
             return { success: false, message: "Coupon not applicable to items in your cart." };
@@ -360,7 +392,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const isApplicable = !appliedCoupon.minPurchase || cartTotal >= appliedCoupon.minPurchase;
 
         if (isApplicable) {
-            if (appliedCoupon.applicableProductIds) {
+            if (appliedCoupon.applicableProductIds && appliedCoupon.applicableProductIds.length > 0) {
                 const applicableTotal = cart
                     .filter(item => appliedCoupon.applicableProductIds!.includes(item.id))
                     .reduce((total, item) => total + item.price * item.quantity, 0);
@@ -395,6 +427,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateAllCategories = (newCategories: Category[]) => {
       setCategories(newCategories);
   };
+  
+  const addCoupon = (couponData: Omit<Coupon, 'id'>) => {
+    const newCoupon: Coupon = { ...couponData, id: Date.now() };
+    setCoupons(prev => [newCoupon, ...prev]);
+  };
+  
+  const updateCoupon = (updatedCoupon: Coupon) => {
+      setCoupons(prev => prev.map(c => c.id === updatedCoupon.id ? updatedCoupon : c));
+  };
+
+  const deleteCoupon = (couponId: number) => {
+      setCoupons(prev => prev.filter(c => c.id !== couponId));
+  };
+
 
   return (
     <AppContext.Provider value={{
@@ -407,6 +453,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       categories,
       notifications,
       banners,
+      coupons,
       setBanners: updateAllBanners,
       setCategories: updateAllCategories,
       addNotification,
@@ -440,7 +487,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       login,
       logout,
       isQuietZoneActive,
-      toggleQuietZone
+      toggleQuietZone,
+      addCoupon,
+      updateCoupon,
+      deleteCoupon
     }}>
       {children}
     </AppContext.Provider>
