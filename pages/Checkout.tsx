@@ -215,7 +215,7 @@ const CheckoutPage: React.FC = () => {
     
     // --- Price Details Sidebar --- //
     const PriceDetails = () => (
-         <div className="bg-slate-50 rounded-xl shadow-sm p-6 sticky top-28">
+         <div className="bg-slate-50 rounded-xl shadow-sm p-6 md:sticky md:top-28">
             <h3 className="text-base font-bold uppercase text-slate-600 border-b border-slate-200 pb-3">Price Details</h3>
             <dl className="mt-4 space-y-3 text-sm">
                 <div className="flex justify-between"><dt className="text-slate-600">Price ({cartCount} items)</dt><dd className="font-medium text-slate-800">₹{cartTotal.toFixed(2)}</dd></div>
@@ -255,7 +255,10 @@ const CheckoutPage: React.FC = () => {
     return (
         <div className="max-w-5xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-                <div className="md:col-span-2 space-y-4">
+                <div className="md:col-span-1 md:order-2">
+                    <PriceDetails />
+                </div>
+                <div className="md:col-span-2 space-y-4 md:order-1">
                     {/* --- Step 1: Login --- */}
                     <div className="bg-white rounded-xl shadow-sm">
                         <StepHeader step={1} title="Login or Signup" />
@@ -450,10 +453,6 @@ const CheckoutPage: React.FC = () => {
                             </div>
                          )}
                     </div>
-                </div>
-
-                <div className="md:col-span-1">
-                    <PriceDetails />
                 </div>
             </div>
         </div>
