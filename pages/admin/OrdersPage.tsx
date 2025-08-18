@@ -1,15 +1,18 @@
 
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
-import { Order } from '../../types';
+import { Order, User } from '../../types';
 import FulfillmentModal from '../../components/admin/FulfillmentModal';
+import { mockUsers } from '../../services/mockData';
 
 const OrdersPage: React.FC = () => {
-    const { orders, updateOrderStatus, user } = useAppContext();
+    const { orders, updateOrderStatus } = useAppContext();
     const [pendingChanges, setPendingChanges] = useState<{ [key: string]: Order['status'] }>({});
     const [isFulfillmentModalOpen, setFulfillmentModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
 
     const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
         setPendingChanges(prev => ({ ...prev, [orderId]: newStatus }));
@@ -23,18 +26,29 @@ const OrdersPage: React.FC = () => {
     };
 
     const handleFulfillClick = (order: Order) => {
+        const customer = mockUsers.find(u => u.name === order.customerName);
         setSelectedOrder(order);
+        setSelectedCustomer(customer || null);
         setFulfillmentModalOpen(true);
+    };
+
+    const showCustomerDetails = (order: Order) => {
+        const customer = mockUsers.find(u => u.name === order.customerName);
+        if (customer) {
+            alert(`Customer Details:\n\nName: ${customer.name}\nEmail: ${customer.email}\nPhone: ${customer.phone || 'N/A'}`);
+        } else {
+            alert(`Customer "${order.customerName}" not found.`);
+        }
     };
 
     const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
     return (
         <>
-        {isFulfillmentModalOpen && selectedOrder && user && (
+        {isFulfillmentModalOpen && selectedOrder && selectedCustomer && (
             <FulfillmentModal 
                 order={selectedOrder}
-                user={user}
+                customer={selectedCustomer}
                 onClose={() => setFulfillmentModalOpen(false)}
             />
         )}
@@ -88,14 +102,17 @@ const OrdersPage: React.FC = () => {
                                     </select>
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    {(pendingChanges[order.id] || order.status) === 'Processing' && (
-                                        <button 
-                                            onClick={() => handleFulfillClick(order)}
-                                            className="font-medium text-primary hover:underline text-xs bg-primary/10 px-3 py-1 rounded-full"
-                                        >
-                                            Fulfill
+                                    <div className="flex justify-end items-center gap-4">
+                                        <Link to={`/invoice/${btoa(order.id)}`} target="_blank" title="Download Invoice" className="text-slate-500 hover:text-primary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                        </Link>
+                                        <button onClick={() => handleFulfillClick(order)} title="Fulfill & Ship" className="text-slate-500 hover:text-primary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h8a1 1 0 001-1z" /><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h2a1 1 0 001-1V7a1 1 0 00-1-1h-2" /></svg>
                                         </button>
-                                    )}
+                                        <button onClick={() => showCustomerDetails(order)} title="Customer Details" className="text-slate-500 hover:text-primary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

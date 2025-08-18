@@ -172,6 +172,7 @@ export const mockUsers: User[] = [
       name: 'Suresh P.',
       email: 'suresh@example.com',
       birthday: '1990-05-15',
+      phone: '9876543210',
       addresses: [
         {
           id: 1,
@@ -187,6 +188,54 @@ export const mockUsers: User[] = [
           street: "456, Main Road",
           city: 'Erode, Tamil Nadu',
           zip: '638001',
+        }
+      ],
+    },
+    {
+      id: 2,
+      name: 'Ramesh K.',
+      email: 'ramesh@example.com',
+      phone: '9876543211',
+      addresses: [
+        {
+          id: 3,
+          name: 'Ramesh K. (Home)',
+          street: "789, Gandhi Street",
+          city: 'Chennai, Tamil Nadu',
+          zip: '600001',
+          isDefault: true,
+        }
+      ],
+    },
+    {
+      id: 3,
+      name: 'Gopal V.',
+      email: 'gopal@example.com',
+      phone: '9876543212',
+      addresses: [
+        {
+          id: 4,
+          name: 'Gopal V. (Home)',
+          street: "101, Bazaar Road",
+          city: 'Madurai, Tamil Nadu',
+          zip: '625001',
+          isDefault: true,
+        }
+      ],
+    },
+    {
+      id: 4,
+      name: 'Anitha',
+      email: 'anitha@example.com',
+      phone: '9876543213',
+      addresses: [
+        {
+          id: 5,
+          name: 'Anitha (Home)',
+          street: "212, Kovai Nagar",
+          city: 'Coimbatore, Tamil Nadu',
+          zip: '641001',
+          isDefault: true,
         }
       ],
     }

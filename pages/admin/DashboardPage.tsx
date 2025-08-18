@@ -4,14 +4,16 @@ import { useAppContext } from '../../contexts/AppContext';
 import StatCard from '../../components/admin/StatCard';
 import SalesChart from '../../components/admin/SalesChart';
 import CategoryPieChart from '../../components/admin/CategoryPieChart';
-import { Order, Product } from '../../types';
+import { Order, Product, User } from '../../types';
 import FulfillmentModal from '../../components/admin/FulfillmentModal';
+import { mockUsers } from '../../services/mockData';
 
 
 const DashboardPage: React.FC = () => {
-    const { orders, products, user } = useAppContext();
+    const { orders, products } = useAppContext();
     const [isFulfillmentModalOpen, setFulfillmentModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
 
     const { totalRevenue, averageOrderValue } = useMemo(() => {
         const revenue = orders.reduce((sum, order) => sum + order.total, 0);
@@ -43,16 +45,18 @@ const DashboardPage: React.FC = () => {
     }, [orders, products]);
     
     const handleFulfillClick = (order: Order) => {
+        const customer = mockUsers.find(u => u.name === order.customerName);
         setSelectedOrder(order);
+        setSelectedCustomer(customer || null);
         setFulfillmentModalOpen(true);
     };
 
     return (
         <>
-            {isFulfillmentModalOpen && selectedOrder && user && (
+            {isFulfillmentModalOpen && selectedOrder && selectedCustomer && (
                 <FulfillmentModal 
                     order={selectedOrder}
-                    user={user}
+                    customer={selectedCustomer}
                     onClose={() => setFulfillmentModalOpen(false)}
                 />
             )}

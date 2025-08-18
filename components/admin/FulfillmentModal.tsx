@@ -5,11 +5,11 @@ import ShippingLabel from './ShippingLabel';
 
 interface FulfillmentModalProps {
     order: Order;
-    user: User;
+    customer: User;
     onClose: () => void;
 }
 
-const FulfillmentModal: React.FC<FulfillmentModalProps> = ({ order, user, onClose }) => {
+const FulfillmentModal: React.FC<FulfillmentModalProps> = ({ order, customer, onClose }) => {
     const { updateOrderStatus } = useAppContext();
     const [isLabelVisible, setLabelVisible] = useState(false);
     const [isPaymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -19,7 +19,7 @@ const FulfillmentModal: React.FC<FulfillmentModalProps> = ({ order, user, onClos
         onClose();
     };
     
-    const shippingAddress = user.addresses.find(a => a.isDefault) || user.addresses[0];
+    const shippingAddress = customer.addresses.find(a => a.isDefault) || customer.addresses[0];
 
     return (
         <>

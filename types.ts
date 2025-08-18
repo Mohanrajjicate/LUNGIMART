@@ -55,6 +55,7 @@ export interface User {
   email: string;
   addresses: Address[];
   birthday?: string;
+  phone?: string;
 }
 
 export interface Order {
