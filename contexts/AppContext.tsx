@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner } from '../types';
 import { baseReviews, baseOrders, getCouponByCode, baseProducts, attachReviewData, mockUsers, baseCategories, baseBanners } from '../services/mockData';
@@ -18,6 +19,7 @@ interface AppContextType {
   addNotification: (message: string, target: 'user' | 'admin', link?: string) => void;
   markAsRead: (notificationId: number) => void;
   markAllAsRead: (target: 'user' | 'admin') => void;
+  clearAllNotifications: (target: 'user' | 'admin') => void;
   addReview: (productId: number, orderId: string, rating: number, comment: string) => void;
   deleteReview: (reviewId: number) => void;
   acknowledgeReview: (reviewId: number) => void;
@@ -138,6 +140,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   
   const markAllAsRead = (target: 'user' | 'admin') => {
       setNotifications(prev => prev.map(n => n.target === target ? { ...n, read: true } : n));
+  };
+
+  const clearAllNotifications = (target: 'user' | 'admin') => {
+    setNotifications(prev => prev.filter(n => n.target !== target));
   };
 
   const addReview = (productId: number, orderId: string, rating: number, comment: string) => {
@@ -388,6 +394,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addNotification,
       markAsRead,
       markAllAsRead,
+      clearAllNotifications,
       addReview,
       deleteReview,
       acknowledgeReview,

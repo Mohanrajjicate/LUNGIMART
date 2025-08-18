@@ -1,11 +1,12 @@
 
+
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
+import NotificationBell from './NotificationBell';
 
 const BottomNavBar: React.FC<{onSearchClick: () => void}> = ({onSearchClick}) => {
-    const { cartCount, wishlistCount } = useAppContext();
-    const location = useLocation();
+    const { cartCount } = useAppContext();
 
     const linkClasses = "flex flex-col items-center justify-center text-xs gap-1 transition-colors w-full h-full pt-2 pb-1";
     const activeLinkClasses = "text-primary";
@@ -13,10 +14,6 @@ const BottomNavBar: React.FC<{onSearchClick: () => void}> = ({onSearchClick}) =>
 
     const getNavLinkClass = ({ isActive }: { isActive: boolean }) => 
         `${linkClasses} ${isActive ? activeLinkClasses : inactiveLinkClasses}`;
-
-    const isProfilePage = location.pathname === '/profile';
-    const isWishlistActive = isProfilePage && location.state?.tab === 'wishlist';
-    const isProfileActive = isProfilePage && (location.state?.tab === 'orders' || !location.state?.tab);
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] grid grid-cols-5 items-stretch z-40 md:hidden">
@@ -38,15 +35,12 @@ const BottomNavBar: React.FC<{onSearchClick: () => void}> = ({onSearchClick}) =>
                 <span>Cart</span>
             </NavLink>
             
-            <NavLink to="/profile" state={{ tab: 'wishlist' }} className={`${linkClasses} ${isWishlistActive ? activeLinkClasses : inactiveLinkClasses}`}>
-                <div className="relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                    {wishlistCount > 0 && <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-white text-[10px]">{wishlistCount}</span>}
-                </div>
-                <span>Wishlist</span>
-            </NavLink>
+            <div className={`${linkClasses} ${inactiveLinkClasses}`}>
+                <NotificationBell target="user" direction="up" />
+                <span>Notifications</span>
+            </div>
 
-            <NavLink to="/profile" state={{ tab: 'orders' }} className={`${linkClasses} ${isProfileActive ? activeLinkClasses : inactiveLinkClasses}`}>
+            <NavLink to="/profile" className={getNavLinkClass}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                 <span>Profile</span>
             </NavLink>
