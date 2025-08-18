@@ -1,13 +1,24 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 
 const InvoicePage: React.FC = () => {
-    const { orderId } = useParams<{ orderId: string }>();
+    const { orderId: encodedOrderId } = useParams<{ orderId: string }>();
     const { orders, user } = useAppContext();
     const navigate = useNavigate();
 
-    const order = orders.find(o => o.id === orderId);
+    const order = React.useMemo(() => {
+        if (!encodedOrderId) return undefined;
+        try {
+            const decodedOrderId = atob(encodedOrderId);
+            return orders.find(o => o.id === decodedOrderId);
+        } catch (e) {
+            console.error("Failed to decode order ID:", e);
+            return undefined;
+        }
+    }, [encodedOrderId, orders]);
+
 
     const handlePrint = () => {
         window.print();
