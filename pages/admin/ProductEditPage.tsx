@@ -54,19 +54,31 @@ const ProductEditPage: React.FC = () => {
         setFormData(prev => ({ ...prev, details: [...prev.details, ''] }));
     };
     
-    const handleImageChange = (index: number, value: string) => {
+    const handleImageFileChange = (index: number, file: File | null) => {
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const newImages = [...formData.images];
+                newImages[index] = reader.result as string; // This will be the base64 data URL
+                setFormData(prev => ({ ...prev, images: newImages }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleImageUrlChange = (index: number, value: string) => {
         const newImages = [...formData.images];
         newImages[index] = value;
         setFormData(prev => ({...prev, images: newImages }));
-    }
+    };
 
     const addImage = () => {
         setFormData(prev => ({...prev, images: [...prev.images, '']}));
-    }
+    };
 
     const removeImage = (index: number) => {
         setFormData(prev => ({...prev, images: prev.images.filter((_, i) => i !== index)}));
-    }
+    };
 
     const handleMockAIGenerate = () => {
         // In a real app, this would make an API call to Google Gemini.
@@ -132,30 +144,48 @@ const ProductEditPage: React.FC = () => {
                         <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm" />
                     </div>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Image URLs</label>
-                    <div className="space-y-2">
+                 <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Product Images</label>
+                    <div className="space-y-4">
                         {formData.images.map((img, index) => (
-                            <div key={index} className="flex items-center gap-2">
-                                <input 
-                                    type="text" 
-                                    value={img} 
-                                    placeholder="https://example.com/image.jpg"
-                                    onChange={(e) => handleImageChange(index, e.target.value)} 
-                                    className="block w-full rounded-lg border-slate-300 shadow-sm" 
+                            <div key={index} className="flex items-center gap-4 p-3 border rounded-lg">
+                                <img
+                                    src={img || 'https://via.placeholder.com/80x80.png?text=Preview'}
+                                    alt={`Preview ${index + 1}`}
+                                    className="w-20 h-20 object-cover rounded-md bg-slate-100 flex-shrink-0"
                                 />
+                                <div className="flex-grow space-y-2">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => handleImageFileChange(index, e.target.files ? e.target.files[0] : null)}
+                                        className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                                    />
+                                    <div className="flex items-center gap-2">
+                                        <hr className="flex-grow"/>
+                                        <span className="text-xs text-slate-400">OR</span>
+                                        <hr className="flex-grow"/>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={img.startsWith('data:image') ? '' : img}
+                                        placeholder="Paste image URL"
+                                        onChange={(e) => handleImageUrlChange(index, e.target.value)}
+                                        className="block w-full rounded-lg border-slate-300 shadow-sm text-sm"
+                                    />
+                                </div>
                                 {formData.images.length > 1 && (
-                                    <button type="button" onClick={() => removeImage(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-md">
+                                    <button type="button" onClick={() => removeImage(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-md self-start">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     </button>
                                 )}
                             </div>
                         ))}
                     </div>
-                    <button type="button" onClick={addImage} className="mt-2 text-sm font-semibold text-primary hover:underline">+ Add Image URL</button>
+                    <button type="button" onClick={addImage} className="mt-2 text-sm font-semibold text-primary hover:underline">+ Add Another Image</button>
                 </div>
                  <div>
-                    <label className="block text-sm font-medium text-slate-700">Details</label>
+                    <label className="block text-sm font-medium text-slate-700">Details (one per line)</label>
                     {formData.details.map((detail, index) => (
                         <input key={index} type="text" value={detail} onChange={(e) => handleDetailChange(index, e.target.value)} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm mb-2" />
                     ))}
