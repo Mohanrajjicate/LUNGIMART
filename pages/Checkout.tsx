@@ -277,21 +277,45 @@ const CheckoutPage: React.FC = () => {
                          {activeStep === 4 && (
                             <div className="p-6 border-t border-slate-200">
                                 <div className="space-y-4">
+                                    {/* Disabled Cash on Delivery Option */}
+                                    <div className="p-4 border border-slate-200 rounded-lg bg-slate-50 opacity-70">
+                                        <label className="flex items-center cursor-not-allowed">
+                                            <input 
+                                                type="radio" 
+                                                name="payment" 
+                                                value="cod" 
+                                                disabled 
+                                                className="h-4 w-4 text-slate-400 border-slate-300 focus:ring-slate-400" 
+                                            />
+                                            <div className="ml-4">
+                                                <span className="font-semibold text-slate-500">Cash on Delivery</span>
+                                                <p className="text-xs text-slate-400">Not available for this order</p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    
+                                    {/* Razorpay Option */}
                                     <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
-                                        <input type="radio" name="payment" value="cod" onChange={e => setPaymentMethod(e.target.value)} className="h-4 w-4 text-primary border-gray-300 focus:ring-primary/20" />
-                                        <span className="ml-4 font-semibold">Cash on Delivery</span>
-                                    </label>
-                                    <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
-                                        <input type="radio" name="payment" value="card" onChange={e => setPaymentMethod(e.target.value)} className="h-4 w-4 text-primary border-gray-300 focus:ring-primary/20" />
-                                        <span className="ml-4 font-semibold">Credit / Debit Card</span>
-                                    </label>
-                                    <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
-                                        <input type="radio" name="payment" value="upi" onChange={e => setPaymentMethod(e.target.value)} className="h-4 w-4 text-primary border-gray-300 focus:ring-primary/20" />
-                                        <span className="ml-4 font-semibold">UPI</span>
+                                        <input 
+                                            type="radio" 
+                                            name="payment" 
+                                            value="razorpay" 
+                                            onChange={e => setPaymentMethod(e.target.value)}
+                                            checked={paymentMethod === 'razorpay'}
+                                            className="h-4 w-4 text-primary border-gray-300 focus:ring-primary/20" 
+                                        />
+                                        <div className="ml-4">
+                                            <span className="font-semibold text-slate-800">Razorpay</span>
+                                            <p className="text-xs text-slate-500">Cards, UPI, Netbanking & more</p>
+                                        </div>
                                     </label>
                                 </div>
-                                {paymentMethod && (
-                                    <button type="button" onClick={handlePlaceOrder} className="mt-6 w-full bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-primary-dark transition-colors">
+                                {paymentMethod === 'razorpay' && (
+                                    <button 
+                                        type="button" 
+                                        onClick={handlePlaceOrder} 
+                                        className="mt-6 w-full bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-primary-dark transition-colors"
+                                    >
                                         PLACE ORDER (Pay ₹{cartFinalTotal.toFixed(2)})
                                     </button>
                                 )}
