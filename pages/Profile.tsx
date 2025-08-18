@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -243,9 +244,12 @@ const OrdersSection: React.FC<{orders: any[], onOpenReviewModal: (product: Produ
             <div key={order.id} className="bg-white p-4 rounded-xl border border-slate-200">
                 <div className="flex flex-wrap justify-between items-center gap-4 border-b border-slate-200 pb-4 mb-4">
                     <div>
-                        <Link to={`/invoice/${btoa(order.id)}`} className="font-bold text-primary hover:underline">
+                        <Link to={`/invoice/${btoa(order.id)}`} className="font-bold text-primary hover:underline block">
                             Order ID: {order.id}
                         </Link>
+                         <p className="text-sm text-slate-500 truncate max-w-xs sm:max-w-sm">
+                            {order.items[0]?.name}{order.items.length > 1 ? ` + ${order.items.length - 1} more` : ''}
+                        </p>
                         <p className="text-sm text-slate-500">Date: {order.date}</p>
                     </div>
                     <div className="text-right">

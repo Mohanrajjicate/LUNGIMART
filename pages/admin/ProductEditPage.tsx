@@ -24,7 +24,10 @@ const ProductEditPage: React.FC = () => {
         if (isEditing) {
             const productToEdit = products.find(p => p.id === parseInt(productId!));
             if (productToEdit) {
-                setFormData(productToEdit);
+                // Ensure images and details are arrays
+                const images = Array.isArray(productToEdit.images) && productToEdit.images.length > 0 ? productToEdit.images : [''];
+                const details = Array.isArray(productToEdit.details) && productToEdit.details.length > 0 ? productToEdit.details : [''];
+                setFormData({...productToEdit, images, details});
             } else {
                 navigate('/admin/products');
             }
@@ -50,6 +53,20 @@ const ProductEditPage: React.FC = () => {
     const addDetail = () => {
         setFormData(prev => ({ ...prev, details: [...prev.details, ''] }));
     };
+    
+    const handleImageChange = (index: number, value: string) => {
+        const newImages = [...formData.images];
+        newImages[index] = value;
+        setFormData(prev => ({...prev, images: newImages }));
+    }
+
+    const addImage = () => {
+        setFormData(prev => ({...prev, images: [...prev.images, '']}));
+    }
+
+    const removeImage = (index: number) => {
+        setFormData(prev => ({...prev, images: prev.images.filter((_, i) => i !== index)}));
+    }
 
     const handleMockAIGenerate = () => {
         // In a real app, this would make an API call to Google Gemini.
@@ -66,6 +83,8 @@ const ProductEditPage: React.FC = () => {
             originalPrice: parseFloat(String(formData.originalPrice)),
             stock: parseInt(String(formData.stock)),
             slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
+            images: formData.images.filter(img => img.trim() !== ''), // Filter out empty strings
+            details: formData.details.filter(det => det.trim() !== ''), // Filter out empty strings
         };
 
         if (isEditing) {
@@ -112,6 +131,28 @@ const ProductEditPage: React.FC = () => {
                         <label className="block text-sm font-medium text-slate-700">Stock</label>
                         <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm" />
                     </div>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Image URLs</label>
+                    <div className="space-y-2">
+                        {formData.images.map((img, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                                <input 
+                                    type="text" 
+                                    value={img} 
+                                    placeholder="https://example.com/image.jpg"
+                                    onChange={(e) => handleImageChange(index, e.target.value)} 
+                                    className="block w-full rounded-lg border-slate-300 shadow-sm" 
+                                />
+                                {formData.images.length > 1 && (
+                                    <button type="button" onClick={() => removeImage(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-md">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    <button type="button" onClick={addImage} className="mt-2 text-sm font-semibold text-primary hover:underline">+ Add Image URL</button>
                 </div>
                  <div>
                     <label className="block text-sm font-medium text-slate-700">Details</label>

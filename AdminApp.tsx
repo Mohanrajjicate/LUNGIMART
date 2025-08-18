@@ -1,15 +1,31 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import AdminLayout from './components/admin/AdminLayout';
 import DashboardPage from './pages/admin/DashboardPage';
 import ProductsListPage from './pages/admin/ProductsListPage';
 import ProductEditPage from './pages/admin/ProductEditPage';
 import OrdersPage from './pages/admin/OrdersPage';
 import CustomersPage from './pages/admin/CustomersPage';
+import ImageGalleryPage from './pages/admin/ImageGalleryPage';
 
 const AdminApp: React.FC = () => {
-  // In a real app, you'd have an auth check here to protect admin routes.
-  // For this mock app, we'll assume the user is an admin.
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // This is a mock authentication check. In a real app, you'd verify a token.
+    const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+    if (!loggedIn) {
+      navigate('/admin/login', { replace: true });
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [navigate]);
+
+  if (!isAuthenticated) {
+    // Render nothing while redirecting
+    return null;
+  }
 
   return (
     <AdminLayout>
@@ -21,6 +37,7 @@ const AdminApp: React.FC = () => {
         <Route path="products/edit/:productId" element={<ProductEditPage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="customers" element={<CustomersPage />} />
+        <Route path="image-gallery" element={<ImageGalleryPage />} />
       </Routes>
     </AdminLayout>
   );

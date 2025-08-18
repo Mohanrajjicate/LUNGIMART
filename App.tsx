@@ -20,6 +20,7 @@ import ContactPage from './pages/Contact';
 import InvoicePage from './pages/Invoice';
 import SearchPage from './pages/SearchPage';
 import AdminApp from './AdminApp';
+import AdminLoginPage from './pages/admin/AdminLoginPage';
 
 const App: React.FC = () => {
   return (
@@ -27,6 +28,7 @@ const App: React.FC = () => {
       <HashRouter>
         <ScrollToTop />
         <Routes>
+          <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin/*" element={<AdminApp />} />
           <Route path="/*" element={
             <Layout>

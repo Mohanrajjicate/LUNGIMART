@@ -40,6 +40,7 @@ const OrdersPage: React.FC = () => {
                             <th scope="col" className="px-6 py-3">Order ID</th>
                             <th scope="col" className="px-6 py-3">Date</th>
                             <th scope="col" className="px-6 py-3">Customer</th>
+                            <th scope="col" className="px-6 py-3">Products</th>
                             <th scope="col" className="px-6 py-3">Total</th>
                             <th scope="col" className="px-6 py-3">Status</th>
                         </tr>
@@ -52,6 +53,7 @@ const OrdersPage: React.FC = () => {
                                 </th>
                                 <td className="px-6 py-4">{new Date(order.date).toLocaleDateString()}</td>
                                 <td className="px-6 py-4">{order.customerName}</td>
+                                <td className="px-6 py-4 truncate max-w-xs">{order.items[0]?.name}{order.items.length > 1 ? ` + ${order.items.length - 1} more` : ''}</td>
                                 <td className="px-6 py-4">₹{order.total.toFixed(2)}</td>
                                 <td className="px-6 py-4">
                                     <select 
