@@ -201,6 +201,7 @@ export const baseOrders: Order[] = [
       total: 1398, 
       status: 'Delivered', 
       customerName: 'Suresh P.',
+      paymentMethod: 'Prepaid',
       items: [
           attachReviewData(baseProducts.find(p => p.id === 1)!, []),
           attachReviewData(baseProducts.find(p => p.id === 5)!, []),
@@ -213,6 +214,7 @@ export const baseOrders: Order[] = [
       total: 899, 
       status: 'Delivered', 
       customerName: 'Ramesh K.',
+      paymentMethod: 'Prepaid',
       items: [
           attachReviewData(baseProducts.find(p => p.id === 2)!, [])
       ].map(p => ({...p, quantity: 1})),
@@ -224,6 +226,7 @@ export const baseOrders: Order[] = [
       total: 950, 
       status: 'Shipped', 
       customerName: 'Gopal V.',
+      paymentMethod: 'Prepaid',
       items: [
           attachReviewData(baseProducts.find(p => p.id === 4)!, [])
       ].map(p => ({...p, quantity: 1})),
@@ -235,6 +238,7 @@ export const baseOrders: Order[] = [
       total: 550, 
       status: 'Processing', 
       customerName: 'Anitha',
+      paymentMethod: 'Prepaid',
       items: [
           attachReviewData(baseProducts.find(p => p.id === 6)!, [])
       ].map(p => ({...p, quantity: 1})),

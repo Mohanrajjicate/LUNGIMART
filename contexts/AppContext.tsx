@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
-import { CartItem, Product, User, Review, Order, Coupon, Category } from '../types';
+import { CartItem, Product, User, Review, Order, Coupon, Category, Notification } from '../types';
 import { baseReviews, baseOrders, getCouponByCode, baseProducts, attachReviewData, mockUsers, categories } from '../services/mockData';
 
 interface AppContextType {
@@ -11,6 +11,10 @@ interface AppContextType {
   orders: Order[];
   products: Product[];
   categories: Category[];
+  notifications: Notification[];
+  addNotification: (message: string, target: 'user' | 'admin', link?: string) => void;
+  markAsRead: (notificationId: number) => void;
+  markAllAsRead: (target: 'user' | 'admin') => void;
   addReview: (productId: number, orderId: string, rating: number, comment: string) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   updateProduct: (updatedProduct: Product) => void;
@@ -58,6 +62,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [reviews, setReviews] = useState<Review[]>(() => getInitialState<Review[]>('reviews', baseReviews));
   const [orders, setOrders] = useState<Order[]>(() => getInitialState<Order[]>('orders', baseOrders));
   const [products, setProducts] = useState<Product[]>(() => getInitialState<Product[]>('products', []));
+  const [notifications, setNotifications] = useState<Notification[]>(() => getInitialState<Notification[]>('notifications', []));
 
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => getInitialState<Coupon | null>('appliedCoupon', null));
 
@@ -101,7 +106,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => { localStorage.setItem('orders', JSON.stringify(orders)); }, [orders]);
   useEffect(() => { localStorage.setItem('products', JSON.stringify(products)); }, [products]);
   useEffect(() => { localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon)); }, [appliedCoupon]);
+  useEffect(() => { localStorage.setItem('notifications', JSON.stringify(notifications)); }, [notifications]);
 
+  const addNotification = (message: string, target: 'user' | 'admin', link?: string) => {
+      const newNotification: Notification = {
+          id: Date.now(),
+          message,
+          target,
+          link,
+          read: false,
+          timestamp: new Date().toISOString(),
+      };
+      setNotifications(prev => [newNotification, ...prev]);
+  };
+
+  const markAsRead = (notificationId: number) => {
+      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
+  };
+  
+  const markAllAsRead = (target: 'user' | 'admin') => {
+      setNotifications(prev => prev.map(n => n.target === target ? { ...n, read: true } : n));
+  };
 
   const addReview = (productId: number, orderId: string, rating: number, comment: string) => {
     if (!user) return;
@@ -133,6 +158,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setOrders(prevOrders => prevOrders.map(order => 
       order.id === orderId ? { ...order, status } : order
     ));
+    addNotification(`Your order #${orderId.slice(-4)} has been ${status}.`, 'user', '/profile');
+    addNotification(`Order #${orderId.slice(-4)} status updated to ${status}.`, 'admin', '/admin/orders');
   };
 
   const updateProduct = (updatedProduct: Product) => {
@@ -163,9 +190,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           status: 'Processing',
           customerName: user.name,
           reviewedProducts: {},
+          paymentMethod: 'Prepaid' // Defaulting to Prepaid
       };
 
       setOrders(prevOrders => [newOrder, ...prevOrders]);
+      addNotification(`New order #${newOrder.id.slice(-4)} received from ${user.name}!`, 'admin', '/admin/dashboard');
   };
 
 
@@ -295,6 +324,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       orders,
       products,
       categories,
+      notifications,
+      addNotification,
+      markAsRead,
+      markAllAsRead,
       addReview,
       updateOrderStatus,
       updateProduct,

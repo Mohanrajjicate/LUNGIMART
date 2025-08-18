@@ -1,18 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { Order } from '../../types';
 
 const OrdersPage: React.FC = () => {
     const { orders, updateOrderStatus } = useAppContext();
+    const [pendingChanges, setPendingChanges] = useState<{ [key: string]: Order['status'] }>({});
 
     const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
-        updateOrderStatus(orderId, newStatus);
+        setPendingChanges(prev => ({ ...prev, [orderId]: newStatus }));
     };
+    
+    const handleSaveChanges = () => {
+        Object.entries(pendingChanges).forEach(([orderId, status]) => {
+            updateOrderStatus(orderId, status);
+        });
+        setPendingChanges({});
+    };
+
+    const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-slate-800 mb-6">All Orders ({orders.length})</h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-slate-800">All Orders ({orders.length})</h2>
+                {hasPendingChanges && (
+                    <button 
+                        onClick={handleSaveChanges} 
+                        className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-dark transition-colors"
+                    >
+                        Save Changes
+                    </button>
+                )}
+            </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left text-slate-500">
                     <thead className="text-xs text-slate-700 uppercase bg-slate-50">
@@ -35,11 +55,11 @@ const OrdersPage: React.FC = () => {
                                 <td className="px-6 py-4">₹{order.total.toFixed(2)}</td>
                                 <td className="px-6 py-4">
                                     <select 
-                                        value={order.status}
+                                        value={pendingChanges[order.id] || order.status}
                                         onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
                                         className={`text-xs font-semibold rounded-full border-0 focus:ring-2 focus:ring-opacity-50
-                                            ${order.status === 'Delivered' ? 'bg-green-100 text-green-800 focus:ring-green-500' : 
-                                            order.status === 'Shipped' ? 'bg-blue-100 text-blue-800 focus:ring-blue-500' : 
+                                            ${(pendingChanges[order.id] || order.status) === 'Delivered' ? 'bg-green-100 text-green-800 focus:ring-green-500' : 
+                                            (pendingChanges[order.id] || order.status) === 'Shipped' ? 'bg-blue-100 text-blue-800 focus:ring-blue-500' : 
                                             'bg-yellow-100 text-yellow-800 focus:ring-yellow-500'}`}
                                     >
                                         <option value="Processing">Processing</option>

@@ -64,6 +64,7 @@ export interface Order {
   status: 'Processing' | 'Shipped' | 'Delivered';
   reviewedProducts: { [productId: number]: boolean };
   customerName: string;
+  paymentMethod: 'Prepaid' | 'COD';
 }
 
 export interface Coupon {
@@ -74,4 +75,13 @@ export interface Coupon {
   discountValue: number;
   minPurchase?: number;
   applicableProductIds?: number[]; // for product-specific coupons
+}
+
+export interface Notification {
+  id: number;
+  message: string;
+  target: 'user' | 'admin';
+  read: boolean;
+  timestamp: string;
+  link?: string;
 }
