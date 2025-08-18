@@ -1,9 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 import { mockUser } from '../services/mockData';
 import { Address } from '../types';
+
+declare var Razorpay: any;
+
+// The user's provided Razorpay Key ID
+const RAZORPAY_KEY_ID = 'rzp_live_R6dmWIF4JhLspl';
 
 const CheckoutPage: React.FC = () => {
     const { 
@@ -81,10 +85,63 @@ const CheckoutPage: React.FC = () => {
         }
     };
 
-    const handlePlaceOrder = () => {
-        // In a real app, you would process the payment here
+    const processOrderCompletion = () => {
         clearCart();
         setActiveStep(5); // Go to success/confirmation step
+    };
+    
+    const finalTotalWithShipping = cartFinalTotal + 50;
+
+    const handlePlaceOrder = () => {
+        if (!user || !selectedAddress) {
+            alert('Please make sure you are logged in and have selected an address.');
+            return;
+        }
+
+        const options = {
+            key: RAZORPAY_KEY_ID,
+            amount: Math.round(finalTotalWithShipping * 100), // amount in the smallest currency unit (paise)
+            currency: "INR",
+            name: "LungiMart.in",
+            description: "Order Payment",
+            image: "/favicon.svg",
+            handler: function (response: any) {
+                console.log('Payment successful:', response.razorpay_payment_id);
+                // In a real app, you'd verify this on your backend. For now, we'll proceed.
+                processOrderCompletion();
+            },
+            prefill: {
+                name: user.name,
+                email: user.email,
+                contact: "9876543210" // Example contact
+            },
+            notes: {
+                address: `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.zip}`,
+                order_id: `LM-ORDER-${Date.now()}`
+            },
+            theme: {
+                color: "#2563EB" // Primary color
+            },
+            modal: {
+                ondismiss: function() {
+                    console.log('Razorpay modal closed');
+                }
+            }
+        };
+
+        try {
+            const rzp = new Razorpay(options);
+            
+            rzp.on('payment.failed', function (response: any) {
+                console.error('Payment Failed:', response.error);
+                alert(`Payment Failed: ${response.error.description}\nCode: ${response.error.code}\nReason: ${response.error.reason}`);
+            });
+
+            rzp.open();
+        } catch (error) {
+            console.error("Error initializing Razorpay", error);
+            alert("Could not load payment gateway. Please try again later.");
+        }
     };
 
     const selectedAddress = user?.addresses.find(a => a.id === selectedAddressId);
@@ -168,10 +225,10 @@ const CheckoutPage: React.FC = () => {
                         <dd className="font-medium">-₹{cartDiscount.toFixed(2)}</dd>
                     </div>
                 )}
-                <div className="flex justify-between"><dt className="text-slate-600">Delivery Charges</dt><dd className="font-medium text-green-600">FREE</dd></div>
+                <div className="flex justify-between"><dt className="text-slate-600">Delivery Charges</dt><dd className="font-medium text-slate-800">₹50.00</dd></div>
                 <div className="flex justify-between font-bold text-base border-t-2 border-dashed border-slate-300 pt-4 mt-4">
                     <dt>Total Payable</dt>
-                    <dd>₹{cartFinalTotal.toFixed(2)}</dd>
+                    <dd>₹{finalTotalWithShipping.toFixed(2)}</dd>
                 </div>
             </dl>
          </div>
@@ -387,7 +444,7 @@ const CheckoutPage: React.FC = () => {
                                         onClick={handlePlaceOrder} 
                                         className="mt-6 w-full bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-primary-dark transition-colors"
                                     >
-                                        PLACE ORDER (Pay ₹{cartFinalTotal.toFixed(2)})
+                                        PLACE ORDER (Pay ₹{finalTotalWithShipping.toFixed(2)})
                                     </button>
                                 )}
                             </div>
