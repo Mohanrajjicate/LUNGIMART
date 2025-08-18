@@ -31,6 +31,7 @@ const App: React.FC = () => {
                 <Route path="/shop/:categorySlug" element={<ShopPage />} />
                 <Route path="/product/:slug" element={<ProductDetailPage />} />
                 <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/bulk-order" element={<BulkOrderPage />} />
@@ -40,7 +41,6 @@ const App: React.FC = () => {
               </Routes>
             </Layout>
           } />
-          <Route path="/checkout" element={<CheckoutPage />} />
         </Routes>
       </HashRouter>
     </AppProvider>
