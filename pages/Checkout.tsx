@@ -7,7 +7,7 @@ import { Address } from '../types';
 declare var Razorpay: any;
 
 // The user's provided Razorpay Key ID
-const RAZORPAY_KEY_ID = 'rzp_live_R6dmWIF4JhLspl';
+const RAZORPAY_KEY_ID = 'rzp_test_R6kCJ5gvBdee0Y';
 
 const CheckoutPage: React.FC = () => {
     const { 
