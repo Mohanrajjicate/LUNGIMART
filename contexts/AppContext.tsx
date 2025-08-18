@@ -19,6 +19,8 @@ interface AppContextType {
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   updateProduct: (updatedProduct: Product) => void;
   addProduct: (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => void;
+  deleteProduct: (productId: number) => void;
+  addMultipleProducts: (newProductsData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>[]) => void;
   addOrder: (items: CartItem[], total: number) => void;
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
@@ -178,6 +180,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
       setProducts(prev => [...prev, newProduct]);
   };
+
+  const deleteProduct = (productId: number) => {
+      setProducts(prev => prev.filter(p => p.id !== productId));
+  };
+  
+  const addMultipleProducts = (newProductsData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>[]) => {
+      const newProducts = newProductsData.map(p => ({
+          ...p,
+          id: Date.now() + Math.random(), // simple unique id generation
+          reviews: [],
+          rating: 0,
+          reviewCount: 0
+      }));
+      setProducts(prev => [...prev, ...newProducts]);
+  };
   
   const addOrder = (items: CartItem[], total: number) => {
       if (!user) return;
@@ -332,6 +349,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       updateOrderStatus,
       updateProduct,
       addProduct,
+      deleteProduct,
+      addMultipleProducts,
       addOrder,
       addToCart,
       removeFromCart,

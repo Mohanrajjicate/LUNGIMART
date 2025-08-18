@@ -1,11 +1,15 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { Order } from '../../types';
+import FulfillmentModal from '../../components/admin/FulfillmentModal';
 
 const OrdersPage: React.FC = () => {
-    const { orders, updateOrderStatus } = useAppContext();
+    const { orders, updateOrderStatus, user } = useAppContext();
     const [pendingChanges, setPendingChanges] = useState<{ [key: string]: Order['status'] }>({});
+    const [isFulfillmentModalOpen, setFulfillmentModalOpen] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
     const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
         setPendingChanges(prev => ({ ...prev, [orderId]: newStatus }));
@@ -18,9 +22,22 @@ const OrdersPage: React.FC = () => {
         setPendingChanges({});
     };
 
+    const handleFulfillClick = (order: Order) => {
+        setSelectedOrder(order);
+        setFulfillmentModalOpen(true);
+    };
+
     const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
     return (
+        <>
+        {isFulfillmentModalOpen && selectedOrder && user && (
+            <FulfillmentModal 
+                order={selectedOrder}
+                user={user}
+                onClose={() => setFulfillmentModalOpen(false)}
+            />
+        )}
         <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-slate-800">All Orders ({orders.length})</h2>
@@ -43,6 +60,7 @@ const OrdersPage: React.FC = () => {
                             <th scope="col" className="px-6 py-3">Products</th>
                             <th scope="col" className="px-6 py-3">Total</th>
                             <th scope="col" className="px-6 py-3">Status</th>
+                            <th scope="col" className="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,12 +87,23 @@ const OrdersPage: React.FC = () => {
                                         <option value="Delivered">Delivered</option>
                                     </select>
                                 </td>
+                                <td className="px-6 py-4 text-right">
+                                    {(pendingChanges[order.id] || order.status) === 'Processing' && (
+                                        <button 
+                                            onClick={() => handleFulfillClick(order)}
+                                            className="font-medium text-primary hover:underline text-xs bg-primary/10 px-3 py-1 rounded-full"
+                                        >
+                                            Fulfill
+                                        </button>
+                                    )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
         </div>
+        </>
     );
 };
 

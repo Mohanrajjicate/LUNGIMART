@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { mockUsers } from '../../services/mockData'; // In a real app, this would come from context/API
 import { useAppContext } from '../../contexts/AppContext';
@@ -16,9 +17,41 @@ const CustomersPage: React.FC = () => {
         };
     });
 
+    const handleDownloadCRM = () => {
+        const headers = ["Name", "Email", "Orders", "Total Spent (INR)"];
+        const csvContent = [
+            headers.join(","),
+            ...usersWithStats.map(user => 
+                [
+                    `"${user.name}"`, 
+                    user.email, 
+                    user.orderCount, 
+                    user.totalSpent.toFixed(2)
+                ].join(",")
+            )
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "customers.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
     return (
         <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-slate-800 mb-6">Customers ({usersWithStats.length})</h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-slate-800">Customers ({usersWithStats.length})</h2>
+                <button onClick={handleDownloadCRM} className="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-600 transition-colors">
+                    Download CRM (CSV)
+                </button>
+            </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left text-slate-500">
                     <thead className="text-xs text-slate-700 uppercase bg-slate-50">
