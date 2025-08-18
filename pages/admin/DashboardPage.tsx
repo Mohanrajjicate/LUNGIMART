@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import StatCard from '../../components/admin/StatCard';
 import SalesChart from '../../components/admin/SalesChart';
-import { Order } from '../../types';
+import CategoryPieChart from '../../components/admin/CategoryPieChart';
+import { Order, Product } from '../../types';
 import FulfillmentModal from '../../components/admin/FulfillmentModal';
 
 
@@ -12,8 +13,10 @@ const DashboardPage: React.FC = () => {
     const [isFulfillmentModalOpen, setFulfillmentModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-    const totalRevenue = useMemo(() => {
-        return orders.reduce((sum, order) => sum + order.total, 0);
+    const { totalRevenue, averageOrderValue } = useMemo(() => {
+        const revenue = orders.reduce((sum, order) => sum + order.total, 0);
+        const aov = orders.length > 0 ? revenue / orders.length : 0;
+        return { totalRevenue: revenue, averageOrderValue: aov };
     }, [orders]);
     
     const lowStockProducts = useMemo(() => {
@@ -21,6 +24,23 @@ const DashboardPage: React.FC = () => {
     }, [products]);
 
     const newOrders = useMemo(() => orders.filter(o => o.status === 'Processing'), [orders]);
+
+    const topSellingProducts = useMemo(() => {
+        const productQuantities: { [key: number]: number } = {};
+        orders.forEach(order => {
+            order.items.forEach(item => {
+                productQuantities[item.id] = (productQuantities[item.id] || 0) + item.quantity;
+            });
+        });
+
+        return Object.entries(productQuantities)
+            .sort(([, qtyA], [, qtyB]) => qtyB - qtyA)
+            .slice(0, 5)
+            .map(([productId, quantity]) => {
+                const product = products.find(p => p.id === Number(productId));
+                return { ...product, quantitySold: quantity };
+            }) as (Product & { quantitySold: number })[];
+    }, [orders, products]);
     
     const handleFulfillClick = (order: Order) => {
         setSelectedOrder(order);
@@ -38,7 +58,7 @@ const DashboardPage: React.FC = () => {
             )}
             <div className="space-y-8">
                 {/* Stat Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard 
                         title="Total Revenue" 
                         value={`₹${totalRevenue.toLocaleString()}`} 
@@ -51,6 +71,12 @@ const DashboardPage: React.FC = () => {
                         icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
                         colorClass="bg-green-100"
                     />
+                    <StatCard 
+                        title="Avg. Order Value" 
+                        value={`₹${averageOrderValue.toFixed(2)}`}
+                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
+                        colorClass="bg-purple-100"
+                    />
                      <StatCard 
                         title="Low Stock Items" 
                         value={lowStockProducts.length.toString()} 
@@ -61,8 +87,34 @@ const DashboardPage: React.FC = () => {
                 
                 {/* Sales Chart */}
                 <div className="bg-white p-6 rounded-lg shadow-md">
-                     <h3 className="text-lg font-semibold text-slate-800 mb-4">Monthly Sales</h3>
+                     <h3 className="text-lg font-semibold text-slate-800 mb-4">Sales Over Time</h3>
                      <SalesChart orders={orders} />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    {/* Category Pie Chart */}
+                    <div className="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-4">Revenue by Category</h3>
+                        <CategoryPieChart orders={orders} products={products} />
+                    </div>
+
+                    {/* Top Selling Products */}
+                    <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-4">Top Selling Products</h3>
+                        {topSellingProducts.length > 0 ? (
+                            <ul className="space-y-3">
+                                {topSellingProducts.map(product => (
+                                    <li key={product.id} className="flex items-center gap-4">
+                                        <img src={product.images[0]} alt={product.name} className="w-12 h-12 rounded-md object-cover flex-shrink-0" />
+                                        <div className="flex-grow">
+                                            <p className="font-semibold text-sm text-slate-800">{product.name}</p>
+                                            <p className="text-xs text-slate-500">{product.quantitySold} units sold</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : <p className="text-slate-500 text-sm py-4">No sales data available to determine top products.</p>}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
