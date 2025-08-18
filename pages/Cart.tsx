@@ -1,43 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 
-const AnimatedCheckoutModal: React.FC<{onClose: () => void}> = ({ onClose }) => {
-    const [step, setStep] = useState(1);
-    const steps = ["Verifying Details...", "Processing Payment...", "Order Successful!"];
-
-    useEffect(() => {
-        if (step < steps.length) {
-            const timer = setTimeout(() => setStep(s => s + 1), 1500);
-            return () => clearTimeout(timer);
-        }
-    }, [step, steps.length]);
-    
-    return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl p-8 shadow-xl text-center w-full max-w-sm">
-                {step === 1 && <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>}
-                {step === 2 && <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-primary mx-auto animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                {step === 3 && <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                <p className="mt-4 text-lg font-semibold text-slate-800">{steps[step-1]}</p>
-                {step === 3 && (
-                    <>
-                        <p className="text-slate-600 text-sm mt-2">Thank you for your purchase!</p>
-                        <button onClick={onClose} className="mt-6 bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-dark transition-colors">
-                            Continue Shopping
-                        </button>
-                    </>
-                )}
-            </div>
-        </div>
-    );
-}
-
-
 const CartPage: React.FC = () => {
-  const { cart, updateQuantity, removeFromCart, cartTotal, cartCount, clearCart, appliedCoupon, applyCoupon, removeCoupon, cartDiscount, cartFinalTotal } = useAppContext();
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const { cart, updateQuantity, removeFromCart, cartTotal, cartCount, appliedCoupon, applyCoupon, removeCoupon, cartDiscount, cartFinalTotal } = useAppContext();
+  const navigate = useNavigate();
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState({ text: '', isError: false });
 
@@ -78,17 +46,10 @@ const CartPage: React.FC = () => {
   };
 
   const handleCheckout = () => {
-    setIsCheckingOut(true);
-  }
-  
-  const handleCloseCheckout = () => {
-    setIsCheckingOut(false);
-    clearCart();
+    navigate('/checkout');
   }
 
   return (
-    <>
-    {isCheckingOut && <AnimatedCheckoutModal onClose={handleCloseCheckout} />}
     <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-md">
       <h1 className="text-3xl font-bold text-slate-900 mb-8 text-center">Shopping Cart</h1>
       <div className="lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12 xl:gap-x-16">
@@ -190,7 +151,6 @@ const CartPage: React.FC = () => {
         </section>
       </div>
     </div>
-    </>
   );
 };
 

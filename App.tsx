@@ -8,6 +8,7 @@ import HomePage from './pages/Home';
 import ShopPage from './pages/Shop';
 import ProductDetailPage from './pages/ProductDetail';
 import CartPage from './pages/Cart';
+import CheckoutPage from './pages/Checkout';
 import ProfilePage from './pages/Profile';
 import AboutPage from './pages/About';
 import BulkOrderPage from './pages/BulkOrder';
@@ -21,21 +22,26 @@ const App: React.FC = () => {
     <AppProvider>
       <HashRouter>
         <ScrollToTop />
-        <Layout>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/shop" element={<ShopPage />} />
-            <Route path="/shop/:categorySlug" element={<ShopPage />} />
-            <Route path="/product/:slug" element={<ProductDetailPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/bulk-order" element={<BulkOrderPage />} />
-            <Route path="/political-party" element={<PoliticalPartyPage />} />
-            <Route path="/quiet-zone" element={<QuietZonePage />} />
-            <Route path="/contact" element={<ContactPage />} />
-          </Routes>
-        </Layout>
+        <Routes>
+          <Route path="/*" element={
+            <Layout>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/shop/:categorySlug" element={<ShopPage />} />
+                <Route path="/product/:slug" element={<ProductDetailPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/bulk-order" element={<BulkOrderPage />} />
+                <Route path="/political-party" element={<PoliticalPartyPage />} />
+                <Route path="/quiet-zone" element={<QuietZonePage />} />
+                <Route path="/contact" element={<ContactPage />} />
+              </Routes>
+            </Layout>
+          } />
+          <Route path="/checkout" element={<CheckoutPage />} />
+        </Routes>
       </HashRouter>
     </AppProvider>
   );
