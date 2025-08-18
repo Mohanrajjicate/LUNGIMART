@@ -19,6 +19,12 @@ const NavBar: React.FC<{onSearchClick: () => void}> = ({ onSearchClick }) => {
             </Link>
           </div>
           
+          {/* Mobile Notification Icon */}
+          <div className="flex items-center md:hidden">
+            <NotificationBell target="user" className="p-2 text-slate-500 hover:text-primary" />
+          </div>
+
+          {/* Desktop Icons */}
           <div className="hidden md:flex items-center space-x-2 sm:space-x-4">
              <button onClick={onSearchClick} className="p-2 text-slate-500 hover:text-primary" aria-label="Open search">
                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
