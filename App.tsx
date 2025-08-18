@@ -16,6 +16,7 @@ import PoliticalPartyPage from './pages/PoliticalParty';
 import QuietZonePage from './pages/QuietZone';
 import ScrollToTop from './components/ScrollToTop';
 import ContactPage from './pages/Contact';
+import InvoicePage from './pages/Invoice';
 
 const App: React.FC = () => {
   return (
@@ -38,6 +39,7 @@ const App: React.FC = () => {
                 <Route path="/political-party" element={<PoliticalPartyPage />} />
                 <Route path="/quiet-zone" element={<QuietZonePage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/invoice/:orderId" element={<InvoicePage />} />
               </Routes>
             </Layout>
           } />

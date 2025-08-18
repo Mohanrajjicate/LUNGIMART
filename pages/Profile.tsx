@@ -243,7 +243,9 @@ const OrdersSection: React.FC<{orders: any[], onOpenReviewModal: (product: Produ
             <div key={order.id} className="bg-white p-4 rounded-xl border border-slate-200">
                 <div className="flex flex-wrap justify-between items-center gap-4 border-b border-slate-200 pb-4 mb-4">
                     <div>
-                        <p className="font-bold text-primary">Order ID: {order.id}</p>
+                        <Link to={`/invoice/${order.id}`} className="font-bold text-primary hover:underline">
+                            Order ID: {order.id}
+                        </Link>
                         <p className="text-sm text-slate-500">Date: {order.date}</p>
                     </div>
                     <div className="text-right">
