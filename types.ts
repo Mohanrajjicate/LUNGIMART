@@ -1,4 +1,5 @@
 
+
 export interface Product {
   id: number;
   name: string;
@@ -51,6 +52,7 @@ export interface User {
   name: string;
   email: string;
   addresses: Address[];
+  birthday?: string;
 }
 
 export interface Order {

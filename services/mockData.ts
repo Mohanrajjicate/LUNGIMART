@@ -201,6 +201,7 @@ export const mockUser: User = {
   id: 1,
   name: 'Suresh P.',
   email: 'suresh@example.com',
+  birthday: '1990-05-15',
   addresses: [
     {
       id: 1,
