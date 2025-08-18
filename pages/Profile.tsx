@@ -1,11 +1,13 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
-import { Product, Address } from '../types';
+import { Product, Address, Order } from '../types';
 import ProductCard from '../components/ProductCard';
 import ReviewModal from '../components/ReviewModal';
+import OrderTrackingModal from '../components/OrderTrackingModal';
 import { mockUsers, mockCoupons } from '../services/mockData';
 
 // --- Authentication Components (for logged-out users) --- //
@@ -107,6 +109,9 @@ const ProfilePage: React.FC = () => {
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
   const [productToReview, setProductToReview] = useState<{product: Product, orderId: string} | null>(null);
 
+  const [isTrackingModalOpen, setTrackingModalOpen] = useState(false);
+  const [orderToTrack, setOrderToTrack] = useState<Order | null>(null);
+
   useEffect(() => {
      setActiveSection(location.state?.tab === 'wishlist' ? 'wishlist' : 'orders');
   }, [location.state]);
@@ -119,6 +124,16 @@ const ProfilePage: React.FC = () => {
   const handleCloseReviewModal = () => {
     setReviewModalOpen(false);
     setProductToReview(null);
+  };
+
+  const handleOpenTrackingModal = (order: Order) => {
+    setOrderToTrack(order);
+    setTrackingModalOpen(true);
+  };
+
+  const handleCloseTrackingModal = () => {
+    setTrackingModalOpen(false);
+    setOrderToTrack(null);
   };
 
   const handleReviewSubmit = (rating: number, comment: string) => {
@@ -147,7 +162,7 @@ const ProfilePage: React.FC = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'orders':
-        return <OrdersSection orders={orders} onOpenReviewModal={handleOpenReviewModal} />;
+        return <OrdersSection orders={orders} onOpenReviewModal={handleOpenReviewModal} onOpenTrackingModal={handleOpenTrackingModal} />;
       case 'wishlist':
         return <WishlistSection wishlist={wishlist} />;
       case 'coupons':
@@ -168,6 +183,12 @@ const ProfilePage: React.FC = () => {
         onClose={handleCloseReviewModal}
         onSubmit={handleReviewSubmit}
       />
+    )}
+    {isTrackingModalOpen && orderToTrack && (
+        <OrderTrackingModal
+            order={orderToTrack}
+            onClose={handleCloseTrackingModal}
+        />
     )}
     <div>
         <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
@@ -238,7 +259,7 @@ const Section: React.FC<{title: string, children: React.ReactNode}> = ({ title, 
     </div>
 );
 
-const OrdersSection: React.FC<{orders: any[], onOpenReviewModal: (product: Product, orderId: string) => void}> = ({ orders, onOpenReviewModal }) => (
+const OrdersSection: React.FC<{orders: any[], onOpenReviewModal: (product: Product, orderId: string) => void, onOpenTrackingModal: (order: Order) => void}> = ({ orders, onOpenReviewModal, onOpenTrackingModal }) => (
     <Section title="My Orders">
         {orders.length > 0 ? orders.map(order => (
             <div key={order.id} className="bg-white p-4 rounded-xl border border-slate-200">
@@ -252,11 +273,21 @@ const OrdersSection: React.FC<{orders: any[], onOpenReviewModal: (product: Produ
                         </p>
                         <p className="text-sm text-slate-500">Date: {order.date}</p>
                     </div>
-                    <div className="text-right">
-                        <p className="font-semibold text-slate-800">₹{order.total.toFixed(2)}</p>
-                        <span className={`mt-1 inline-block px-2 py-1 text-xs font-semibold rounded-full ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                            {order.status}
-                        </span>
+                    <div className="text-right flex items-center gap-4">
+                        {order.trackingNumber && (
+                             <button onClick={() => onOpenTrackingModal(order)} className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors text-sm">
+                                Track Order
+                            </button>
+                        )}
+                        <div>
+                            <p className="font-semibold text-slate-800">₹{order.total.toFixed(2)}</p>
+                            <span className={`mt-1 inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+                                order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 
+                                order.status === 'Shipped' || order.status === 'Out for Delivery' ? 'bg-blue-100 text-blue-800' : 
+                                'bg-yellow-100 text-yellow-800'}`}>
+                                {order.status}
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <div className="space-y-4">

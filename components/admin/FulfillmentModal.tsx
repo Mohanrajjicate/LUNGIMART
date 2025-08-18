@@ -10,12 +10,17 @@ interface FulfillmentModalProps {
 }
 
 const FulfillmentModal: React.FC<FulfillmentModalProps> = ({ order, customer, onClose }) => {
-    const { updateOrderStatus } = useAppContext();
+    const { fulfillOrder } = useAppContext();
     const [isLabelVisible, setLabelVisible] = useState(false);
-    const [isPaymentConfirmed, setPaymentConfirmed] = useState(false);
+    const [trackingProvider, setTrackingProvider] = useState('');
+    const [trackingNumber, setTrackingNumber] = useState('');
 
     const handleMarkAsShipped = () => {
-        updateOrderStatus(order.id, 'Shipped');
+        if (!trackingProvider || !trackingNumber) {
+            alert('Please provide both a tracking provider and a tracking number.');
+            return;
+        }
+        fulfillOrder(order.id, trackingProvider, trackingNumber);
         onClose();
     };
     
@@ -32,8 +37,8 @@ const FulfillmentModal: React.FC<FulfillmentModalProps> = ({ order, customer, on
                     </button>
                 </div>
 
-                <div className="p-6 max-h-[70vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Order Details */}
+                <div className="p-6 max-h-[70vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Left Column */}
                     <div className="space-y-4">
                         <h3 className="font-semibold text-slate-800">Order Summary</h3>
                         <ul className="space-y-2 text-sm">
@@ -48,10 +53,14 @@ const FulfillmentModal: React.FC<FulfillmentModalProps> = ({ order, customer, on
                              <span>Total</span>
                              <span>₹{order.total.toFixed(2)}</span>
                          </div>
+                         <div className="flex flex-wrap items-center gap-3 pt-4">
+                             <button onClick={() => setLabelVisible(true)} className="text-sm font-semibold py-2 px-4 rounded-lg bg-slate-200 text-slate-800 hover:bg-slate-300">Generate Shipping Label</button>
+                             <a href={`/#/invoice/${btoa(order.id)}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold py-2 px-4 rounded-lg bg-slate-200 text-slate-800 hover:bg-slate-300">View Invoice</a>
+                        </div>
                     </div>
-                    {/* Shipping Details */}
+                    {/* Right Column */}
                     <div className="space-y-4">
-                         <h3 className="font-semibold text-slate-800">Shipping To</h3>
+                         <h3 className="font-semibold text-slate-800">Shipping & Tracking</h3>
                          {shippingAddress ? (
                             <address className="not-italic text-sm text-slate-600 bg-slate-50 p-3 rounded-md">
                                 <strong>{shippingAddress.name}</strong><br />
@@ -59,18 +68,20 @@ const FulfillmentModal: React.FC<FulfillmentModalProps> = ({ order, customer, on
                                 {shippingAddress.city}, {shippingAddress.zip}
                             </address>
                          ) : <p className="text-sm text-red-500">No address found for this user.</p>}
+                         
+                         <div>
+                            <label className="block text-sm font-medium text-slate-700">Tracking Provider</label>
+                            <input type="text" value={trackingProvider} onChange={e => setTrackingProvider(e.target.value)} placeholder="e.g., Delhivery" className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1 text-sm" />
+                         </div>
+                         <div>
+                            <label className="block text-sm font-medium text-slate-700">Tracking Number</label>
+                            <input type="text" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} placeholder="e.g., AWB123456789" className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1 text-sm" />
+                         </div>
                     </div>
                 </div>
 
-                <div className="p-6 bg-slate-50 border-t flex flex-wrap justify-between items-center gap-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                         <button onClick={() => setPaymentConfirmed(true)} disabled={isPaymentConfirmed} className="text-sm font-semibold py-2 px-4 rounded-lg bg-green-100 text-green-800 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2">
-                            {isPaymentConfirmed ? '✓ Payment Confirmed' : 'Confirm Payment'}
-                         </button>
-                         <button onClick={() => setLabelVisible(true)} className="text-sm font-semibold py-2 px-4 rounded-lg bg-slate-200 text-slate-800 hover:bg-slate-300">Generate Shipping Label</button>
-                         <a href={`/#/invoice/${btoa(order.id)}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold py-2 px-4 rounded-lg bg-slate-200 text-slate-800 hover:bg-slate-300">View Invoice</a>
-                    </div>
-                    <button onClick={handleMarkAsShipped} disabled={!isPaymentConfirmed} className="bg-primary text-white font-bold py-2.5 px-6 rounded-lg hover:bg-primary-dark disabled:bg-slate-400 disabled:cursor-not-allowed">
+                <div className="p-6 bg-slate-50 border-t flex flex-wrap justify-end items-center gap-4">
+                    <button onClick={handleMarkAsShipped} disabled={!trackingProvider || !trackingNumber} className="bg-primary text-white font-bold py-2.5 px-6 rounded-lg hover:bg-primary-dark disabled:bg-slate-400 disabled:cursor-not-allowed">
                         Mark as Shipped
                     </button>
                 </div>

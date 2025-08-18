@@ -63,10 +63,12 @@ export interface Order {
   date: string;
   items: CartItem[];
   total: number;
-  status: 'Processing' | 'Shipped' | 'Delivered';
+  status: 'Processing' | 'Shipped' | 'Out for Delivery' | 'Delivered';
   reviewedProducts: { [productId: number]: boolean };
   customerName: string;
   paymentMethod: 'Prepaid' | 'COD';
+  trackingProvider?: string;
+  trackingNumber?: string;
 }
 
 export interface Coupon {

@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
@@ -80,8 +81,13 @@ const OrdersPage: React.FC = () => {
                     <tbody>
                         {orders.map(order => (
                             <tr key={order.id} className="bg-white border-b hover:bg-slate-50">
-                                <th scope="row" className="px-6 py-4 font-medium text-primary whitespace-nowrap">
-                                    <Link to={`/invoice/${btoa(order.id)}`} target="_blank">{order.id}</Link>
+                                <th scope="row" className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">
+                                    <Link to={`/invoice/${btoa(order.id)}`} target="_blank" className="text-primary hover:underline">{order.id}</Link>
+                                    {order.trackingNumber && (
+                                        <div className="text-xs text-slate-500 font-normal mt-1">
+                                            {order.trackingProvider}: {order.trackingNumber}
+                                        </div>
+                                    )}
                                 </th>
                                 <td className="px-6 py-4">{new Date(order.date).toLocaleDateString()}</td>
                                 <td className="px-6 py-4">{order.customerName}</td>
@@ -94,10 +100,12 @@ const OrdersPage: React.FC = () => {
                                         className={`text-xs font-semibold rounded-full border-0 focus:ring-2 focus:ring-opacity-50
                                             ${(pendingChanges[order.id] || order.status) === 'Delivered' ? 'bg-green-100 text-green-800 focus:ring-green-500' : 
                                             (pendingChanges[order.id] || order.status) === 'Shipped' ? 'bg-blue-100 text-blue-800 focus:ring-blue-500' : 
+                                            (pendingChanges[order.id] || order.status) === 'Out for Delivery' ? 'bg-indigo-100 text-indigo-800 focus:ring-indigo-500' :
                                             'bg-yellow-100 text-yellow-800 focus:ring-yellow-500'}`}
                                     >
                                         <option value="Processing">Processing</option>
                                         <option value="Shipped">Shipped</option>
+                                        <option value="Out for Delivery">Out for Delivery</option>
                                         <option value="Delivered">Delivered</option>
                                     </select>
                                 </td>

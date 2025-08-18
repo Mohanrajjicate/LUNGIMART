@@ -251,6 +251,8 @@ export const baseOrders: Order[] = [
       status: 'Delivered', 
       customerName: 'Suresh P.',
       paymentMethod: 'Prepaid',
+      trackingProvider: 'Delhivery',
+      trackingNumber: 'AWB987654321',
       items: [
           attachReviewData(baseProducts.find(p => p.id === 1)!, []),
           attachReviewData(baseProducts.find(p => p.id === 5)!, []),
@@ -264,6 +266,8 @@ export const baseOrders: Order[] = [
       status: 'Delivered', 
       customerName: 'Ramesh K.',
       paymentMethod: 'Prepaid',
+      trackingProvider: 'Blue Dart',
+      trackingNumber: 'BD123456789',
       items: [
           attachReviewData(baseProducts.find(p => p.id === 2)!, [])
       ].map(p => ({...p, quantity: 1})),
@@ -276,6 +280,8 @@ export const baseOrders: Order[] = [
       status: 'Shipped', 
       customerName: 'Gopal V.',
       paymentMethod: 'Prepaid',
+      trackingProvider: 'Ecom Express',
+      trackingNumber: 'EE987123456',
       items: [
           attachReviewData(baseProducts.find(p => p.id === 4)!, [])
       ].map(p => ({...p, quantity: 1})),

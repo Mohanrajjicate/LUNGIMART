@@ -19,6 +19,7 @@ interface AppContextType {
   deleteReview: (reviewId: number) => void;
   acknowledgeReview: (reviewId: number) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  fulfillOrder: (orderId: string, trackingProvider: string, trackingNumber: string) => void;
   updateProduct: (updatedProduct: Product) => void;
   addProduct: (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => void;
   deleteProduct: (productId: number) => void;
@@ -172,11 +173,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     ));
   };
 
+  const fulfillOrder = (orderId: string, trackingProvider: string, trackingNumber: string) => {
+    setOrders(prevOrders => prevOrders.map(order => 
+      order.id === orderId ? { ...order, status: 'Shipped', trackingProvider, trackingNumber } : order
+    ));
+    addNotification(`Your order #${orderId.slice(-4)} has shipped! Tracking: ${trackingNumber}`, 'user', '/profile');
+    addNotification(`Order #${orderId.slice(-4)} marked as shipped.`, 'admin', '/admin/orders');
+  };
+
   const updateOrderStatus = (orderId: string, status: Order['status']) => {
     setOrders(prevOrders => prevOrders.map(order => 
       order.id === orderId ? { ...order, status } : order
     ));
-    addNotification(`Your order #${orderId.slice(-4)} has been ${status}.`, 'user', '/profile');
+    addNotification(`Your order #${orderId.slice(-4)} has been updated to: ${status}.`, 'user', '/profile');
     addNotification(`Order #${orderId.slice(-4)} status updated to ${status}.`, 'admin', '/admin/orders');
   };
 
@@ -365,6 +374,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       deleteReview,
       acknowledgeReview,
       updateOrderStatus,
+      fulfillOrder,
       updateProduct,
       addProduct,
       deleteProduct,
