@@ -1,10 +1,8 @@
 
-
-
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
-import { Product, Address, Order } from '../types';
+import { Product, Address, Order, User } from '../types';
 import ProductCard from '../components/ProductCard';
 import ReviewModal from '../components/ReviewModal';
 import OrderTrackingModal from '../components/OrderTrackingModal';
@@ -12,7 +10,7 @@ import { mockUsers, mockCoupons } from '../services/mockData';
 
 // --- Authentication Components (for logged-out users) --- //
 const AuthComponent: React.FC = () => {
-    const { login } = useAppContext();
+    const { login, addNotification } = useAppContext();
     const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
     const handleLogin = () => {
@@ -22,14 +20,20 @@ const AuthComponent: React.FC = () => {
     
     const handleSignup = (name: string, email: string) => {
         // Create a new user and log them in
-        const newUser = {
+        const newUser: User = {
             id: Date.now(),
             name,
             email,
             addresses: [],
             birthday: '',
+            phone: '',
         };
         login(newUser);
+        addNotification(
+            "Welcome! Your 'NEW50' coupon has been unlocked. Use it at checkout!", 
+            'user', 
+            '/profile?tab=coupons'
+        );
     };
 
     return (
@@ -41,7 +45,7 @@ const AuthComponent: React.FC = () => {
                     <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
                         <div>
                             <label className="block text-sm font-medium text-slate-700">Email Address</label>
-                            <input type="email" required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1" defaultValue="customer@example.com" />
+                            <input type="email" required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1" defaultValue="suresh@example.com" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700">Password</label>
@@ -102,9 +106,22 @@ const AuthComponent: React.FC = () => {
 const ProfilePage: React.FC = () => {
   const { user, login, logout, wishlist, orders, addReview } = useAppContext();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const getInitialTab = () => {
+      const validTabs = ['orders', 'wishlist', 'coupons', 'profile', 'address'];
+      const tabFromQuery = searchParams.get('tab');
+      if (tabFromQuery && validTabs.includes(tabFromQuery)) {
+          return tabFromQuery;
+      }
+      const tabFromState = location.state?.tab;
+      if (tabFromState && validTabs.includes(tabFromState)) {
+          return tabFromState;
+      }
+      return 'orders';
+  };
   
-  const defaultSection = location.state?.tab === 'wishlist' ? 'wishlist' : 'orders';
-  const [activeSection, setActiveSection] = useState(defaultSection);
+  const [activeSection, setActiveSection] = useState(getInitialTab);
   
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
   const [productToReview, setProductToReview] = useState<{product: Product, orderId: string} | null>(null);
@@ -113,8 +130,9 @@ const ProfilePage: React.FC = () => {
   const [orderToTrack, setOrderToTrack] = useState<Order | null>(null);
 
   useEffect(() => {
-     setActiveSection(location.state?.tab === 'wishlist' ? 'wishlist' : 'orders');
-  }, [location.state]);
+     setActiveSection(getInitialTab());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, searchParams]);
 
   const handleOpenReviewModal = (product: Product, orderId: string) => {
     setProductToReview({ product, orderId });

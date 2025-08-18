@@ -190,7 +190,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setOrders(prevOrders => prevOrders.map(order => 
       order.id === orderId ? { ...order, status: 'Shipped', trackingProvider, trackingNumber } : order
     ));
-    addNotification(`Your order #${orderId.slice(-4)} has shipped! Tracking: ${trackingNumber}`, 'user', '/profile');
+    addNotification(`Your order #${orderId.slice(-4)} has shipped via ${trackingProvider}! Tracking No: ${trackingNumber}`, 'user', '/profile');
     addNotification(`Order #${orderId.slice(-4)} marked as shipped.`, 'admin', '/admin/orders');
   };
 
@@ -198,7 +198,25 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setOrders(prevOrders => prevOrders.map(order => 
       order.id === orderId ? { ...order, status } : order
     ));
-    addNotification(`Your order #${orderId.slice(-4)} has been updated to: ${status}.`, 'user', '/profile');
+    
+    let userMessage = `Your order #${orderId.slice(-4)} has been updated to: ${status}.`; // Default message
+    switch (status) {
+        case 'Processing':
+            userMessage = `Your order #${orderId.slice(-4)} is being processed.`;
+            break;
+        case 'Shipped':
+            // This is a fallback if status is changed without tracking info. `fulfillOrder` is preferred.
+            userMessage = `Your product is shipped! Your order #${orderId.slice(-4)} is on its way.`;
+            break;
+        case 'Out for Delivery':
+            userMessage = `Your product is out for delivery! Your order #${orderId.slice(-4)} should arrive today.`;
+            break;
+        case 'Delivered':
+            userMessage = `Your product has been successfully delivered! We hope you enjoy your order #${orderId.slice(-4)}.`;
+            break;
+    }
+
+    addNotification(userMessage, 'user', '/profile');
     addNotification(`Order #${orderId.slice(-4)} status updated to ${status}.`, 'admin', '/admin/orders');
   };
 

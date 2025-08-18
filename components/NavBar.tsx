@@ -1,12 +1,32 @@
 
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 import NotificationBell from './NotificationBell';
 
 const NavBar: React.FC<{onSearchClick: () => void}> = ({ onSearchClick }) => {
-  const { cartCount, wishlistCount } = useAppContext();
+  const { cartCount, wishlistCount, user } = useAppContext();
+
+  const LoggedOutNotification = () => (
+    <Link to="/profile" className="p-2 text-slate-500 hover:text-primary relative" title="Sign in for welcome offers">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 8V5a2 2 0 012-2h2z" />
+      </svg>
+      <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-primary ring-2 ring-white"></span>
+    </Link>
+  );
+
+  const LoggedOutNotificationDesktop = () => (
+     <Link to="/profile" className="flex items-center gap-1.5 p-2 text-slate-600 hover:text-primary transition-colors" title="Sign in for welcome offers">
+        <div className="relative">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 8V5a2 2 0 012-2h2z" />
+            </svg>
+            <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-white"></span>
+        </div>
+      <span className="text-sm font-semibold">Sign in for Offers</span>
+    </Link>
+  );
 
   return (
     <>
@@ -21,7 +41,11 @@ const NavBar: React.FC<{onSearchClick: () => void}> = ({ onSearchClick }) => {
           
           {/* Mobile Notification Icon */}
           <div className="flex items-center md:hidden">
-            <NotificationBell target="user" className="p-2 text-slate-500 hover:text-primary" />
+            {user ? (
+                <NotificationBell target="user" className="p-2 text-slate-500 hover:text-primary" />
+            ) : (
+                <LoggedOutNotification />
+            )}
           </div>
 
           {/* Desktop Icons */}
@@ -31,7 +55,11 @@ const NavBar: React.FC<{onSearchClick: () => void}> = ({ onSearchClick }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
             </button>
-            <NotificationBell target="user" className="p-2 text-slate-500 hover:text-primary" />
+            {user ? (
+                <NotificationBell target="user" className="p-2 text-slate-500 hover:text-primary" />
+            ) : (
+                <LoggedOutNotificationDesktop />
+            )}
              <Link to="/profile" state={{ tab: 'wishlist' }} className="p-2 text-slate-500 hover:text-primary relative" aria-label="Wishlist">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
