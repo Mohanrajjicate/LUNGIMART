@@ -274,7 +274,7 @@ const OrdersSection: React.FC<{orders: any[], onOpenReviewModal: (product: Produ
                         <p className="text-sm text-slate-500">Date: {order.date}</p>
                     </div>
                     <div className="text-right flex items-center gap-4">
-                        {order.trackingNumber && (
+                        {order.trackingNumber && order.status !== 'Delivered' && (
                              <button onClick={() => onOpenTrackingModal(order)} className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors text-sm">
                                 Track Order
                             </button>
