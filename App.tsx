@@ -17,6 +17,7 @@ import QuietZonePage from './pages/QuietZone';
 import ScrollToTop from './components/ScrollToTop';
 import ContactPage from './pages/Contact';
 import InvoicePage from './pages/Invoice';
+import SearchPage from './pages/SearchPage';
 
 const App: React.FC = () => {
   return (
@@ -40,6 +41,7 @@ const App: React.FC = () => {
                 <Route path="/quiet-zone" element={<QuietZonePage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/invoice/:orderId" element={<InvoicePage />} />
+                <Route path="/search" element={<SearchPage />} />
               </Routes>
             </Layout>
           } />
