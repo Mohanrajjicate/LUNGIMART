@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -16,19 +15,41 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ target, direction =
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Filter notifications for the current target
+  // Static notification for logged-out users
+  const loggedOutNotification = useMemo(() => ({
+    id: 999999, // A unique ID that won't clash
+    message: "Sign in to get your welcome offer coupon!",
+    link: '/profile',
+    read: false,
+    timestamp: new Date().toISOString(),
+    target: 'user' as const,
+  }), []);
+
+  // Determine which notifications to show
   const targetNotifications = useMemo(() => {
-    // Show user notifications only if a user is logged in
-    if (target === 'user' && !user) return [];
-    return notifications.filter(n => n.target === target);
-  }, [notifications, target, user]);
+    if (target === 'user') {
+      if (!user) {
+        // If logged out, show only the sign-in prompt
+        return [loggedOutNotification];
+      }
+      // If logged in, show their actual notifications
+      return notifications.filter(n => n.target === 'user');
+    }
+    // For admin, keep original logic
+    return notifications.filter(n => n.target === 'admin');
+  }, [notifications, target, user, loggedOutNotification]);
 
   const unreadCount = useMemo(() => {
+    if (target === 'user' && !user) {
+      return 1; // Always show 1 for the logged-out prompt
+    }
     return targetNotifications.filter(n => !n.read).length;
-  }, [targetNotifications]);
+  }, [targetNotifications, target, user]);
 
   const handleNotificationClick = (id: number, link?: string) => {
-    markAsRead(id);
+    if (user) { // Only mark as read if a real user is logged in
+      markAsRead(id);
+    }
     setIsOpen(false);
     if (link) {
       navigate(link);
@@ -36,7 +57,9 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ target, direction =
   };
 
   const handleClearAll = () => {
-    clearAllNotifications(target);
+    if (user) { // Only allow clearing for logged-in users
+      clearAllNotifications(target);
+    }
   };
   
   // Close dropdown on outside click
@@ -49,10 +72,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ target, direction =
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  if (target === 'user' && !user) {
-    return null; // Don't render the bell if no user is logged in for the 'user' target
-  }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -67,7 +86,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ target, direction =
         <div className={`absolute right-0 w-80 bg-white rounded-lg shadow-xl border border-slate-200/80 z-50 overflow-hidden ${direction === 'up' ? 'bottom-full mb-2' : 'mt-2'}`}>
           <div className="p-3 flex justify-between items-center border-b">
             <h3 className="font-semibold text-slate-800">Notifications</h3>
-            {targetNotifications.length > 0 && <button onClick={handleClearAll} className="text-xs font-semibold text-primary hover:underline">Clear All</button>}
+            {user && targetNotifications.length > 0 && <button onClick={handleClearAll} className="text-xs font-semibold text-primary hover:underline">Clear All</button>}
           </div>
           <div className="max-h-96 overflow-y-auto">
             {targetNotifications.length > 0 ? (
