@@ -1,25 +1,49 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { categories, getProductsByCategory, getAllProducts } from '../services/mockData';
+import { categories } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
 
 const HomePage: React.FC = () => {
-  const { reviews } = useAppContext();
+  const { products } = useAppContext();
 
-  const allProducts = getAllProducts(reviews);
-  const bestSellingProducts = allProducts.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0)).slice(0, 8);
+  const getProductsByCategorySlug = (slug: string) => {
+    if (!slug || slug === 'all') return products;
+
+    if (slug === 'best-selling') {
+        return [...products].sort((a,b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+    }
+    if (slug === 'new-arrivals') {
+        return [...products].sort((a, b) => b.id - a.id);
+    }
+    if (slug === 'featured-products') {
+        const featuredIds = [1, 3, 7, 9];
+        return products.filter(p => featuredIds.includes(p.id));
+    }
+    if (slug === 'temple-vibe') {
+        const templeProductIds = [2, 3, 8, 9];
+        return products.filter(p => templeProductIds.includes(p.id));
+    }
+
+    const category = categories.find(c => c.slug === slug);
+    if (!category) return [];
+    return products.filter(p => p.category.id === category.id);
+  };
+
+  const bestSellingProducts = useMemo(() => getProductsByCategorySlug('best-selling').slice(0, 8), [products]);
+  const recentProducts = useMemo(() => getProductsByCategorySlug('new-arrivals').slice(0, 4), [products]);
+  const featuredProductsData = useMemo(() => getProductsByCategorySlug('featured-products'), [products]);
+  const lungiProducts = useMemo(() => getProductsByCategorySlug('lungi').slice(0, 4), [products]);
+  const dhotiProducts = useMemo(() => getProductsByCategorySlug('dhoti').slice(0, 4), [products]);
+  const matchingDhotiProducts = useMemo(() => getProductsByCategorySlug('matching-dhoti').slice(0, 4), [products]);
+  const templeVibeProducts = useMemo(() => getProductsByCategorySlug('temple-vibe').slice(0, 4), [products]);
+  const politicalProducts = useMemo(() => getProductsByCategorySlug('political-party').slice(0, 4), [products]);
+  const towelProducts = useMemo(() => getProductsByCategorySlug('towel').slice(0, 4), [products]);
+  
   const mainCategories = categories.filter(c => !['all', 'all-products', 'best-selling', 'new-arrivals', 'featured-products'].includes(c.slug));
 
-  const recentProducts = [...allProducts].sort((a, b) => b.id - a.id).slice(0, 4);
-  const featuredProductsData = allProducts.filter(p => [1, 3, 7, 9].includes(p.id));
-  const lungiProducts = getProductsByCategory('lungi', reviews).slice(0, 4);
-  const dhotiProducts = getProductsByCategory('dhoti', reviews).slice(0, 4);
-  const matchingDhotiProducts = getProductsByCategory('matching-dhoti', reviews).slice(0, 4);
-  const templeVibeProducts = getProductsByCategory('temple-vibe', reviews).slice(0, 4);
-  const politicalProducts = getProductsByCategory('political-party', reviews).slice(0, 4);
-  const towelProducts = getProductsByCategory('towel', reviews).slice(0, 4);
 
   const heroImages = [
     { src: 'https://picsum.photos/seed/hero-main/1200/800', alt: 'Weaving loom' },

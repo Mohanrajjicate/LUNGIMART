@@ -1,30 +1,54 @@
 
+
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
-import { categories, getProductsByCategory } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
 
 const ShopPage: React.FC = () => {
   const { categorySlug } = useParams<{ categorySlug?: string }>();
-  const { reviews } = useAppContext();
+  const { products, categories } = useAppContext();
   const [sortOption, setSortOption] = useState('featured');
   
   const activeCategorySlug = categorySlug || 'all';
   
   const activeCategory = useMemo(() => 
     categories.find(c => c.slug === activeCategorySlug) || { name: 'All Products', slug: 'all' },
-    [activeCategorySlug]
+    [activeCategorySlug, categories]
   );
   
   const shopCategories = useMemo(() => {
     const allCat = categories.find(c => c.slug === 'all');
     const otherCats = categories.filter(c => c.slug !== 'all');
     return allCat ? [allCat, ...otherCats] : otherCats;
-  }, []);
+  }, [categories]);
+  
+  const getProductsByCategorySlug = (slug: string) => {
+    if (!slug || slug === 'all') return products;
+
+    if (slug === 'best-selling') {
+        return [...products].sort((a,b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+    }
+    if (slug === 'new-arrivals') {
+        return [...products].sort((a, b) => b.id - a.id);
+    }
+    if (slug === 'featured-products') {
+        const featuredIds = [1, 3, 7, 9];
+        return products.filter(p => featuredIds.includes(p.id));
+    }
+    if (slug === 'temple-vibe') {
+        const templeProductIds = [2, 3, 8, 9];
+        return products.filter(p => templeProductIds.includes(p.id));
+    }
+
+    const category = categories.find(c => c.slug === slug);
+    if (!category) return [];
+    return products.filter(p => p.category.id === category.id);
+  };
+
 
   const filteredProducts = useMemo(() => {
-    let productsToShow = getProductsByCategory(activeCategorySlug, reviews);
+    let productsToShow = getProductsByCategorySlug(activeCategorySlug);
 
     return [...productsToShow].sort((a, b) => {
         switch (sortOption) {
@@ -38,26 +62,25 @@ const ShopPage: React.FC = () => {
                 return 0; // 'featured'
         }
     });
-  }, [activeCategorySlug, sortOption, reviews]);
+  }, [activeCategorySlug, sortOption, products]);
   
-  const recommendedProducts = useMemo(() => getProductsByCategory('featured-products', reviews).slice(0, 4), [reviews]);
+  const recommendedProducts = useMemo(() => getProductsByCategorySlug('featured-products').slice(0, 4), [products]);
   const recommendedProductIds = useMemo(() => new Set(recommendedProducts.map(p => p.id)), [recommendedProducts]);
 
   const otherCategories = useMemo(() => {
       const virtualSlugs = ['all', 'best-selling', 'new-arrivals', 'featured-products'];
       return categories.filter(c => c.slug !== activeCategorySlug && !virtualSlugs.includes(c.slug));
-  }, [activeCategorySlug]);
+  }, [activeCategorySlug, categories]);
   
   const exploreProducts = useMemo(() => {
-    // Get a variety of products from other categories, avoiding duplicates from recommended section
     const productsFromCategories = otherCategories
-        .flatMap(cat => getProductsByCategory(cat.slug, reviews))
+        .flatMap(cat => getProductsByCategorySlug(cat.slug))
         .filter(p => p && !recommendedProductIds.has(p.id));
 
     const uniqueProducts = Array.from(new Map(productsFromCategories.map(p => [p.id, p])).values());
     
     return uniqueProducts.slice(0, 4);
-  }, [otherCategories, recommendedProductIds, reviews]);
+  }, [otherCategories, recommendedProductIds, products]);
 
   // Category Scroller Logic
   const scrollContainerRef = useRef<HTMLDivElement>(null);

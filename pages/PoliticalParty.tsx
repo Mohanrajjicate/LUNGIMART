@@ -6,8 +6,8 @@ import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
 
 const PoliticalPartyPage: React.FC = () => {
-  const { reviews } = useAppContext();
-  const politicalProducts = getProductsByCategory('political-party', reviews);
+  const { products } = useAppContext();
+  const politicalProducts = getProductsByCategory('political-party', products);
 
   return (
     <div className="space-y-12">

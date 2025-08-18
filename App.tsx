@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { AppProvider } from './contexts/AppContext';
@@ -18,6 +19,7 @@ import ScrollToTop from './components/ScrollToTop';
 import ContactPage from './pages/Contact';
 import InvoicePage from './pages/Invoice';
 import SearchPage from './pages/SearchPage';
+import AdminApp from './AdminApp';
 
 const App: React.FC = () => {
   return (
@@ -25,6 +27,7 @@ const App: React.FC = () => {
       <HashRouter>
         <ScrollToTop />
         <Routes>
+          <Route path="/admin/*" element={<AdminApp />} />
           <Route path="/*" element={
             <Layout>
               <Routes>

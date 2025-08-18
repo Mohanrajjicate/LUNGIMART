@@ -1,7 +1,8 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getProductBySlug, getRelatedProducts, getAvailableCouponsForProduct } from '../services/mockData';
+import { getAvailableCouponsForProduct } from '../services/mockData';
 import { useAppContext } from '../contexts/AppContext';
 import ProductCard from '../components/ProductCard';
 import StarRating from '../components/StarRating';
@@ -15,9 +16,9 @@ const SocialShareIcon: React.FC<{ href: string; children: React.ReactNode; label
 
 const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { reviews, addToCart, toggleWishlist, isInWishlist } = useAppContext();
+  const { products, addToCart, toggleWishlist, isInWishlist } = useAppContext();
   
-  const product = useMemo(() => getProductBySlug(slug || '', reviews), [slug, reviews]);
+  const product = useMemo(() => products.find(p => p.slug === slug), [slug, products]);
   const availableCoupons = useMemo(() => product ? getAvailableCouponsForProduct(product.id) : [], [product]);
   
   const [quantity, setQuantity] = useState(1);
@@ -58,7 +59,7 @@ const ProductDetailPage: React.FC = () => {
   const inWishlist = isInWishlist(product.id);
   const hasDiscount = product.originalPrice && product.originalPrice > product.price;
   const discountPercentage = hasDiscount ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) : 0;
-  const relatedProducts = getRelatedProducts(product.id, reviews);
+  const relatedProducts = products.filter(p => p.id !== product.id).slice(0, 4);
 
   const reviewsRef = React.useRef<HTMLDivElement>(null);
   const handleReviewsLinkClick = () => {
@@ -131,34 +132,44 @@ const ProductDetailPage: React.FC = () => {
                     </div>
                 </div>
               )}
+              
+              {product.stock > 0 ? (
+                <p className={`font-semibold ${product.stock < 10 ? 'text-orange-500' : 'text-green-600'}`}>
+                    {product.stock < 10 ? `Only ${product.stock} left in stock!` : 'In Stock'}
+                </p>
+              ) : (
+                <p className="font-semibold text-red-500">Out of Stock</p>
+              )}
 
-              <p className="font-semibold text-green-600">In Stock</p>
+              {product.stock > 0 && (
+                <>
+                <div className="flex items-center space-x-4">
+                    <p className="text-sm font-medium text-slate-700">Quantity:</p>
+                    <div className="flex items-center border border-slate-300 rounded-lg">
+                        <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-2 text-lg text-slate-600 hover:bg-slate-100 rounded-l-lg transition">-</button>
+                        <span className="px-5 py-2 font-semibold text-lg">{quantity}</span>
+                        <button onClick={() => setQuantity(q => Math.min(q + 1, product.stock))} className="px-4 py-2 text-lg text-slate-600 hover:bg-slate-100 rounded-r-lg transition">+</button>
+                    </div>
+                </div>
 
-              <div className="flex items-center space-x-4">
-                  <p className="text-sm font-medium text-slate-700">Quantity:</p>
-                  <div className="flex items-center border border-slate-300 rounded-lg">
-                      <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-2 text-lg text-slate-600 hover:bg-slate-100 rounded-l-lg transition">-</button>
-                      <span className="px-5 py-2 font-semibold text-lg">{quantity}</span>
-                      <button onClick={() => setQuantity(q => q + 1)} className="px-4 py-2 text-lg text-slate-600 hover:bg-slate-100 rounded-r-lg transition">+</button>
-                  </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <button 
-                      onClick={() => addToCart(product, quantity)}
-                      className="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-dark transition-colors duration-300 flex items-center justify-center gap-2"
-                  >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                      ADD TO CART
-                  </button>
-                   <button 
-                      onClick={handleBuyNow}
-                      className="w-full bg-slate-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition-colors duration-300 flex items-center justify-center gap-2"
-                  >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                      BUY NOW
-                  </button>
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button 
+                        onClick={() => addToCart(product, quantity)}
+                        className="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-dark transition-colors duration-300 flex items-center justify-center gap-2"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                        ADD TO CART
+                    </button>
+                    <button 
+                        onClick={handleBuyNow}
+                        className="w-full bg-slate-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition-colors duration-300 flex items-center justify-center gap-2"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        BUY NOW
+                    </button>
+                </div>
+                </>
+              )}
                <button 
                     onClick={handleToggleWishlist}
                     className="w-full border-2 border-slate-200 text-slate-600 font-bold py-3 px-6 rounded-lg hover:border-primary hover:text-primary transition-colors duration-300 flex items-center justify-center gap-2"

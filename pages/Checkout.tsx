@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
-import { mockUser } from '../services/mockData';
+import { mockUsers } from '../services/mockData';
 import { Address } from '../types';
 
 declare var Razorpay: any;
@@ -65,7 +65,7 @@ const CheckoutPage: React.FC = () => {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        login({ ...mockUser, email: email });
+        login({ ...mockUsers[0], email: email });
         setActiveStep(2);
     };
 

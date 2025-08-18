@@ -5,7 +5,7 @@ import { useAppContext } from '../contexts/AppContext';
 import { Product, Address } from '../types';
 import ProductCard from '../components/ProductCard';
 import ReviewModal from '../components/ReviewModal';
-import { mockUser, mockCoupons } from '../services/mockData';
+import { mockUsers, mockCoupons } from '../services/mockData';
 
 // --- Authentication Components (for logged-out users) --- //
 const AuthComponent: React.FC = () => {
@@ -14,7 +14,7 @@ const AuthComponent: React.FC = () => {
 
     const handleLogin = () => {
         // In a real app, you'd verify credentials. Here we just log in the mock user.
-        login(mockUser);
+        login(mockUsers[0]);
     };
     
     const handleSignup = (name: string, email: string) => {

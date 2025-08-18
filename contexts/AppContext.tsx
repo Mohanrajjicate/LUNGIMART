@@ -1,7 +1,7 @@
 
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { CartItem, Product, User, Review, Order, Coupon } from '../types';
-import { baseReviews, mockOrders, getCouponByCode } from '../services/mockData';
+import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
+import { CartItem, Product, User, Review, Order, Coupon, Category } from '../types';
+import { baseReviews, baseOrders, getCouponByCode, baseProducts, attachReviewData, mockUsers, categories } from '../services/mockData';
 
 interface AppContextType {
   cart: CartItem[];
@@ -9,7 +9,12 @@ interface AppContextType {
   user: User | null;
   reviews: Review[];
   orders: Order[];
+  products: Product[];
+  categories: Category[];
   addReview: (productId: number, orderId: string, rating: number, comment: string) => void;
+  updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  updateProduct: (updatedProduct: Product) => void;
+  addProduct: (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => void;
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
@@ -47,9 +52,45 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [wishlist, setWishlist] = useState<Product[]>(() => getInitialState<Product[]>('wishlist', []));
   const [user, setUser] = useState<User | null>(() => getInitialState<User | null>('user', null));
   const [isQuietZoneActive, setIsQuietZoneActive] = useState<boolean>(() => getInitialState<boolean>('quietZone', false));
+  
+  // Centralized data state
   const [reviews, setReviews] = useState<Review[]>(() => getInitialState<Review[]>('reviews', baseReviews));
-  const [orders, setOrders] = useState<Order[]>(() => getInitialState<Order[]>('orders', mockOrders));
+  const [orders, setOrders] = useState<Order[]>(() => getInitialState<Order[]>('orders', baseOrders));
+  const [products, setProducts] = useState<Product[]>(() => getInitialState<Product[]>('products', []));
+
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => getInitialState<Coupon | null>('appliedCoupon', null));
+
+  // Initialize products with review data if not already in local storage
+  useEffect(() => {
+    const initialProducts = getInitialState<Product[]>('products', []);
+    if (initialProducts.length === 0) {
+        const productsWithReviews = baseProducts.map(p => attachReviewData(p, reviews));
+        setProducts(productsWithReviews);
+    }
+  }, []); // Run only once on mount
+
+  // Recalculate review data for products when reviews change
+  const updateProductsWithReviews = useCallback(() => {
+    setProducts(prevProducts => {
+        const baseProductMap = new Map(prevProducts.map(p => [p.id, { ...p, reviews: [], rating: 0, reviewCount: 0 }]));
+        baseProducts.forEach(bp => {
+            if (baseProductMap.has(bp.id)) {
+                const existing = baseProductMap.get(bp.id);
+                baseProductMap.set(bp.id, { ...existing, ...bp });
+            } else {
+                baseProductMap.set(bp.id, { ...bp, reviews: [], rating: 0, reviewCount: 0 });
+            }
+        });
+
+        const updatedProducts = Array.from(baseProductMap.values()).map(p => attachReviewData(p as Omit<Product, 'reviews' | 'rating' | 'reviewCount'>, reviews));
+        return updatedProducts;
+    });
+  }, [reviews]);
+
+  useEffect(() => {
+    updateProductsWithReviews();
+  }, [reviews, updateProductsWithReviews]);
+
 
   useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
   useEffect(() => { localStorage.setItem('wishlist', JSON.stringify(wishlist)); }, [wishlist]);
@@ -57,11 +98,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => { localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive)); }, [isQuietZoneActive]);
   useEffect(() => { localStorage.setItem('reviews', JSON.stringify(reviews)); }, [reviews]);
   useEffect(() => { localStorage.setItem('orders', JSON.stringify(orders)); }, [orders]);
+  useEffect(() => { localStorage.setItem('products', JSON.stringify(products)); }, [products]);
   useEffect(() => { localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon)); }, [appliedCoupon]);
 
 
   const addReview = (productId: number, orderId: string, rating: number, comment: string) => {
-    if (!user) return; // Must be logged in
+    if (!user) return;
     
     const newReview: Review = {
         id: Date.now(),
@@ -75,27 +117,47 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     
     setReviews(prev => [...prev, newReview]);
     
-    // Mark product as reviewed in the specific order
     setOrders(prevOrders => prevOrders.map(order => {
         if (order.id === orderId) {
             return {
                 ...order,
-                reviewedProducts: {
-                    ...order.reviewedProducts,
-                    [productId]: true,
-                }
+                reviewedProducts: { ...order.reviewedProducts, [productId]: true }
             };
         }
         return order;
     }));
   };
 
+  const updateOrderStatus = (orderId: string, status: Order['status']) => {
+    setOrders(prevOrders => prevOrders.map(order => 
+      order.id === orderId ? { ...order, status } : order
+    ));
+  };
+
+  const updateProduct = (updatedProduct: Product) => {
+    setProducts(prevProducts => prevProducts.map(p => 
+      p.id === updatedProduct.id ? updatedProduct : p
+    ));
+  };
+  
+  const addProduct = (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => {
+      const newProduct = {
+          ...newProductData,
+          id: Date.now(),
+          reviews: [],
+          rating: 0,
+          reviewCount: 0
+      };
+      setProducts(prev => [...prev, newProduct]);
+  };
+
+
   const addToCart = (product: Product, quantity = 1) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id);
       if (existingItem) {
         return prevCart.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+          item.id === product.id ? { ...item, quantity: Math.min(item.quantity + quantity, product.stock) } : item
         );
       }
       return [...prevCart, { ...product, quantity }];
@@ -107,12 +169,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateQuantity = (productId: number, quantity: number) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
     if (quantity <= 0) {
       removeFromCart(productId);
     } else {
       setCart(prevCart =>
         prevCart.map(item =>
-          item.id === productId ? { ...item, quantity } : item
+          item.id === productId ? { ...item, quantity: Math.min(quantity, product.stock) } : item
         )
       );
     }
@@ -177,7 +242,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         if (isApplicable) {
             if (appliedCoupon.applicableProductIds) {
-                // Discount only on specific products
                 const applicableTotal = cart
                     .filter(item => appliedCoupon.applicableProductIds!.includes(item.id))
                     .reduce((total, item) => total + item.price * item.quantity, 0);
@@ -187,11 +251,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 } else {
                     discount = appliedCoupon.discountValue;
                 }
-                // Ensure discount doesn't exceed the total of applicable items
                 discount = Math.min(discount, applicableTotal);
 
             } else {
-                // Site-wide discount
                 if (appliedCoupon.discountType === 'percentage') {
                     discount = (cartTotal * appliedCoupon.discountValue) / 100;
                 } else {
@@ -200,7 +262,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             }
         }
     }
-    // Ensure discount doesn't exceed cart total
     discount = Math.min(discount, cartTotal);
     const finalTotal = cartTotal - discount;
 
@@ -215,7 +276,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       user,
       reviews,
       orders,
+      products,
+      categories,
       addReview,
+      updateOrderStatus,
+      updateProduct,
+      addProduct,
       addToCart,
       removeFromCart,
       updateQuantity,

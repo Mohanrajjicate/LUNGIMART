@@ -10,6 +10,7 @@ export interface Product {
   images: string[];
   description: string;
   details: string[];
+  stock: number;
   // These will now be populated dynamically
   reviews: Review[];
   rating?: number;
@@ -62,6 +63,7 @@ export interface Order {
   total: number;
   status: 'Processing' | 'Shipped' | 'Delivered';
   reviewedProducts: { [productId: number]: boolean };
+  customerName: string;
 }
 
 export interface Coupon {

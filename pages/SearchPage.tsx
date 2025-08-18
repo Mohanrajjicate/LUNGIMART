@@ -1,30 +1,27 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { getAllProducts } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
 
 const SearchPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { reviews } = useAppContext();
+    const { products } = useAppContext();
     
     const query = searchParams.get('q') || '';
     const [searchQuery, setSearchQuery] = useState(query);
-
-    const allProducts = useMemo(() => getAllProducts(reviews), [reviews]);
 
     const filteredProducts = useMemo(() => {
         if (!query.trim()) {
             return [];
         }
         const lowerCaseQuery = query.toLowerCase();
-        return allProducts.filter(p =>
+        return products.filter(p =>
             p.name.toLowerCase().includes(lowerCaseQuery) ||
             p.category.name.toLowerCase().includes(lowerCaseQuery) ||
             p.description.toLowerCase().includes(lowerCaseQuery)
         );
-    }, [query, allProducts]);
+    }, [query, products]);
     
     useEffect(() => {
         setSearchQuery(query);

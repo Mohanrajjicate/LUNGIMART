@@ -1,26 +1,22 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAllProducts } from '../services/mockData';
-import { Product } from '../types';
 import { useAppContext } from '../contexts/AppContext';
 
 const SearchOverlay: React.FC<{onClose: () => void}> = ({ onClose }) => {
-    const { reviews } = useAppContext();
+    const { products } = useAppContext();
     const navigate = useNavigate();
     const [query, setQuery] = useState('');
-
-    const allProducts = useMemo(() => getAllProducts(reviews), [reviews]);
 
     const results = useMemo(() => {
         if (query.trim().length > 1) {
             const lowerCaseQuery = query.toLowerCase();
-            return allProducts.filter(p => 
+            return products.filter(p => 
                 p.name.toLowerCase().includes(lowerCaseQuery) || 
                 p.category.name.toLowerCase().includes(lowerCaseQuery)
             );
         }
         return [];
-    }, [query, allProducts]);
+    }, [query, products]);
 
     const quickResults = useMemo(() => results.slice(0, 5), [results]);
     
