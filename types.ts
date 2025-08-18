@@ -33,6 +33,7 @@ export interface Review {
   comment: string;
   date: string;
   verifiedBuyer: boolean;
+  acknowledged: boolean;
 }
 
 export interface CartItem extends Product {

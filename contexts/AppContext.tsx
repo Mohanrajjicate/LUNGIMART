@@ -16,6 +16,8 @@ interface AppContextType {
   markAsRead: (notificationId: number) => void;
   markAllAsRead: (target: 'user' | 'admin') => void;
   addReview: (productId: number, orderId: string, rating: number, comment: string) => void;
+  deleteReview: (reviewId: number) => void;
+  acknowledgeReview: (reviewId: number) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   updateProduct: (updatedProduct: Product) => void;
   addProduct: (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => void;
@@ -141,9 +143,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         comment,
         date: new Date().toISOString().split('T')[0],
         verifiedBuyer: true,
+        acknowledged: false,
     };
     
-    setReviews(prev => [...prev, newReview]);
+    setReviews(prev => [newReview, ...prev]);
     
     setOrders(prevOrders => prevOrders.map(order => {
         if (order.id === orderId) {
@@ -154,6 +157,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
         return order;
     }));
+
+    const productName = products.find(p => p.id === productId)?.name || 'a product';
+    addNotification(`New review for "${productName}" from ${user.name}.`, 'admin', '/admin/reviews');
+  };
+
+  const deleteReview = (reviewId: number) => {
+    setReviews(prev => prev.filter(review => review.id !== reviewId));
+  };
+
+  const acknowledgeReview = (reviewId: number) => {
+    setReviews(prev => prev.map(review => 
+      review.id === reviewId ? { ...review, acknowledged: true } : review
+    ));
   };
 
   const updateOrderStatus = (orderId: string, status: Order['status']) => {
@@ -346,6 +362,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       markAsRead,
       markAllAsRead,
       addReview,
+      deleteReview,
+      acknowledgeReview,
       updateOrderStatus,
       updateProduct,
       addProduct,

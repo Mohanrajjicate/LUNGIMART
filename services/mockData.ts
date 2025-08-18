@@ -20,10 +20,10 @@ const getCategory = (slug: string): Category => {
 
 // Base reviews - managed by AppContext
 export const baseReviews: Review[] = [
-    { id: 1, productId: 1, author: 'Ramesh K.', rating: 5, comment: 'Excellent quality and very comfortable.', date: '2023-10-10', verifiedBuyer: true },
-    { id: 2, productId: 1, author: 'Suresh P.', rating: 4, comment: 'Good value for money. Color is vibrant.', date: '2023-10-12', verifiedBuyer: true },
-    { id: 3, productId: 2, author: 'Anitha', rating: 5, comment: 'Soft material, my husband loves it!', date: '2023-09-20', verifiedBuyer: true },
-    { id: 4, productId: 4, author: 'Gopal V.', rating: 4, comment: 'The party colors are perfect. Very happy with the purchase.', date: '2023-08-15', verifiedBuyer: true },
+    { id: 1, productId: 1, author: 'Ramesh K.', rating: 5, comment: 'Excellent quality and very comfortable.', date: '2023-10-10', verifiedBuyer: true, acknowledged: true },
+    { id: 2, productId: 1, author: 'Suresh P.', rating: 4, comment: 'Good value for money. Color is vibrant.', date: '2023-10-12', verifiedBuyer: true, acknowledged: true },
+    { id: 3, productId: 2, author: 'Anitha', rating: 5, comment: 'Soft material, my husband loves it!', date: '2023-09-20', verifiedBuyer: true, acknowledged: true },
+    { id: 4, productId: 4, author: 'Gopal V.', rating: 4, comment: 'The party colors are perfect. Very happy with the purchase.', date: '2023-08-15', verifiedBuyer: true, acknowledged: true },
 ];
 
 // Base product data without dynamic review fields

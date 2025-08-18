@@ -7,6 +7,7 @@ import ProductEditPage from './pages/admin/ProductEditPage';
 import OrdersPage from './pages/admin/OrdersPage';
 import CustomersPage from './pages/admin/CustomersPage';
 import ImageGalleryPage from './pages/admin/ImageGalleryPage';
+import ReviewsPage from './pages/admin/ReviewsPage';
 
 const AdminApp: React.FC = () => {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ const AdminApp: React.FC = () => {
         <Route path="products/edit/:productId" element={<ProductEditPage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="customers" element={<CustomersPage />} />
+        <Route path="reviews" element={<ReviewsPage />} />
         <Route path="image-gallery" element={<ImageGalleryPage />} />
       </Routes>
     </AdminLayout>
