@@ -1,4 +1,4 @@
-import { Product, Category, Review, Order, Coupon, User, Address } from '../types';
+import { Product, Category, Review, Order, Coupon, User, Address, Banner } from '../types';
 
 export const categories: Category[] = [
   { id: 1, name: 'Lungi', slug: 'lungi', image: 'https://picsum.photos/seed/cat1/600/400' },
@@ -326,6 +326,17 @@ export const mockCoupons: Coupon[] = [
     discountValue: 50,
   },
 ];
+
+export const baseBanners: Banner[] = [
+  { id: 'hero-slider-1', name: 'Hero Slider Image 1', imageUrl: 'https://picsum.photos/seed/hero-main/1200/800' },
+  { id: 'hero-slider-2', name: 'Hero Slider Image 2', imageUrl: 'https://picsum.photos/seed/hero-alt1/1200/800' },
+  { id: 'hero-slider-3', name: 'Hero Slider Image 3', imageUrl: 'https://picsum.photos/seed/hero-alt2/1200/800' },
+  { id: 'temple-collection', name: 'Temple Vibe Banner', imageUrl: 'https://picsum.photos/seed/banner-temple/800/500' },
+  { id: 'political-wear', name: 'Political Party Wear Banner', imageUrl: 'https://picsum.photos/seed/banner-political/800/500' },
+  { id: 'festive-sale', name: 'Festive Season Sale Banner', imageUrl: 'https://picsum.photos/seed/festival-offer/1200/400' },
+  { id: 'bulk-order-promo', name: 'Bulk Order Promo Banner', imageUrl: 'https://picsum.photos/seed/promo/1200/400' },
+];
+
 
 export const getCouponByCode = (code: string): Coupon | undefined => {
     return mockCoupons.find(c => c.code.toLowerCase() === code.toLowerCase());

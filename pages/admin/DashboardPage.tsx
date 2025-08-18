@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import StatCard from '../../components/admin/StatCard';
-import SalesChart from '../../components/admin/SalesChart';
 import CategoryPieChart from '../../components/admin/CategoryPieChart';
 import { Order, Product, User } from '../../types';
 import FulfillmentModal from '../../components/admin/FulfillmentModal';
@@ -89,12 +88,6 @@ const DashboardPage: React.FC = () => {
                     />
                 </div>
                 
-                {/* Sales Chart */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                     <h3 className="text-lg font-semibold text-slate-800 mb-4">Sales Over Time</h3>
-                     <SalesChart orders={orders} />
-                </div>
-
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                     {/* Category Pie Chart */}
                     <div className="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">

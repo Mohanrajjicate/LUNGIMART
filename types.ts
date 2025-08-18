@@ -89,3 +89,9 @@ export interface Notification {
   timestamp: string;
   link?: string;
 }
+
+export interface Banner {
+  id: string;
+  name: string;
+  imageUrl: string;
+}

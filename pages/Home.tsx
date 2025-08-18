@@ -7,7 +7,12 @@ import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
 
 const HomePage: React.FC = () => {
-  const { products } = useAppContext();
+  const { products, banners } = useAppContext();
+
+  const getBannerUrl = (id: string, fallback: string) => {
+    const banner = banners.find(b => b.id === id);
+    return banner ? banner.imageUrl : fallback;
+  };
 
   const getProductsByCategorySlug = (slug: string) => {
     if (!slug || slug === 'all') return products;
@@ -46,9 +51,9 @@ const HomePage: React.FC = () => {
 
 
   const heroImages = [
-    { src: 'https://picsum.photos/seed/hero-main/1200/800', alt: 'Weaving loom' },
-    { src: 'https://picsum.photos/seed/hero-alt1/1200/800', alt: 'Colorful threads' },
-    { src: 'https://picsum.photos/seed/hero-alt2/1200/800', alt: 'Handcrafted textile' },
+    { src: getBannerUrl('hero-slider-1', 'https://picsum.photos/seed/hero-main/1200/800'), alt: 'Weaving loom' },
+    { src: getBannerUrl('hero-slider-2', 'https://picsum.photos/seed/hero-alt1/1200/800'), alt: 'Colorful threads' },
+    { src: getBannerUrl('hero-slider-3', 'https://picsum.photos/seed/hero-alt2/1200/800'), alt: 'Handcrafted textile' },
   ];
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -156,7 +161,7 @@ const HomePage: React.FC = () => {
           {/* Banner 1: Temple Collection */}
           <Link to="/shop/temple-vibe" className="group relative block h-80 rounded-2xl overflow-hidden">
             <img 
-              src="https://picsum.photos/seed/banner-temple/800/500" 
+              src={getBannerUrl('temple-collection', "https://picsum.photos/seed/banner-temple/800/500")} 
               alt="Temple Vibe Collection" 
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
@@ -170,7 +175,7 @@ const HomePage: React.FC = () => {
           {/* Banner 2: Political Wear */}
           <Link to="/shop/political-party" className="group relative block h-80 rounded-2xl overflow-hidden">
             <img 
-              src="https://picsum.photos/seed/banner-political/800/500" 
+              src={getBannerUrl('political-wear', "https://picsum.photos/seed/banner-political/800/500")} 
               alt="Political Party Wear" 
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
@@ -217,7 +222,7 @@ const HomePage: React.FC = () => {
 
       {/* Festival Offer Banner */}
       {/* TODO: The backgroundImage URL and offer details can be fetched from a database. */}
-      <section className="relative -mx-4 sm:-mx-6 lg:-mx-8 p-16 rounded-2xl bg-slate-800 bg-cover bg-center text-center" style={{backgroundImage: `url('https://picsum.photos/seed/festival-offer/1200/400')`}}>
+      <section className="relative -mx-4 sm:-mx-6 lg:-mx-8 p-16 rounded-2xl bg-slate-800 bg-cover bg-center text-center" style={{backgroundImage: `url('${getBannerUrl('festive-sale', 'https://picsum.photos/seed/festival-offer/1200/400')}')`}}>
           <div className="absolute inset-0 bg-primary/60 rounded-2xl"></div>
           <div className="relative text-white">
             <h2 className="text-4xl font-bold">Festive Season Sale</h2>
@@ -401,7 +406,7 @@ const HomePage: React.FC = () => {
       </section>
       
        {/* 20% Off Banner */}
-       <section className="relative -mx-4 sm:-mx-6 lg:-mx-8 p-16 rounded-2xl bg-slate-800 bg-cover bg-center text-center" style={{backgroundImage: `url('https://picsum.photos/seed/promo/1200/400')`}}>
+       <section className="relative -mx-4 sm:-mx-6 lg:-mx-8 p-16 rounded-2xl bg-slate-800 bg-cover bg-center text-center" style={{backgroundImage: `url('${getBannerUrl('bulk-order-promo', 'https://picsum.photos/seed/promo/1200/400')}')`}}>
           <div className="absolute inset-0 bg-black/50 rounded-2xl"></div>
           <div className="relative text-white">
             <h2 className="text-4xl font-bold">Celebrate Tradition</h2>
