@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
+import { mockUser } from '../services/mockData';
+import { Address } from '../types';
 
 const CheckoutPage: React.FC = () => {
     const { 
@@ -14,13 +16,22 @@ const CheckoutPage: React.FC = () => {
     const [activeStep, setActiveStep] = useState(user ? 2 : 1);
     
     const [email, setEmail] = useState(user?.email || '');
-    const [address] = useState({
-        name: user?.name || 'Suresh P.',
-        street: "123, Weaver's Colony",
-        city: 'Komarapalayam, Tamil Nadu',
-        zip: '638183'
-    });
-    const [paymentMethod, setPaymentMethod] = useState('');
+
+    // State for address management
+    const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+    const [isAddingNewAddress, setIsAddingNewAddress] = useState(false);
+    const [newAddress, setNewAddress] = useState<Omit<Address, 'id' | 'isDefault'>>({ name: '', street: '', city: '', zip: '' });
+    const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+    
+    // Set default selected address on load or user change
+    useEffect(() => {
+        if (user && user.addresses?.length > 0) {
+            const defaultAddress = user.addresses.find(a => a.isDefault) || user.addresses[0];
+            if (defaultAddress) {
+                setSelectedAddressId(defaultAddress.id);
+            }
+        }
+    }, [user]);
 
     useEffect(() => {
         // Redirect to cart page if it's empty, but not from the success step
@@ -31,8 +42,24 @@ const CheckoutPage: React.FC = () => {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        login({ id: 1, name: 'Suresh P.', email: email });
+        login({ ...mockUser, email: email });
         setActiveStep(2);
+    };
+
+    const handleSaveAddress = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (user && newAddress.name && newAddress.street && newAddress.city && newAddress.zip) {
+            const newId = Date.now();
+            const addressToAdd: Address = { id: newId, ...newAddress };
+            const updatedUser = {
+                ...user,
+                addresses: [...user.addresses, addressToAdd],
+            };
+            login(updatedUser); // Update user in context
+            setSelectedAddressId(newId);
+            setIsAddingNewAddress(false);
+            setNewAddress({ name: '', street: '', city: '', zip: '' });
+        }
     };
 
     const handlePlaceOrder = () => {
@@ -40,6 +67,8 @@ const CheckoutPage: React.FC = () => {
         clearCart();
         setActiveStep(5); // Go to success/confirmation step
     };
+
+    const selectedAddress = user?.addresses.find(a => a.id === selectedAddressId);
 
     // --- Success Screen --- //
     if (activeStep === 5) {
@@ -141,22 +170,78 @@ const CheckoutPage: React.FC = () => {
                         <StepHeader step={2} title="Delivery Address" />
                          {activeStep === 2 && (
                             <div className="p-6 border-t border-slate-200">
-                                <div className="border-2 border-primary bg-primary/5 rounded-lg p-4 relative">
-                                    <p className="font-bold">{address.name}</p>
-                                    <p className="text-slate-600">{address.street}</p>
-                                    <p className="text-slate-600">{address.city} - {address.zip}</p>
-                                </div>
-                                <button type="button" onClick={() => setActiveStep(3)} className="mt-4 bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-primary-dark transition-colors">
-                                    SAVE AND DELIVER HERE
-                                </button>
+                                {!isAddingNewAddress ? (
+                                    <div className="space-y-4">
+                                        {user?.addresses.map(address => (
+                                            <label key={address.id} className={`flex items-start p-4 border rounded-lg cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all ${selectedAddressId === address.id ? 'border-primary bg-primary/5' : 'border-slate-200'}`}>
+                                                <input 
+                                                    type="radio" 
+                                                    name="address" 
+                                                    value={address.id} 
+                                                    checked={selectedAddressId === address.id} 
+                                                    onChange={() => setSelectedAddressId(address.id)} 
+                                                    className="h-5 w-5 mt-1 text-primary border-gray-300 focus:ring-primary/20"
+                                                />
+                                                <div className="ml-4 text-sm">
+                                                    <p className="font-bold text-slate-800">{address.name}</p>
+                                                    <p className="text-slate-600">{address.street}, {address.city} - {address.zip}</p>
+                                                </div>
+                                            </label>
+                                        ))}
+                                        <button 
+                                            onClick={() => setIsAddingNewAddress(true)}
+                                            className="text-primary font-bold hover:underline mt-4 text-sm"
+                                        >
+                                            + Add a new address
+                                        </button>
+                                        <div className="mt-6">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setActiveStep(3)} 
+                                                disabled={!selectedAddressId}
+                                                className="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-slate-300"
+                                            >
+                                                DELIVER HERE
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleSaveAddress} className="space-y-4">
+                                        <h3 className="font-semibold text-lg text-slate-800">Add a new address</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-sm font-medium text-slate-700">Name</label>
+                                                <input value={newAddress.name} onChange={e => setNewAddress({...newAddress, name: e.target.value})} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                                            </div>
+                                             <div>
+                                                <label className="text-sm font-medium text-slate-700">ZIP Code</label>
+                                                <input value={newAddress.zip} onChange={e => setNewAddress({...newAddress, zip: e.target.value})} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-medium text-slate-700">Street Address</label>
+                                            <input value={newAddress.street} onChange={e => setNewAddress({...newAddress, street: e.target.value})} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-medium text-slate-700">City</label>
+                                            <input value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                                        </div>
+                                        <div className="flex gap-4 pt-2">
+                                            <button type="submit" className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-dark transition-colors">SAVE ADDRESS</button>
+                                            <button type="button" onClick={() => setIsAddingNewAddress(false)} className="bg-slate-100 text-slate-800 font-bold py-3 px-6 rounded-lg hover:bg-slate-200 transition-colors">CANCEL</button>
+                                        </div>
+                                    </form>
+                                )}
                             </div>
                          )}
                         {activeStep > 2 && (
                             <div className="p-4 border-t border-slate-200 flex justify-between items-center">
-                                <div>
-                                    <p className="font-semibold text-slate-800">{address.name}</p>
-                                    <p className="text-sm text-slate-500">{address.street}, {address.city}</p>
-                                </div>
+                                {selectedAddress ? (
+                                    <div>
+                                        <p className="font-semibold text-slate-800">{selectedAddress.name}</p>
+                                        <p className="text-sm text-slate-500">{selectedAddress.street}, {selectedAddress.city}</p>
+                                    </div>
+                                ) : <p>No address selected.</p>}
                                 <button onClick={() => setActiveStep(2)} className="font-semibold text-primary text-sm hover:underline">Change</button>
                             </div>
                         )}

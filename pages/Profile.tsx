@@ -5,6 +5,7 @@ import { useAppContext } from '../contexts/AppContext';
 import { Product } from '../types';
 import ProductCard from '../components/ProductCard';
 import ReviewModal from '../components/ReviewModal';
+import { mockUser } from '../services/mockData';
 
 const LoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
   return (
@@ -62,7 +63,7 @@ const ProfilePage: React.FC = () => {
   if (!user) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoginPage onLogin={() => login({ id: 1, name: 'Suresh P.', email: 'suresh@example.com' })} />
+        <LoginPage onLogin={() => login(mockUser)} />
       </div>
     );
   }
@@ -135,13 +136,23 @@ const ProfilePage: React.FC = () => {
         );
       case 'address':
         return (
-            <div className="bg-white p-6 rounded-xl border border-slate-200 max-w-md">
-               <h3 className="text-xl font-bold text-slate-900 mb-4">Address Book</h3>
-               <div className="space-y-1 text-slate-600">
-                    <p className="font-semibold text-slate-800">{user.name}</p>
-                    <p>123, Weaver's Colony</p>
-                    <p>Komarapalayam, Tamil Nadu</p>
-                    <p>India, 638183</p>
+             <div>
+                <h3 className="text-xl font-bold text-slate-900 mb-4">Address Book</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {user.addresses.map(address => (
+                        <div key={address.id} className="bg-white p-6 rounded-xl border border-slate-200">
+                           <div className="space-y-1 text-slate-600">
+                                <p className="font-semibold text-slate-800">{address.name}</p>
+                                <p>{address.street}</p>
+                                <p>{address.city}</p>
+                                <p>India, {address.zip}</p>
+                           </div>
+                        </div>
+                    ))}
+                    <button className="flex items-center justify-center flex-col text-center bg-white p-6 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 hover:border-primary hover:text-primary transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        <span className="mt-2 font-semibold">Add New Address</span>
+                    </button>
                </div>
             </div>
         );

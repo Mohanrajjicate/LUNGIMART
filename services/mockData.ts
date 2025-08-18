@@ -1,4 +1,4 @@
-import { Product, Category, Review, Order, Coupon } from '../types';
+import { Product, Category, Review, Order, Coupon, User, Address } from '../types';
 
 export const categories: Category[] = [
   { id: 1, name: 'Lungi', slug: 'lungi', image: 'https://picsum.photos/seed/cat1/600/400' },
@@ -195,6 +195,31 @@ export const getRelatedProducts = (currentProductId: number, allReviews: Review[
     const allProducts = getAllProducts(allReviews);
     return allProducts.filter(p => p.id !== currentProductId).slice(0, 4);
 }
+
+// Mock user with addresses
+export const mockUser: User = {
+  id: 1,
+  name: 'Suresh P.',
+  email: 'suresh@example.com',
+  addresses: [
+    {
+      id: 1,
+      name: 'Suresh P. (Home)',
+      street: "123, Weaver's Colony",
+      city: 'Komarapalayam, Tamil Nadu',
+      zip: '638183',
+      isDefault: true,
+    },
+    {
+      id: 2,
+      name: 'Suresh P. (Work)',
+      street: "456, Main Road",
+      city: 'Erode, Tamil Nadu',
+      zip: '638001',
+    }
+  ],
+};
+
 
 // Mock orders with items, to be managed by AppContext
 export const mockOrders: Order[] = [

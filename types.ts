@@ -37,10 +37,20 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
+export interface Address {
+  id: number;
+  name: string;
+  street: string;
+  city: string;
+  zip: string;
+  isDefault?: boolean;
+}
+
 export interface User {
   id: number;
   name: string;
   email: string;
+  addresses: Address[];
 }
 
 export interface Order {
