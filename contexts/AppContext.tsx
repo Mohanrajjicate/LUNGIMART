@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { CartItem, Product, User, Review, Order } from '../types';
-import { baseReviews, mockOrders } from '../services/mockData';
+import { CartItem, Product, User, Review, Order, Coupon } from '../types';
+import { baseReviews, mockOrders, getCouponByCode } from '../services/mockData';
 
 interface AppContextType {
   cart: CartItem[];
@@ -16,6 +16,11 @@ interface AppContextType {
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
+  appliedCoupon: Coupon | null;
+  cartDiscount: number;
+  cartFinalTotal: number;
+  applyCoupon: (couponCode: string) => { success: boolean; message: string };
+  removeCoupon: () => void;
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: number) => boolean;
   wishlistCount: number;
@@ -44,6 +49,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isQuietZoneActive, setIsQuietZoneActive] = useState<boolean>(() => getInitialState<boolean>('quietZone', false));
   const [reviews, setReviews] = useState<Review[]>(() => getInitialState<Review[]>('reviews', baseReviews));
   const [orders, setOrders] = useState<Order[]>(() => getInitialState<Order[]>('orders', mockOrders));
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => getInitialState<Coupon | null>('appliedCoupon', null));
 
   useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
   useEffect(() => { localStorage.setItem('wishlist', JSON.stringify(wishlist)); }, [wishlist]);
@@ -51,6 +57,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => { localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive)); }, [isQuietZoneActive]);
   useEffect(() => { localStorage.setItem('reviews', JSON.stringify(reviews)); }, [reviews]);
   useEffect(() => { localStorage.setItem('orders', JSON.stringify(orders)); }, [orders]);
+  useEffect(() => { localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon)); }, [appliedCoupon]);
 
 
   const addReview = (productId: number, orderId: string, rating: number, comment: string) => {
@@ -110,8 +117,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       );
     }
   };
-
-  const clearCart = () => setCart([]);
+  
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+  };
+  
+  const clearCart = () => {
+      setCart([]);
+      removeCoupon();
+  };
   
   const toggleWishlist = (product: Product) => {
     setWishlist(prev => {
@@ -135,6 +149,65 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
   const wishlistCount = wishlist.length;
 
+  const applyCoupon = (couponCode: string): { success: boolean; message: string } => {
+    const coupon = getCouponByCode(couponCode);
+    if (!coupon) {
+      return { success: false, message: "Invalid coupon code." };
+    }
+
+    if (coupon.minPurchase && cartTotal < coupon.minPurchase) {
+        return { success: false, message: `Minimum purchase of ₹${coupon.minPurchase} required.` };
+    }
+    
+    if (coupon.applicableProductIds) {
+        const isApplicable = cart.some(item => coupon.applicableProductIds!.includes(item.id));
+        if (!isApplicable) {
+            return { success: false, message: "Coupon not applicable to items in your cart." };
+        }
+    }
+    
+    setAppliedCoupon(coupon);
+    return { success: true, message: "Coupon applied successfully!" };
+  };
+  
+  const { cartDiscount, cartFinalTotal } = React.useMemo(() => {
+    let discount = 0;
+    if (appliedCoupon && cart.length > 0) {
+        const isApplicable = !appliedCoupon.minPurchase || cartTotal >= appliedCoupon.minPurchase;
+
+        if (isApplicable) {
+            if (appliedCoupon.applicableProductIds) {
+                // Discount only on specific products
+                const applicableTotal = cart
+                    .filter(item => appliedCoupon.applicableProductIds!.includes(item.id))
+                    .reduce((total, item) => total + item.price * item.quantity, 0);
+
+                if (appliedCoupon.discountType === 'percentage') {
+                    discount = (applicableTotal * appliedCoupon.discountValue) / 100;
+                } else {
+                    discount = appliedCoupon.discountValue;
+                }
+                // Ensure discount doesn't exceed the total of applicable items
+                discount = Math.min(discount, applicableTotal);
+
+            } else {
+                // Site-wide discount
+                if (appliedCoupon.discountType === 'percentage') {
+                    discount = (cartTotal * appliedCoupon.discountValue) / 100;
+                } else {
+                    discount = appliedCoupon.discountValue;
+                }
+            }
+        }
+    }
+    // Ensure discount doesn't exceed cart total
+    discount = Math.min(discount, cartTotal);
+    const finalTotal = cartTotal - discount;
+
+    return { cartDiscount: discount, cartFinalTotal: finalTotal };
+
+  }, [cart, cartTotal, appliedCoupon]);
+
   return (
     <AppContext.Provider value={{
       cart,
@@ -149,6 +222,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       clearCart,
       cartCount,
       cartTotal,
+      appliedCoupon,
+      cartDiscount,
+      cartFinalTotal,
+      applyCoupon,
+      removeCoupon,
       toggleWishlist,
       isInWishlist,
       wishlistCount,

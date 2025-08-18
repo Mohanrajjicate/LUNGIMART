@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getProductBySlug, getRelatedProducts } from '../services/mockData';
+import { getProductBySlug, getRelatedProducts, getAvailableCouponsForProduct } from '../services/mockData';
 import { useAppContext } from '../contexts/AppContext';
 import ProductCard from '../components/ProductCard';
 import StarRating from '../components/StarRating';
@@ -18,11 +18,22 @@ const ProductDetailPage: React.FC = () => {
   const { reviews, addToCart, toggleWishlist, isInWishlist } = useAppContext();
   
   const product = useMemo(() => getProductBySlug(slug || '', reviews), [slug, reviews]);
+  const availableCoupons = useMemo(() => product ? getAvailableCouponsForProduct(product.id) : [], [product]);
   
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('details');
   const navigate = useNavigate();
+  const [copySuccess, setCopySuccess] = useState('');
+
+  const handleCopyCoupon = (code: string) => {
+      navigator.clipboard.writeText(code).then(() => {
+          setCopySuccess(code);
+          setTimeout(() => setCopySuccess(''), 2000); // Hide message after 2 seconds
+      }, () => {
+          alert('Failed to copy coupon code.');
+      });
+  };
 
   if (!product) {
     return (
@@ -95,6 +106,32 @@ const ProductDetailPage: React.FC = () => {
               
               <p className="text-base text-slate-600 leading-relaxed">{product.description}</p>
               
+              {availableCoupons.length > 0 && (
+                <div className="border-t border-dashed border-slate-200 pt-4">
+                    <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 8v5c0 .512.195 1.024.586 1.414l4.414 4.414" /></svg>
+                        Available Coupons
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                        {availableCoupons.map(coupon => (
+                            <button
+                                key={coupon.id}
+                                onClick={() => handleCopyCoupon(coupon.code)}
+                                className="bg-green-50 border border-green-200 text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-green-100 transition-colors flex items-center gap-2"
+                                title={coupon.description}
+                            >
+                                {coupon.code}
+                                {copySuccess === coupon.code ? (
+                                    <span className="text-green-600">Copied!</span>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+              )}
+
               <p className="font-semibold text-green-600">In Stock</p>
 
               <div className="flex items-center space-x-4">

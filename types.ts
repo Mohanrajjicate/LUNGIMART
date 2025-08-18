@@ -51,3 +51,13 @@ export interface Order {
   status: 'Processing' | 'Shipped' | 'Delivered';
   reviewedProducts: { [productId: number]: boolean };
 }
+
+export interface Coupon {
+  id: number;
+  code: string;
+  description: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minPurchase?: number;
+  applicableProductIds?: number[]; // for product-specific coupons
+}

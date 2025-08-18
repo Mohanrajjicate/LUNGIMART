@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -35,8 +36,11 @@ const AnimatedCheckoutModal: React.FC<{onClose: () => void}> = ({ onClose }) => 
 
 
 const CartPage: React.FC = () => {
-  const { cart, updateQuantity, removeFromCart, cartTotal, cartCount, clearCart } = useAppContext();
+  const { cart, updateQuantity, removeFromCart, cartTotal, cartCount, clearCart, appliedCoupon, applyCoupon, removeCoupon, cartDiscount, cartFinalTotal } = useAppContext();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponMessage, setCouponMessage] = useState({ text: '', isError: false });
+
 
   if (cart.length === 0) {
     return (
@@ -56,6 +60,23 @@ const CartPage: React.FC = () => {
     );
   }
   
+  const handleApplyCoupon = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponCode.trim()) return;
+    const result = applyCoupon(couponCode);
+    setCouponMessage({ text: result.message, isError: !result.success });
+    if (result.success) {
+        setCouponCode('');
+    }
+    setTimeout(() => setCouponMessage({ text: '', isError: false }), 4000);
+  };
+
+  const handleRemoveCoupon = () => {
+      removeCoupon();
+      setCouponMessage({ text: 'Coupon removed.', isError: false });
+      setTimeout(() => setCouponMessage({ text: '', isError: false }), 4000);
+  };
+
   const handleCheckout = () => {
     setIsCheckingOut(true);
   }
@@ -112,15 +133,52 @@ const CartPage: React.FC = () => {
               <dt className="text-sm text-slate-600">Subtotal ({cartCount} items)</dt>
               <dd className="text-sm font-medium text-slate-900">₹{cartTotal.toFixed(2)}</dd>
             </div>
+            {appliedCoupon && (
+                <div className="flex items-center justify-between text-green-600">
+                    <dt className="text-sm flex items-center gap-2">
+                        <span>Discount</span>
+                        <span className="font-bold bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">{appliedCoupon.code}</span>
+                    </dt>
+                    <dd className="text-sm font-medium">-₹{cartDiscount.toFixed(2)}</dd>
+                </div>
+            )}
             <div className="flex items-center justify-between border-t border-slate-200 pt-4">
               <dt className="flex items-center text-sm text-slate-600"><span>Shipping</span></dt>
               <dd className="text-sm font-medium text-slate-900">₹50.00</dd>
             </div>
              <div className="flex items-center justify-between border-t border-slate-200 pt-4">
               <dt className="text-base font-medium text-slate-900">Order total</dt>
-              <dd className="text-base font-medium text-slate-900">₹{(cartTotal + 50).toFixed(2)}</dd>
+              <dd className="text-base font-medium text-slate-900">₹{(cartFinalTotal + 50).toFixed(2)}</dd>
             </div>
           </dl>
+          
+          <div className="mt-6 border-t border-slate-200 pt-6">
+            {!appliedCoupon ? (
+                <form onSubmit={handleApplyCoupon} className="space-y-2">
+                    <label htmlFor="coupon" className="text-sm font-medium text-slate-700">Have a coupon?</label>
+                    <div className="flex gap-2">
+                        <input
+                            id="coupon"
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            placeholder="Enter coupon code"
+                            className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1 text-sm"
+                        />
+                        <button type="submit" className="bg-slate-800 text-white font-semibold text-sm px-4 rounded-lg hover:bg-slate-700 transition-colors">Apply</button>
+                    </div>
+                </form>
+            ) : (
+                <div className="text-center">
+                    <p className="text-sm text-green-700 font-semibold">Coupon applied successfully!</p>
+                     <button onClick={handleRemoveCoupon} className="text-xs text-slate-500 hover:text-red-500 hover:underline mt-1">Remove Coupon</button>
+                </div>
+            )}
+             {couponMessage.text && (
+                <p className={`mt-2 text-xs text-center ${couponMessage.isError ? 'text-red-500' : 'text-green-600'}`}>{couponMessage.text}</p>
+            )}
+          </div>
+
           <div className="mt-6">
             <button
               onClick={handleCheckout}

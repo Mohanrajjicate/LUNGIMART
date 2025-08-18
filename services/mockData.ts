@@ -1,4 +1,4 @@
-import { Product, Category, Review, Order } from '../types';
+import { Product, Category, Review, Order, Coupon } from '../types';
 
 export const categories: Category[] = [
   { id: 1, name: 'Lungi', slug: 'lungi', image: 'https://picsum.photos/seed/cat1/600/400' },
@@ -240,3 +240,39 @@ export const mockOrders: Order[] = [
       reviewedProducts: { 6: false }
     },
   ];
+
+export const mockCoupons: Coupon[] = [
+  {
+    id: 1,
+    code: 'FESTIVE10',
+    description: 'Get 10% off on all orders above ₹1000',
+    discountType: 'percentage',
+    discountValue: 10,
+    minPurchase: 1000,
+  },
+  {
+    id: 2,
+    code: 'LUNGIKING',
+    description: '₹150 off on Classic Checkered Lungi',
+    discountType: 'fixed',
+    discountValue: 150,
+    applicableProductIds: [1],
+  },
+  {
+    id: 3,
+    code: 'NEW50',
+    description: 'Flat ₹50 off on your first order',
+    discountType: 'fixed',
+    discountValue: 50,
+  },
+];
+
+export const getAvailableCouponsForProduct = (productId: number): Coupon[] => {
+  return mockCoupons.filter(coupon =>
+    !coupon.applicableProductIds || coupon.applicableProductIds.includes(productId)
+  );
+};
+
+export const getCouponByCode = (code: string): Coupon | undefined => {
+    return mockCoupons.find(c => c.code.toLowerCase() === code.toLowerCase());
+};
