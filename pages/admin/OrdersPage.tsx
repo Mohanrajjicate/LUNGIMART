@@ -1,15 +1,12 @@
 
-
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { Order, User } from '../../types';
 import FulfillmentModal from '../../components/admin/FulfillmentModal';
-import { mockUsers } from '../../services/mockData';
 
 const OrdersPage: React.FC = () => {
-    const { orders, updateOrderStatus } = useAppContext();
+    const { allOrders: orders, updateOrderStatus, users } = useAppContext();
     const [pendingChanges, setPendingChanges] = useState<{ [key: string]: Order['status'] }>({});
     const [isFulfillmentModalOpen, setFulfillmentModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -27,14 +24,18 @@ const OrdersPage: React.FC = () => {
     };
 
     const handleFulfillClick = (order: Order) => {
-        const customer = mockUsers.find(u => u.name === order.customerName);
+        const customer = users.find(u => u.name === order.customerName);
+        if (!customer) {
+            alert(`Error: Could not find customer details for "${order.customerName}". Fulfillment cannot proceed.`);
+            return;
+        }
         setSelectedOrder(order);
-        setSelectedCustomer(customer || null);
+        setSelectedCustomer(customer);
         setFulfillmentModalOpen(true);
     };
 
     const showCustomerDetails = (order: Order) => {
-        const customer = mockUsers.find(u => u.name === order.customerName);
+        const customer = users.find(u => u.name === order.customerName);
         if (customer) {
             alert(`Customer Details:\n\nName: ${customer.name}\nEmail: ${customer.email}\nPhone: ${customer.phone || 'N/A'}`);
         } else {

@@ -1,5 +1,4 @@
 
-
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner } from '../types';
 import { baseReviews, baseOrders, baseProducts, attachReviewData, mockUsers, baseCategories, baseBanners, mockCoupons, mockWishlists } from '../services/mockData';
@@ -9,6 +8,8 @@ interface AppContextType {
   cart: CartItem[];
   wishlist: Product[];
   orders: Order[];
+  allOrders: Order[]; // For admin panel
+  users: User[]; // For admin panel
   user: User | null;
   reviews: Review[];
   products: Product[];
@@ -336,7 +337,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   return (
     <AppContext.Provider value={{
-      cart, wishlist, orders, user: currentUser, reviews: allReviews, products, categories, notifications, banners, coupons, standaloneImages,
+      cart, wishlist, orders, allOrders, users: allUsers, user: currentUser, reviews: allReviews, products, categories, notifications, banners, coupons, standaloneImages,
       setBanners, setCategories, addNotification, sendGlobalNotification, markAsRead, markAllAsRead, clearAllNotifications,
       addReview, deleteReview, acknowledgeReview, updateOrderStatus, fulfillOrder, updateProduct, addProduct, deleteProduct, addMultipleProducts, addOrder,
       addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,

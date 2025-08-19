@@ -1,13 +1,12 @@
 
 import React from 'react';
-import { mockUsers } from '../../services/mockData'; // In a real app, this would come from context/API
 import { useAppContext } from '../../contexts/AppContext';
 
 const CustomersPage: React.FC = () => {
-    const { orders } = useAppContext();
+    const { allOrders: orders, users } = useAppContext();
     
     // In this mock setup, we'll calculate total spend per user
-    const usersWithStats = mockUsers.map(user => {
+    const usersWithStats = users.map(user => {
         const userOrders = orders.filter(order => order.customerName === user.name);
         const totalSpent = userOrders.reduce((sum, order) => sum + order.total, 0);
         return {

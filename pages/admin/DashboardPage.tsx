@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
@@ -5,11 +6,9 @@ import StatCard from '../../components/admin/StatCard';
 import CategoryPieChart from '../../components/admin/CategoryPieChart';
 import { Order, Product, User } from '../../types';
 import FulfillmentModal from '../../components/admin/FulfillmentModal';
-import { mockUsers } from '../../services/mockData';
-
 
 const DashboardPage: React.FC = () => {
-    const { orders, products } = useAppContext();
+    const { allOrders: orders, products, users } = useAppContext();
     const [isFulfillmentModalOpen, setFulfillmentModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
@@ -44,9 +43,13 @@ const DashboardPage: React.FC = () => {
     }, [orders, products]);
     
     const handleFulfillClick = (order: Order) => {
-        const customer = mockUsers.find(u => u.name === order.customerName);
+        const customer = users.find(u => u.name === order.customerName);
+        if (!customer) {
+            alert(`Error: Could not find customer details for "${order.customerName}". Fulfillment cannot proceed.`);
+            return;
+        }
         setSelectedOrder(order);
-        setSelectedCustomer(customer || null);
+        setSelectedCustomer(customer);
         setFulfillmentModalOpen(true);
     };
 
