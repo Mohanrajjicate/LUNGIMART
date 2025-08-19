@@ -1,4 +1,5 @@
 import { Product, Category, Review, Order, Coupon, User, Address, Banner } from '../types';
+import { encrypt } from '../utils/crypto';
 
 export const baseCategories: Category[] = [
   // Parent Categories
@@ -185,6 +186,7 @@ export const mockUsers: User[] = [
       id: 1,
       name: 'Suresh P.',
       email: 'suresh@example.com',
+      password: encrypt('password123'),
       phone: '9876543210',
       birthday: '1990-05-15',
       addresses: [
@@ -209,6 +211,7 @@ export const mockUsers: User[] = [
       id: 2,
       name: 'Ramesh K.',
       email: 'ramesh@example.com',
+      password: encrypt('password123'),
       phone: '9876543211',
       addresses: [
         {
@@ -225,6 +228,7 @@ export const mockUsers: User[] = [
       id: 3,
       name: 'Gopal V.',
       email: 'gopal@example.com',
+      password: encrypt('password123'),
       phone: '9876543212',
       addresses: [
         {
@@ -241,6 +245,7 @@ export const mockUsers: User[] = [
       id: 4,
       name: 'Anitha',
       email: 'anitha@example.com',
+      password: encrypt('password123'),
       phone: '9876543213',
       addresses: [
         {

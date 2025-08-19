@@ -56,7 +56,8 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  phone: string; // Added phone for OTP login
+  password: string; // Added for password authentication
+  phone: string;
   addresses: Address[];
   birthday?: string;
 }

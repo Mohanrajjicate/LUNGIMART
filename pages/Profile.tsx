@@ -7,12 +7,12 @@ import { Product, Address, Order, User, Coupon } from '../types';
 import ProductCard from '../components/ProductCard';
 import ReviewModal from '../components/ReviewModal';
 import OrderTrackingModal from '../components/OrderTrackingModal';
-import LoginComponent from '../components/Login';
+import AuthComponent from '../components/Login';
 
 
 // --- Main Profile Page Component --- //
 const ProfilePage: React.FC = () => {
-  const { user, logout, wishlist, orders, addReview, coupons } = useAppContext();
+  const { user, logout, wishlist, orders, addReview, coupons, updateUser } = useAppContext();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
@@ -72,7 +72,7 @@ const ProfilePage: React.FC = () => {
   if (!user) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoginComponent />
+        <AuthComponent />
       </div>
     );
   }
@@ -94,9 +94,9 @@ const ProfilePage: React.FC = () => {
       case 'coupons':
         return <CouponsSection user={user} orders={orders} coupons={coupons} />;
       case 'profile':
-        return <ProfileInfoSection />;
+        return <ProfileInfoSection user={user} updateUser={updateUser} />;
       case 'address':
-        return <AddressManagerSection />;
+        return <AddressManagerSection user={user} updateUser={updateUser} />;
       default: return null;
     }
   };
@@ -329,14 +329,23 @@ const CouponsSection: React.FC<{ user: User, orders: Order[], coupons: Coupon[] 
     );
 };
 
-const ProfileInfoSection: React.FC = () => {
-    const { user, updateUser } = useAppContext();
+const ProfileInfoSection: React.FC<{ user: User, updateUser: (user: User) => void }> = ({ user, updateUser }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         name: user?.name || '',
         email: user?.email || '',
         birthday: user?.birthday || ''
     });
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                name: user.name,
+                email: user.email,
+                birthday: user.birthday || ''
+            });
+        }
+    }, [user]);
 
     if (!user) return null;
 
@@ -382,8 +391,7 @@ const ProfileInfoSection: React.FC = () => {
     );
 };
 
-const AddressManagerSection: React.FC = () => {
-    const { user, updateUser } = useAppContext();
+const AddressManagerSection: React.FC<{ user: User, updateUser: (user: User) => void }> = ({ user, updateUser }) => {
     const [isFormVisible, setIsFormVisible] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
     const emptyAddress = { id: 0, name: '', street: '', city: '', zip: '' };

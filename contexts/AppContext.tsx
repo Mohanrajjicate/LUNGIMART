@@ -46,11 +46,12 @@ interface AppContextType {
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: number) => boolean;
   wishlistCount: number;
-  login: (user: User) => void;
+  login: (phone: string, password: string) => { success: boolean; message: string };
   logout: () => void;
   updateUser: (updatedUser: User) => void;
-  addUser: (phone: string) => User;
+  addUser: (userData: Omit<User, 'id' | 'addresses'>) => User;
   findUserByPhone: (phone: string) => User | undefined;
+  findUserByEmail: (email: string) => User | undefined;
   isQuietZoneActive: boolean;
   toggleQuietZone: () => void;
   addCoupon: (coupon: Omit<Coupon, 'id'>) => void;
@@ -137,20 +138,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const wishlist = useMemo(() => products.filter(p => userWishlistProductIds.includes(p.id)), [products, userWishlistProductIds]);
   const orders = useMemo(() => (currentUser ? allOrders.filter(o => o.userId === currentUser.id) : []), [currentUser, allOrders]);
 
-  const login = (user: User) => setCurrentUser(user);
+  const login = (phone: string, password: string): { success: boolean; message: string } => {
+    const user = findUserByPhone(phone);
+    if (!user) {
+        return { success: false, message: "No account found with this phone number." };
+    }
+    if (decrypt(user.password) !== password) {
+        return { success: false, message: "Incorrect password." };
+    }
+    setCurrentUser(user);
+    return { success: true, message: "Logged in successfully." };
+  };
+
   const logout = () => {
     setCurrentUser(null);
     clearCart(); // Also clear cart on logout
   }
   const findUserByPhone = (phone: string): User | undefined => allUsers.find(u => u.phone === phone);
+  const findUserByEmail = (email: string): User | undefined => allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
   
-  const addUser = (phone: string): User => {
+  const addUser = (userData: Omit<User, 'id' | 'addresses'>): User => {
       const newUser: User = {
+          ...userData,
           id: Date.now(),
-          name: `User ${String(Date.now()).slice(-4)}`,
-          email: '',
-          phone: phone,
           addresses: [],
+          password: encrypt(userData.password), // Encrypt password on creation
       };
       setAllUsers(prev => [...prev, newUser]);
       return newUser;
@@ -308,7 +320,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addReview, deleteReview, acknowledgeReview, updateOrderStatus, fulfillOrder, updateProduct, addProduct, deleteProduct, addMultipleProducts, addOrder,
       addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,
       appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
-      toggleWishlist, isInWishlist, wishlistCount, login, logout, updateUser, addUser, findUserByPhone,
+      toggleWishlist, isInWishlist, wishlistCount, login, logout, updateUser, addUser, findUserByPhone, findUserByEmail,
       isQuietZoneActive, toggleQuietZone, addCoupon, updateCoupon, deleteCoupon
     }}>
       {children}
