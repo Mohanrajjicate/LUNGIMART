@@ -16,6 +16,7 @@ interface AppContextType {
   notifications: Notification[];
   banners: Banner[];
   coupons: Coupon[];
+  standaloneImages: string[];
   setBanners: (banners: Banner[]) => void;
   setCategories: (categories: Category[]) => void;
   addNotification: (message: string, target: 'user' | 'admin', link?: string) => void;
@@ -54,6 +55,7 @@ interface AppContextType {
   findUserByEmail: (email: string) => User | undefined;
   isQuietZoneActive: boolean;
   toggleQuietZone: () => void;
+  addStandaloneImage: (imageUrl: string) => void;
   addCoupon: (coupon: Omit<Coupon, 'id'>) => void;
   updateCoupon: (coupon: Coupon) => void;
   deleteCoupon: (couponId: number) => void;
@@ -87,6 +89,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [coupons, setCoupons] = useState<Coupon[]>(() => getInitialState<Coupon[]>('coupons', mockCoupons));
   const [notifications, setNotifications] = useState<Notification[]>(() => getInitialState<Notification[]>('notifications', []));
   const [isQuietZoneActive, setIsQuietZoneActive] = useState<boolean>(() => getInitialState<boolean>('quietZone', false));
+  const [standaloneImages, setStandaloneImages] = useState<string[]>(() => getInitialState<string[]>('standaloneImages', []));
   
   // Session / User-Specific State
   const [currentUser, setCurrentUser] = useState<User | null>(() => getInitialState<User | null>('currentUser', null, true));
@@ -130,6 +133,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => { localStorage.setItem('coupons', JSON.stringify(coupons)); }, [coupons]);
   useEffect(() => { localStorage.setItem('notifications', JSON.stringify(notifications)); }, [notifications]);
   useEffect(() => { localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive)); }, [isQuietZoneActive]);
+  useEffect(() => { localStorage.setItem('standaloneImages', JSON.stringify(standaloneImages)); }, [standaloneImages]);
   useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
   useEffect(() => { localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon)); }, [appliedCoupon]);
   
@@ -276,6 +280,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return (allWishlists[currentUser.id] || []).includes(productId);
   }, [currentUser, allWishlists]);
 
+  const addStandaloneImage = useCallback((imageUrl: string) => {
+    setStandaloneImages(prev => [imageUrl, ...prev]);
+  }, []);
+
   const toggleQuietZone = useCallback(() => setIsQuietZoneActive(prev => !prev), []);
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -328,13 +336,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   return (
     <AppContext.Provider value={{
-      cart, wishlist, orders, user: currentUser, reviews: allReviews, products, categories, notifications, banners, coupons,
+      cart, wishlist, orders, user: currentUser, reviews: allReviews, products, categories, notifications, banners, coupons, standaloneImages,
       setBanners, setCategories, addNotification, sendGlobalNotification, markAsRead, markAllAsRead, clearAllNotifications,
       addReview, deleteReview, acknowledgeReview, updateOrderStatus, fulfillOrder, updateProduct, addProduct, deleteProduct, addMultipleProducts, addOrder,
       addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,
       appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
       toggleWishlist, isInWishlist, wishlistCount, loginWithGoogle, logout, updateUser, addUser, findUserByEmail,
-      isQuietZoneActive, toggleQuietZone, addCoupon, updateCoupon, deleteCoupon
+      isQuietZoneActive, toggleQuietZone, addStandaloneImage, addCoupon, updateCoupon, deleteCoupon
     }}>
       {children}
     </AppContext.Provider>
