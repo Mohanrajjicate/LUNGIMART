@@ -48,6 +48,7 @@ interface AppContextType {
   isInWishlist: (productId: number) => boolean;
   wishlistCount: number;
   login: (phone: string, password: string) => { success: boolean; message: string };
+  loginWithGoogle: (googleUser: { name: string; email: string; birthday?: string }) => { success: boolean; message: string };
   logout: () => void;
   updateUser: (updatedUser: User) => void;
   addUser: (userData: Omit<User, 'id' | 'addresses'>) => User;
@@ -149,6 +150,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
     setCurrentUser(user);
     return { success: true, message: "Logged in successfully." };
+  };
+
+  const loginWithGoogle = (googleUser: { name: string; email: string; birthday?: string }): { success: boolean; message: string } => {
+    let user = findUserByEmail(googleUser.email);
+
+    if (!user) {
+        // User doesn't exist, so create a new one.
+        const newUser = addUser({
+            name: googleUser.name,
+            email: googleUser.email,
+            phone: '', // Google does not provide a phone number.
+            password: Math.random().toString(36).slice(-8), // Assign a random, unusable password.
+            birthday: googleUser.birthday,
+        });
+        user = newUser;
+        addNotification(`Welcome, ${newUser.name}! Your account has been created.`, 'user', '/profile');
+    }
+
+    // Log the user in.
+    setCurrentUser(user);
+    return { success: true, message: "Logged in successfully with Google." };
   };
 
   const logout = () => {
@@ -324,7 +346,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addReview, deleteReview, acknowledgeReview, updateOrderStatus, fulfillOrder, updateProduct, addProduct, deleteProduct, addMultipleProducts, addOrder,
       addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,
       appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
-      toggleWishlist, isInWishlist, wishlistCount, login, logout, updateUser, addUser, findUserByPhone, findUserByEmail,
+      toggleWishlist, isInWishlist, wishlistCount, login, loginWithGoogle, logout, updateUser, addUser, findUserByPhone, findUserByEmail,
       isQuietZoneActive, toggleQuietZone, addCoupon, updateCoupon, deleteCoupon
     }}>
       {children}

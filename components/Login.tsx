@@ -1,8 +1,9 @@
-
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
+
+// The client ID for your Google Cloud project.
+const GOOGLE_CLIENT_ID = '763344556195-h5s3750ce89g1ttnb0if2h4hl98djmir.apps.googleusercontent.com';
 
 const AuthComponent: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
@@ -29,13 +30,59 @@ const AuthComponent: React.FC = () => {
     );
 };
 
+const Separator: React.FC = () => (
+    <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+            <div className="w-full border-t border-slate-300" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-2 text-slate-500">OR</span>
+        </div>
+    </div>
+);
+
 const LoginTab: React.FC = () => {
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const { login } = useAppContext();
+    const { login, loginWithGoogle } = useAppContext();
     const navigate = useNavigate();
     const location = useLocation();
+    const googleButtonRef = useRef<HTMLDivElement>(null);
+
+    const handleGoogleCallback = (response: any) => {
+        try {
+            // In a real app, send `response.credential` (the JWT) to your backend for verification.
+            // For this simulation, we'll decode it on the client side.
+            const userObject = JSON.parse(atob(response.credential.split('.')[1]));
+            const { name, email } = userObject;
+
+            const result = loginWithGoogle({ name, email });
+
+            if (result.success) {
+                const from = location.state?.from || '/profile';
+                navigate(from, { replace: true });
+            } else {
+                setError(result.message);
+            }
+        } catch (e) {
+            console.error("Error decoding Google credential:", e);
+            setError("Failed to process Google sign-in.");
+        }
+    };
+
+    useEffect(() => {
+        if (typeof (window as any).google !== 'undefined' && googleButtonRef.current) {
+            (window as any).google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCallback,
+            });
+            (window as any).google.accounts.id.renderButton(
+                googleButtonRef.current,
+                { theme: "outline", size: "large", type: "standard", text: "signin_with", width: 320 }
+            );
+        }
+    }, []);
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
@@ -67,13 +114,18 @@ const LoginTab: React.FC = () => {
                     Login
                 </button>
             </form>
+            <Separator />
+            <div className="flex justify-center" ref={googleButtonRef}></div>
         </div>
     );
 };
 
 const SignupTab: React.FC = () => {
-    const { findUserByEmail, findUserByPhone, addUser, login } = useAppContext();
+    const { findUserByEmail, findUserByPhone, addUser, login, loginWithGoogle } = useAppContext();
     const navigate = useNavigate();
+    const location = useLocation();
+    const googleButtonRef = useRef<HTMLDivElement>(null);
+
     const [step, setStep] = useState<'details' | 'otp'>('details');
     const [formData, setFormData] = useState({
         name: '', email: '', phone: '', birthday: '', password: '', confirmPassword: ''
@@ -81,11 +133,43 @@ const SignupTab: React.FC = () => {
     const [error, setError] = useState('');
     const [otp, setOtp] = useState('');
     const FAKE_OTP = '123456';
+    
+    const handleGoogleCallback = (response: any) => {
+        try {
+            const userObject = JSON.parse(atob(response.credential.split('.')[1]));
+            const { name, email } = userObject;
+            
+            // The `loginWithGoogle` function will handle both login and signup flows.
+            const result = loginWithGoogle({ name, email });
+
+            if (result.success) {
+                const from = location.state?.from || '/profile';
+                navigate(from, { replace: true });
+            } else {
+                setError(result.message);
+            }
+        } catch (e) {
+            console.error("Error decoding Google credential:", e);
+            setError("Failed to process Google sign-up.");
+        }
+    };
+    
+    useEffect(() => {
+        if (typeof (window as any).google !== 'undefined' && googleButtonRef.current) {
+            (window as any).google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCallback,
+            });
+            (window as any).google.accounts.id.renderButton(
+                googleButtonRef.current,
+                { theme: "outline", size: "large", type: "standard", text: "signup_with", width: 320 }
+            );
+        }
+    }, []);
 
     const handleDetailsSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        // Validations
         if (formData.password !== formData.confirmPassword) {
             setError('Passwords do not match.'); return;
         }
@@ -98,21 +182,17 @@ const SignupTab: React.FC = () => {
         if (findUserByPhone(formData.phone)) {
             setError('An account with this phone number already exists.'); return;
         }
-        // Move to OTP step
         setStep('otp');
     };
 
     const handleOtpSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (otp === FAKE_OTP) {
-            const newUser = addUser({
-                name: formData.name,
-                email: formData.email,
-                phone: formData.phone,
-                password: formData.password,
-                birthday: formData.birthday
+            addUser({
+                name: formData.name, email: formData.email, phone: formData.phone,
+                password: formData.password, birthday: formData.birthday
             });
-            login(newUser.phone, formData.password);
+            login(formData.phone, formData.password);
             navigate('/profile', { replace: true });
         } else {
             setError('Invalid OTP. Please try again.');
@@ -120,8 +200,7 @@ const SignupTab: React.FC = () => {
     };
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
     return (
@@ -164,6 +243,8 @@ const SignupTab: React.FC = () => {
                             Continue
                         </button>
                     </form>
+                    <Separator />
+                    <div className="flex justify-center" ref={googleButtonRef}></div>
                 </>
             ) : (
                  <div>
