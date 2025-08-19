@@ -1,111 +1,18 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 import { Product, Address, Order, User, Coupon } from '../types';
 import ProductCard from '../components/ProductCard';
 import ReviewModal from '../components/ReviewModal';
 import OrderTrackingModal from '../components/OrderTrackingModal';
-import { mockUsers } from '../services/mockData';
-
-// --- Authentication Components (for logged-out users) --- //
-const AuthComponent: React.FC = () => {
-    const { login, addNotification } = useAppContext();
-    const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-
-    const handleLogin = () => {
-        // In a real app, you'd verify credentials. Here we just log in the mock user.
-        login(mockUsers[0]);
-    };
-    
-    const handleSignup = (name: string, email: string) => {
-        // Create a new user and log them in
-        const newUser: User = {
-            id: Date.now(),
-            name,
-            email,
-            addresses: [],
-            birthday: '',
-            phone: '',
-        };
-        login(newUser);
-        addNotification(
-            "Welcome! Your 'NEW50' coupon has been unlocked. Use it at checkout!", 
-            'user', 
-            '/profile?tab=coupons'
-        );
-    };
-
-    return (
-        <div className="w-full max-w-md mx-auto bg-white p-8 rounded-xl shadow-md">
-            {authMode === 'login' ? (
-                <div>
-                    <h2 className="text-2xl font-bold text-center text-slate-900 mb-2">Welcome Back!</h2>
-                    <p className="text-center text-slate-600 mb-6">Log in to manage your account.</p>
-                    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700">Email Address</label>
-                            <input type="email" required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1" defaultValue="suresh@example.com" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700">Password</label>
-                            <input type="password" required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1" defaultValue="password" />
-                        </div>
-                        <button type="submit" className="w-full bg-primary text-white font-bold py-2.5 px-4 rounded-lg hover:bg-primary-dark transition-colors">
-                            Log In
-                        </button>
-                    </form>
-                    <p className="text-center text-sm text-slate-500 mt-4">
-                        Don't have an account?{' '}
-                        <button onClick={() => setAuthMode('signup')} className="font-medium text-primary hover:underline">
-                            Sign Up
-                        </button>
-                    </p>
-                </div>
-            ) : (
-                <div>
-                    <h2 className="text-2xl font-bold text-center text-slate-900 mb-2">Create an Account</h2>
-                     <p className="text-center text-slate-600 mb-6">Join LungiMart for a seamless shopping experience.</p>
-                    <form className="space-y-4" onSubmit={(e) => { 
-                        e.preventDefault(); 
-                        const formData = new FormData(e.currentTarget);
-                        const name = formData.get('name') as string;
-                        const email = formData.get('email') as string;
-                        handleSignup(name, email);
-                    }}>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700">Full Name</label>
-                            <input type="text" name="name" required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700">Email Address</label>
-                            <input type="email" name="email" required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1" />
-                        </div>
-                         <div>
-                            <label className="block text-sm font-medium text-slate-700">Password</label>
-                            <input type="password" required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1" />
-                        </div>
-                        <button type="submit" className="w-full bg-primary text-white font-bold py-2.5 px-4 rounded-lg hover:bg-primary-dark transition-colors">
-                            Create Account
-                        </button>
-                    </form>
-                    <p className="text-center text-sm text-slate-500 mt-4">
-                        Already have an account?{' '}
-                        <button onClick={() => setAuthMode('login')} className="font-medium text-primary hover:underline">
-                            Log In
-                        </button>
-                    </p>
-                </div>
-            )}
-        </div>
-    );
-};
+import LoginComponent from '../components/Login';
 
 
 // --- Main Profile Page Component --- //
 const ProfilePage: React.FC = () => {
-  const { user, login, logout, wishlist, orders, addReview, coupons } = useAppContext();
+  const { user, logout, wishlist, orders, addReview, coupons } = useAppContext();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
@@ -165,7 +72,7 @@ const ProfilePage: React.FC = () => {
   if (!user) {
     return (
       <div className="flex items-center justify-center py-12">
-        <AuthComponent />
+        <LoginComponent />
       </div>
     );
   }
@@ -284,9 +191,9 @@ const OrdersSection: React.FC<{orders: any[], onOpenReviewModal: (product: Produ
             <div key={order.id} className="bg-white p-4 rounded-xl border border-slate-200">
                 <div className="flex flex-wrap justify-between items-center gap-4 border-b border-slate-200 pb-4 mb-4">
                     <div>
-                        <Link to={`/invoice/${btoa(order.id)}`} className="font-bold text-primary hover:underline block">
+                        <a href={`/#/invoice/${btoa(order.id)}`} className="font-bold text-primary hover:underline block">
                             Order ID: {order.id}
-                        </Link>
+                        </a>
                          <p className="text-sm text-slate-500 truncate max-w-xs sm:max-w-sm">
                             {order.items[0]?.name}{order.items.length > 1 ? ` + ${order.items.length - 1} more` : ''}
                         </p>
@@ -315,7 +222,7 @@ const OrdersSection: React.FC<{orders: any[], onOpenReviewModal: (product: Produ
                       <div className="flex items-center gap-4">
                         <img src={item.images[0]} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
                         <div>
-                           <Link to={`/product/${item.slug}`} className="font-semibold text-slate-800 hover:text-primary">{item.name}</Link>
+                           <a href={`/#/product/${item.slug}`} className="font-semibold text-slate-800 hover:text-primary">{item.name}</a>
                            <p className="text-sm text-slate-500">Qty: {item.quantity}</p>
                         </div>
                       </div>
@@ -372,7 +279,7 @@ const CouponsSection: React.FC<{ user: User, orders: Order[], coupons: Coupon[] 
 
     const isFirstOrder = () => {
         if (!user) return false;
-        return orders.filter(o => o.customerName === user.name).length === 0;
+        return orders.filter(o => o.userId === user.id).length === 0;
     };
     
     const availableCoupons = coupons.filter(coupon => {
@@ -423,7 +330,7 @@ const CouponsSection: React.FC<{ user: User, orders: Order[], coupons: Coupon[] 
 };
 
 const ProfileInfoSection: React.FC = () => {
-    const { user, login } = useAppContext();
+    const { user, updateUser } = useAppContext();
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         name: user?.name || '',
@@ -434,8 +341,8 @@ const ProfileInfoSection: React.FC = () => {
     if (!user) return null;
 
     const handleSave = () => {
-        const updatedUser = { ...user, ...formData };
-        login(updatedUser);
+        const updatedUser: User = { ...user, ...formData };
+        updateUser(updatedUser);
         setIsEditing(false);
     };
 
@@ -445,12 +352,13 @@ const ProfileInfoSection: React.FC = () => {
                 {!isEditing ? (
                     <div className="space-y-4">
                         <div><p className="text-sm text-slate-500">Full Name</p><p className="font-semibold text-slate-800">{user.name}</p></div>
-                        <div><p className="text-sm text-slate-500">Email Address</p><p className="font-semibold text-slate-800">{user.email}</p></div>
+                        <div><p className="text-sm text-slate-500">Email Address</p><p className="font-semibold text-slate-800">{user.email || 'Not set'}</p></div>
+                        <div><p className="text-sm text-slate-500">Phone</p><p className="font-semibold text-slate-800">{user.phone}</p></div>
                         <div><p className="text-sm text-slate-500">Birthday</p><p className="font-semibold text-slate-800">{user.birthday || 'Not set'}</p></div>
                         <button onClick={() => setIsEditing(true)} className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-dark transition-colors">Edit Profile</button>
                     </div>
                 ) : (
-                    <div className="space-y-4">
+                    <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700">Full Name</label>
                             <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
@@ -464,10 +372,10 @@ const ProfileInfoSection: React.FC = () => {
                             <input type="date" value={formData.birthday} onChange={(e) => setFormData({...formData, birthday: e.target.value})} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
                         </div>
                         <div className="flex gap-4">
-                            <button onClick={handleSave} className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-dark transition-colors">Save Changes</button>
-                            <button onClick={() => setIsEditing(false)} className="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+                            <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-dark transition-colors">Save Changes</button>
+                            <button type="button" onClick={() => setIsEditing(false)} className="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
                         </div>
-                    </div>
+                    </form>
                 )}
             </div>
         </Section>
@@ -475,7 +383,7 @@ const ProfileInfoSection: React.FC = () => {
 };
 
 const AddressManagerSection: React.FC = () => {
-    const { user, login } = useAppContext();
+    const { user, updateUser } = useAppContext();
     const [isFormVisible, setIsFormVisible] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
     const emptyAddress = { id: 0, name: '', street: '', city: '', zip: '' };
@@ -487,23 +395,23 @@ const AddressManagerSection: React.FC = () => {
             ...addr,
             isDefault: addr.id === addressId
         }));
-        login({ ...user, addresses: updatedAddresses });
+        updateUser({ ...user, addresses: updatedAddresses });
     };
 
     const handleDelete = (addressId: number) => {
         if (window.confirm('Are you sure you want to delete this address?')) {
             const updatedAddresses = user.addresses.filter(addr => addr.id !== addressId);
-            login({ ...user, addresses: updatedAddresses });
+            updateUser({ ...user, addresses: updatedAddresses });
         }
     };
 
     const handleSaveAddress = (address: Omit<Address, 'id'>) => {
         if (editingAddress) { // Editing
             const updatedAddresses = user.addresses.map(addr => addr.id === editingAddress.id ? { ...addr, ...address } : addr);
-            login({ ...user, addresses: updatedAddresses });
+            updateUser({ ...user, addresses: updatedAddresses });
         } else { // Adding new
             const newAddress: Address = { ...address, id: Date.now(), isDefault: user.addresses.length === 0 };
-            login({ ...user, addresses: [...user.addresses, newAddress] });
+            updateUser({ ...user, addresses: [...user.addresses, newAddress] });
         }
         setIsFormVisible(false);
         setEditingAddress(null);

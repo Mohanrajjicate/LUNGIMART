@@ -29,10 +29,10 @@ const getCategory = (slug: string): Category => {
 
 // Base reviews - managed by AppContext
 export const baseReviews: Review[] = [
-    { id: 1, productId: 1, author: 'Ramesh K.', rating: 5, comment: 'Excellent quality and very comfortable.', date: '2023-10-10', verifiedBuyer: true, acknowledged: true },
-    { id: 2, productId: 1, author: 'Suresh P.', rating: 4, comment: 'Good value for money. Color is vibrant.', date: '2023-10-12', verifiedBuyer: true, acknowledged: true },
-    { id: 3, productId: 2, author: 'Anitha', rating: 5, comment: 'Soft material, my husband loves it!', date: '2023-09-20', verifiedBuyer: true, acknowledged: true },
-    { id: 4, productId: 4, author: 'Gopal V.', rating: 4, comment: 'The party colors are perfect. Very happy with the purchase.', date: '2023-08-15', verifiedBuyer: true, acknowledged: true },
+    { id: 1, productId: 1, userId: 2, author: 'Ramesh K.', rating: 5, comment: 'Excellent quality and very comfortable.', date: '2023-10-10', verifiedBuyer: true, acknowledged: true },
+    { id: 2, productId: 1, userId: 1, author: 'Suresh P.', rating: 4, comment: 'Good value for money. Color is vibrant.', date: '2023-10-12', verifiedBuyer: true, acknowledged: true },
+    { id: 3, productId: 2, userId: 4, author: 'Anitha', rating: 5, comment: 'Soft material, my husband loves it!', date: '2023-09-20', verifiedBuyer: true, acknowledged: true },
+    { id: 4, productId: 4, userId: 3, author: 'Gopal V.', rating: 4, comment: 'The party colors are perfect. Very happy with the purchase.', date: '2023-08-15', verifiedBuyer: true, acknowledged: true },
 ];
 
 // Base product data without dynamic review fields
@@ -185,8 +185,8 @@ export const mockUsers: User[] = [
       id: 1,
       name: 'Suresh P.',
       email: 'suresh@example.com',
-      birthday: '1990-05-15',
       phone: '9876543210',
+      birthday: '1990-05-15',
       addresses: [
         {
           id: 1,
@@ -260,6 +260,7 @@ export const mockUsers: User[] = [
 export const baseOrders: Order[] = [
     { 
       id: 'LM-1024', 
+      userId: 1,
       date: '2023-10-15', 
       total: 1398, 
       status: 'Delivered', 
@@ -275,6 +276,7 @@ export const baseOrders: Order[] = [
     },
     { 
       id: 'LM-1023', 
+      userId: 2,
       date: '2023-10-01', 
       total: 899, 
       status: 'Delivered', 
@@ -289,6 +291,7 @@ export const baseOrders: Order[] = [
     },
     { 
       id: 'LM-1022', 
+      userId: 3,
       date: '2023-09-29', 
       total: 950, 
       status: 'Shipped', 
@@ -303,6 +306,7 @@ export const baseOrders: Order[] = [
     },
     { 
       id: 'LM-1021', 
+      userId: 4,
       date: '2023-09-28', 
       total: 550, 
       status: 'Processing', 
@@ -397,4 +401,10 @@ export const getProductsByCategory = (slug: string, allProducts: Product[]): Pro
     }
     // It's a sub-category, just get its products
     return allProducts.filter(p => p.category.id === category.id);
+};
+
+// New data structure for user-specific wishlists (product IDs)
+export const mockWishlists: { [userId: number]: number[] } = {
+    1: [3, 5], // User Suresh P. likes Silk Dhoti and Bath Towel
+    2: [1],    // User Ramesh K. likes Classic Checkered Lungi
 };

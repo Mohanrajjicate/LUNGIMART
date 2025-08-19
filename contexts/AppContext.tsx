@@ -1,15 +1,16 @@
 
 
-import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner } from '../types';
-import { baseReviews, baseOrders, baseProducts, attachReviewData, mockUsers, baseCategories, baseBanners, mockCoupons } from '../services/mockData';
+import { baseReviews, baseOrders, baseProducts, attachReviewData, mockUsers, baseCategories, baseBanners, mockCoupons, mockWishlists } from '../services/mockData';
+import { encrypt, decrypt } from '../utils/crypto';
 
 interface AppContextType {
   cart: CartItem[];
   wishlist: Product[];
+  orders: Order[];
   user: User | null;
   reviews: Review[];
-  orders: Order[];
   products: Product[];
   categories: Category[];
   notifications: Notification[];
@@ -47,6 +48,9 @@ interface AppContextType {
   wishlistCount: number;
   login: (user: User) => void;
   logout: () => void;
+  updateUser: (updatedUser: User) => void;
+  addUser: (phone: string) => User;
+  findUserByPhone: (phone: string) => User | undefined;
   isQuietZoneActive: boolean;
   toggleQuietZone: () => void;
   addCoupon: (coupon: Omit<Coupon, 'id'>) => void;
@@ -56,10 +60,12 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const getInitialState = <T,>(key: string, defaultValue: T): T => {
+const getInitialState = <T,>(key: string, defaultValue: T, isEncrypted = false): T => {
   try {
     const item = window.localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
+    if (!item) return defaultValue;
+    const data = isEncrypted ? decrypt(item) : item;
+    return JSON.parse(data);
   } catch (error) {
     console.warn(`Error reading localStorage key "${key}":`, error);
     return defaultValue;
@@ -67,271 +73,182 @@ const getInitialState = <T,>(key: string, defaultValue: T): T => {
 };
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [cart, setCart] = useState<CartItem[]>(() => getInitialState<CartItem[]>('cart', []));
-  const [wishlist, setWishlist] = useState<Product[]>(() => getInitialState<Product[]>('wishlist', []));
-  const [user, setUser] = useState<User | null>(() => getInitialState<User | null>('user', null));
+  // Master Data - "The Database"
+  const [allUsers, setAllUsers] = useState<User[]>(() => getInitialState<User[]>('allUsers', mockUsers, true));
+  const [allOrders, setAllOrders] = useState<Order[]>(() => getInitialState<Order[]>('allOrders', baseOrders));
+  const [allReviews, setAllReviews] = useState<Review[]>(() => getInitialState<Review[]>('allReviews', baseReviews));
+  const [allWishlists, setAllWishlists] = useState<{ [userId: number]: number[] }>(() => getInitialState('allWishlists', mockWishlists));
+
+  // Global App Data
+  const [products, setProducts] = useState<Product[]>(() => getInitialState<Product[]>('products', []));
+  const [categories, setCategories] = useState<Category[]>(() => getInitialState<Category[]>('categories', baseCategories));
+  const [banners, setBanners] = useState<Banner[]>(() => getInitialState<Banner[]>('banners', baseBanners));
+  const [coupons, setCoupons] = useState<Coupon[]>(() => getInitialState<Coupon[]>('coupons', mockCoupons));
+  const [notifications, setNotifications] = useState<Notification[]>(() => getInitialState<Notification[]>('notifications', []));
   const [isQuietZoneActive, setIsQuietZoneActive] = useState<boolean>(() => getInitialState<boolean>('quietZone', false));
   
-  // Centralized data state
-  const [reviews, setReviews] = useState<Review[]>(() => getInitialState<Review[]>('reviews', baseReviews));
-  const [orders, setOrders] = useState<Order[]>(() => getInitialState<Order[]>('orders', baseOrders));
-  const [products, setProducts] = useState<Product[]>(() => getInitialState<Product[]>('products', []));
-  const [notifications, setNotifications] = useState<Notification[]>(() => getInitialState<Notification[]>('notifications', []));
-  const [banners, setBanners] = useState<Banner[]>(() => getInitialState<Banner[]>('banners', baseBanners));
-  const [categories, setCategories] = useState<Category[]>(() => getInitialState<Category[]>('categories', baseCategories));
-  const [coupons, setCoupons] = useState<Coupon[]>(() => getInitialState<Coupon[]>('coupons', mockCoupons));
-
+  // Session / User-Specific State
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getInitialState<User | null>('currentUser', null, true));
+  const [cart, setCart] = useState<CartItem[]>(() => getInitialState<CartItem[]>('cart', []));
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => getInitialState<Coupon | null>('appliedCoupon', null));
 
-  // Initialize products with review data if not already in local storage
+  // Initialize products with review data
   useEffect(() => {
     const initialProducts = getInitialState<Product[]>('products', []);
     if (initialProducts.length === 0) {
-        const productsWithReviews = baseProducts.map(p => attachReviewData(p, reviews));
+        const productsWithReviews = baseProducts.map(p => attachReviewData(p, allReviews));
         setProducts(productsWithReviews);
     }
-  }, []); // Run only once on mount
+  }, []);
 
-  // Recalculate review data for products when reviews change
   const updateProductsWithReviews = useCallback(() => {
     setProducts(prevProducts => {
         const baseProductMap = new Map(prevProducts.map(p => [p.id, { ...p, reviews: [], rating: 0, reviewCount: 0 }]));
         baseProducts.forEach(bp => {
-            if (baseProductMap.has(bp.id)) {
-                const existing = baseProductMap.get(bp.id);
-                baseProductMap.set(bp.id, { ...existing, ...bp });
-            } else {
-                baseProductMap.set(bp.id, { ...bp, reviews: [], rating: 0, reviewCount: 0 });
-            }
+            const existing = baseProductMap.get(bp.id);
+            baseProductMap.set(bp.id, { ...existing, ...bp });
         });
-
-        const updatedProducts = Array.from(baseProductMap.values()).map(p => attachReviewData(p as Omit<Product, 'reviews' | 'rating' | 'reviewCount'>, reviews));
+        const updatedProducts = Array.from(baseProductMap.values()).map(p => attachReviewData(p as any, allReviews));
         return updatedProducts;
     });
-  }, [reviews]);
+  }, [allReviews]);
 
   useEffect(() => {
     updateProductsWithReviews();
-  }, [reviews, updateProductsWithReviews]);
+  }, [allReviews, updateProductsWithReviews]);
 
-
-  useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
-  useEffect(() => { localStorage.setItem('wishlist', JSON.stringify(wishlist)); }, [wishlist]);
-  useEffect(() => { localStorage.setItem('user', JSON.stringify(user)); }, [user]);
-  useEffect(() => { localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive)); }, [isQuietZoneActive]);
-  useEffect(() => { localStorage.setItem('reviews', JSON.stringify(reviews)); }, [reviews]);
-  useEffect(() => { localStorage.setItem('orders', JSON.stringify(orders)); }, [orders]);
+  // Persistence Effects
+  useEffect(() => { localStorage.setItem('allUsers', encrypt(JSON.stringify(allUsers))); }, [allUsers]);
+  useEffect(() => { localStorage.setItem('currentUser', encrypt(JSON.stringify(currentUser))); }, [currentUser]);
+  useEffect(() => { localStorage.setItem('allOrders', JSON.stringify(allOrders)); }, [allOrders]);
+  useEffect(() => { localStorage.setItem('allReviews', JSON.stringify(allReviews)); }, [allReviews]);
+  useEffect(() => { localStorage.setItem('allWishlists', JSON.stringify(allWishlists)); }, [allWishlists]);
   useEffect(() => { localStorage.setItem('products', JSON.stringify(products)); }, [products]);
-  useEffect(() => { localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon)); }, [appliedCoupon]);
-  useEffect(() => { localStorage.setItem('notifications', JSON.stringify(notifications)); }, [notifications]);
-  useEffect(() => { localStorage.setItem('banners', JSON.stringify(banners)); }, [banners]);
   useEffect(() => { localStorage.setItem('categories', JSON.stringify(categories)); }, [categories]);
+  useEffect(() => { localStorage.setItem('banners', JSON.stringify(banners)); }, [banners]);
   useEffect(() => { localStorage.setItem('coupons', JSON.stringify(coupons)); }, [coupons]);
+  useEffect(() => { localStorage.setItem('notifications', JSON.stringify(notifications)); }, [notifications]);
+  useEffect(() => { localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive)); }, [isQuietZoneActive]);
+  useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
+  useEffect(() => { localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon)); }, [appliedCoupon]);
+  
+  // Derived user-specific data for context value
+  const userWishlistProductIds = useMemo(() => (currentUser ? allWishlists[currentUser.id] || [] : []), [currentUser, allWishlists]);
+  const wishlist = useMemo(() => products.filter(p => userWishlistProductIds.includes(p.id)), [products, userWishlistProductIds]);
+  const orders = useMemo(() => (currentUser ? allOrders.filter(o => o.userId === currentUser.id) : []), [currentUser, allOrders]);
+
+  const login = (user: User) => setCurrentUser(user);
+  const logout = () => {
+    setCurrentUser(null);
+    clearCart(); // Also clear cart on logout
+  }
+  const findUserByPhone = (phone: string): User | undefined => allUsers.find(u => u.phone === phone);
+  
+  const addUser = (phone: string): User => {
+      const newUser: User = {
+          id: Date.now(),
+          name: `User ${String(Date.now()).slice(-4)}`,
+          email: '',
+          phone: phone,
+          addresses: [],
+      };
+      setAllUsers(prev => [...prev, newUser]);
+      return newUser;
+  };
+
+  const updateUser = (updatedUser: User) => {
+      setAllUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+      if (currentUser?.id === updatedUser.id) {
+          setCurrentUser(updatedUser);
+      }
+  };
 
   const addNotification = (message: string, target: 'user' | 'admin', link?: string) => {
       const newNotification: Notification = {
-          id: Date.now(),
-          message,
-          target,
-          link,
-          read: false,
-          timestamp: new Date().toISOString(),
+          id: Date.now(), message, target, link, read: false, timestamp: new Date().toISOString(),
       };
       setNotifications(prev => [newNotification, ...prev]);
   };
-
-  const markAsRead = (notificationId: number) => {
-      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
-  };
-  
-  const markAllAsRead = (target: 'user' | 'admin') => {
-      setNotifications(prev => prev.map(n => n.target === target ? { ...n, read: true } : n));
-  };
-
-  const clearAllNotifications = (target: 'user' | 'admin') => {
-    setNotifications(prev => prev.filter(n => n.target !== target));
-  };
+  const markAsRead = (id: number) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  const markAllAsRead = (target: 'user' | 'admin') => setNotifications(prev => prev.map(n => n.target === target ? { ...n, read: true } : n));
+  const clearAllNotifications = (target: 'user' | 'admin') => setNotifications(prev => prev.filter(n => n.target !== target));
 
   const addReview = (productId: number, orderId: string, rating: number, comment: string) => {
-    if (!user) return;
-    
+    if (!currentUser) return;
     const newReview: Review = {
-        id: Date.now(),
-        productId,
-        author: user.name,
-        rating,
-        comment,
-        date: new Date().toISOString().split('T')[0],
-        verifiedBuyer: true,
-        acknowledged: false,
+        id: Date.now(), productId, userId: currentUser.id, author: currentUser.name, rating, comment,
+        date: new Date().toISOString().split('T')[0], verifiedBuyer: true, acknowledged: false,
     };
-    
-    setReviews(prev => [newReview, ...prev]);
-    
-    setOrders(prevOrders => prevOrders.map(order => {
-        if (order.id === orderId) {
-            return {
-                ...order,
-                reviewedProducts: { ...order.reviewedProducts, [productId]: true }
-            };
-        }
-        return order;
-    }));
-
-    const productName = products.find(p => p.id === productId)?.name || 'a product';
-    addNotification(`New review for "${productName}" from ${user.name}.`, 'admin', '/admin/reviews');
+    setAllReviews(prev => [newReview, ...prev]);
+    setAllOrders(prev => prev.map(o => o.id === orderId ? { ...o, reviewedProducts: { ...o.reviewedProducts, [productId]: true } } : o));
+    addNotification(`New review for "${products.find(p=>p.id===productId)?.name || 'a product'}" from ${currentUser.name}.`, 'admin', '/admin/reviews');
   };
-
-  const deleteReview = (reviewId: number) => {
-    setReviews(prev => prev.filter(review => review.id !== reviewId));
-  };
-
-  const acknowledgeReview = (reviewId: number) => {
-    setReviews(prev => prev.map(review => 
-      review.id === reviewId ? { ...review, acknowledged: true } : review
-    ));
-  };
-
+  const deleteReview = (id: number) => setAllReviews(prev => prev.filter(r => r.id !== id));
+  const acknowledgeReview = (id: number) => setAllReviews(prev => prev.map(r => r.id === id ? { ...r, acknowledged: true } : r));
+  
   const fulfillOrder = (orderId: string, trackingProvider: string, trackingNumber: string) => {
-    setOrders(prevOrders => prevOrders.map(order => 
-      order.id === orderId ? { ...order, status: 'Shipped', trackingProvider, trackingNumber } : order
-    ));
-    addNotification(`Your order #${orderId.slice(-4)} has shipped via ${trackingProvider}! Tracking No: ${trackingNumber}`, 'user', '/profile');
+    setAllOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'Shipped', trackingProvider, trackingNumber } : o));
+    addNotification(`Your order #${orderId.slice(-4)} has shipped!`, 'user', '/profile');
     addNotification(`Order #${orderId.slice(-4)} marked as shipped.`, 'admin', '/admin/orders');
   };
-
   const updateOrderStatus = (orderId: string, status: Order['status']) => {
-    setOrders(prevOrders => prevOrders.map(order => 
-      order.id === orderId ? { ...order, status } : order
-    ));
-    
-    let userMessage = `Your order #${orderId.slice(-4)} has been updated to: ${status}.`; // Default message
-    switch (status) {
-        case 'Processing':
-            userMessage = `Your order #${orderId.slice(-4)} is being processed.`;
-            break;
-        case 'Shipped':
-            // This is a fallback if status is changed without tracking info. `fulfillOrder` is preferred.
-            userMessage = `Your product is shipped! Your order #${orderId.slice(-4)} is on its way.`;
-            break;
-        case 'Out for Delivery':
-            userMessage = `Your product is out for delivery! Your order #${orderId.slice(-4)} should arrive today.`;
-            break;
-        case 'Delivered':
-            userMessage = `Your product has been successfully delivered! We hope you enjoy your order #${orderId.slice(-4)}.`;
-            break;
-    }
-
-    addNotification(userMessage, 'user', '/profile');
+    setAllOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+    addNotification(`Your order #${orderId.slice(-4)} status is now: ${status}.`, 'user', '/profile');
     addNotification(`Order #${orderId.slice(-4)} status updated to ${status}.`, 'admin', '/admin/orders');
   };
 
-  const updateProduct = (updatedProduct: Product) => {
-    setProducts(prevProducts => prevProducts.map(p => 
-      p.id === updatedProduct.id ? updatedProduct : p
-    ));
-  };
-  
-  const addProduct = (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => {
-      const newProduct = {
-          ...newProductData,
-          id: Date.now(),
-          reviews: [],
-          rating: 0,
-          reviewCount: 0
-      };
+  const updateProduct = (p: Product) => setProducts(prev => prev.map(i => i.id === p.id ? p : i));
+  const addProduct = (p: Omit<Product, 'id' | 'reviews'|'rating'|'reviewCount'>) => {
+      const newProduct = { ...p, id: Date.now(), reviews: [], rating: 0, reviewCount: 0 };
       setProducts(prev => [...prev, newProduct]);
   };
-
-  const deleteProduct = (productId: number) => {
-      setProducts(prev => prev.filter(p => p.id !== productId));
-  };
-  
-  const addMultipleProducts = (newProductsData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>[]) => {
-      const newProducts = newProductsData.map(p => ({
-          ...p,
-          id: Date.now() + Math.random(), // simple unique id generation
-          reviews: [],
-          rating: 0,
-          reviewCount: 0
-      }));
+  const deleteProduct = (id: number) => setProducts(prev => prev.filter(p => p.id !== id));
+  const addMultipleProducts = (newData: Omit<Product, 'id'|'reviews'|'rating'|'reviewCount'>[]) => {
+      const newProducts = newData.map(p => ({ ...p, id: Date.now()+Math.random(), reviews:[], rating:0, reviewCount:0 }));
       setProducts(prev => [...prev, ...newProducts]);
   };
   
   const addOrder = (items: CartItem[], total: number) => {
-      if (!user) return;
-
+      if (!currentUser) return;
       const newOrder: Order = {
-          id: `LM-${Date.now().toString().slice(-6)}`,
-          date: new Date().toISOString().split('T')[0],
-          items: items,
-          total: total,
-          status: 'Processing',
-          customerName: user.name,
-          reviewedProducts: {},
-          paymentMethod: 'Prepaid' // Defaulting to Prepaid
+          id: `LM-${Date.now().toString().slice(-6)}`, userId: currentUser.id, date: new Date().toISOString().split('T')[0],
+          items, total, status: 'Processing', customerName: currentUser.name, reviewedProducts: {}, paymentMethod: 'Prepaid'
       };
-
-      setOrders(prevOrders => [newOrder, ...prevOrders]);
-      addNotification(`New order #${newOrder.id.slice(-4)} received from ${user.name}!`, 'admin', '/admin/dashboard');
+      setAllOrders(prev => [newOrder, ...prev]);
+      addNotification(`New order #${newOrder.id.slice(-4)} received!`, 'admin', '/admin/dashboard');
   };
-
 
   const addToCart = (product: Product, quantity = 1) => {
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevCart.map(item =>
-          item.id === product.id ? { ...item, quantity: Math.min(item.quantity + quantity, product.stock) } : item
-        );
-      }
-      return [...prevCart, { ...product, quantity }];
+    setCart(prev => {
+      const item = prev.find(i => i.id === product.id);
+      return item 
+        ? prev.map(i => i.id === product.id ? { ...i, quantity: Math.min(i.quantity + quantity, product.stock) } : i)
+        : [...prev, { ...product, quantity }];
     });
   };
-
-  const removeFromCart = (productId: number) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== productId));
-  };
-
-  const updateQuantity = (productId: number, quantity: number) => {
-    const product = products.find(p => p.id === productId);
+  const removeFromCart = (id: number) => setCart(prev => prev.filter(i => i.id !== id));
+  const updateQuantity = (id: number, quantity: number) => {
+    const product = products.find(p => p.id === id);
     if (!product) return;
-    
-    if (quantity <= 0) {
-      removeFromCart(productId);
-    } else {
-      setCart(prevCart =>
-        prevCart.map(item =>
-          item.id === productId ? { ...item, quantity: Math.min(quantity, product.stock) } : item
-        )
-      );
-    }
+    if (quantity <= 0) removeFromCart(id);
+    else setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: Math.min(quantity, product.stock) } : i));
   };
-  
-  const removeCoupon = () => {
-    setAppliedCoupon(null);
-  };
-  
-  const clearCart = () => {
-      setCart([]);
-      removeCoupon();
-  };
+  const clearCart = () => { setCart([]); removeCoupon(); };
   
   const toggleWishlist = (product: Product) => {
-    setWishlist(prev => {
-        const isInWishlist = prev.some(item => item.id === product.id);
-        if (isInWishlist) {
-            return prev.filter(item => item.id !== product.id);
-        } else {
-            return [...prev, product];
-        }
+    if (!currentUser) return;
+    setAllWishlists(prev => {
+        const currentWishlist = prev[currentUser.id] || [];
+        const newWishlist = currentWishlist.includes(product.id)
+            ? currentWishlist.filter(id => id !== product.id)
+            : [...currentWishlist, product.id];
+        return { ...prev, [currentUser.id]: newWishlist };
     });
   };
-  
-  const isInWishlist = (productId: number) => wishlist.some(item => item.id === productId);
-
-  const login = (user: User) => setUser(user);
-  const logout = () => setUser(null);
+  const isInWishlist = (productId: number) => {
+    if (!currentUser) return false;
+    return (allWishlists[currentUser.id] || []).includes(productId);
+  };
   
   const toggleQuietZone = () => setIsQuietZoneActive(prev => !prev);
 
@@ -339,158 +256,60 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
   const wishlistCount = wishlist.length;
 
-  const applyCoupon = (couponCode: string): { success: boolean; message: string } => {
-    const coupon = coupons.find(c => c.code.toLowerCase() === couponCode.toLowerCase());
-    
-    if (!coupon) {
-        return { success: false, message: "Invalid coupon code." };
-    }
-
-    if (!coupon.isActive) {
-        return { success: false, message: "This coupon is currently inactive." };
-    }
-
+  const applyCoupon = (code: string): { success: boolean; message: string } => {
+    const coupon = coupons.find(c => c.code.toLowerCase() === code.toLowerCase());
+    if (!coupon) return { success: false, message: "Invalid coupon code." };
+    if (!coupon.isActive) return { success: false, message: "This coupon is currently inactive." };
     if (coupon.trigger === 'first_order') {
-        if (!user) return { success: false, message: "You must be logged in to use this coupon." };
-        const userOrders = orders.filter(o => o.customerName === user.name);
-        if (userOrders.length > 0) {
-            return { success: false, message: "This coupon is only for your first order." };
-        }
+        if (!currentUser) return { success: false, message: "You must be logged in." };
+        if (orders.length > 0) return { success: false, message: "This coupon is only for your first order." };
     }
-
     if (coupon.trigger === 'birthday') {
-        if (!user) return { success: false, message: "You must be logged in to use this coupon." };
-        if (!user.birthday) return { success: false, message: "Please set your birthday in your profile to use this coupon." };
-        
+        if (!currentUser || !currentUser.birthday) return { success: false, message: "Set your birthday in your profile." };
         const today = new Date();
-        const userBday = new Date(user.birthday);
-        
-        // Note: This simple check ignores year and timezone differences, which is okay for this app.
-        if (today.getMonth() !== userBday.getMonth() || today.getDate() !== userBday.getDate()) {
-            return { success: false, message: "It's not your birthday yet!" };
-        }
+        const userBday = new Date(currentUser.birthday);
+        if (today.getMonth() !== userBday.getMonth() || today.getDate() !== userBday.getDate()) return { success: false, message: "It's not your birthday yet!" };
     }
-
-    if (coupon.minPurchase && cartTotal < coupon.minPurchase) {
-        return { success: false, message: `Minimum purchase of ₹${coupon.minPurchase} required.` };
+    if (coupon.minPurchase && cartTotal < coupon.minPurchase) return { success: false, message: `Minimum purchase of ₹${coupon.minPurchase} required.` };
+    if (coupon.applicableProductIds?.length) {
+        if (!cart.some(item => coupon.applicableProductIds!.includes(item.id))) return { success: false, message: "Coupon not applicable to items in cart." };
     }
-    
-    if (coupon.applicableProductIds && coupon.applicableProductIds.length > 0) {
-        const isApplicable = cart.some(item => coupon.applicableProductIds!.includes(item.id));
-        if (!isApplicable) {
-            return { success: false, message: "Coupon not applicable to items in your cart." };
-        }
-    }
-    
     setAppliedCoupon(coupon);
-    return { success: true, message: "Coupon applied successfully!" };
+    return { success: true, message: "Coupon applied!" };
   };
+  const removeCoupon = () => setAppliedCoupon(null);
   
-  const { cartDiscount, cartFinalTotal } = React.useMemo(() => {
+  const { cartDiscount, cartFinalTotal } = useMemo(() => {
     let discount = 0;
     if (appliedCoupon && cart.length > 0) {
         const isApplicable = !appliedCoupon.minPurchase || cartTotal >= appliedCoupon.minPurchase;
-
         if (isApplicable) {
-            if (appliedCoupon.applicableProductIds && appliedCoupon.applicableProductIds.length > 0) {
-                const applicableTotal = cart
-                    .filter(item => appliedCoupon.applicableProductIds!.includes(item.id))
-                    .reduce((total, item) => total + item.price * item.quantity, 0);
-
-                if (appliedCoupon.discountType === 'percentage') {
-                    discount = (applicableTotal * appliedCoupon.discountValue) / 100;
-                } else {
-                    discount = appliedCoupon.discountValue;
-                }
+            if (appliedCoupon.applicableProductIds?.length) {
+                const applicableTotal = cart.filter(item => appliedCoupon.applicableProductIds!.includes(item.id)).reduce((t, i) => t + i.price * i.quantity, 0);
+                discount = appliedCoupon.discountType === 'percentage' ? (applicableTotal * appliedCoupon.discountValue) / 100 : appliedCoupon.discountValue;
                 discount = Math.min(discount, applicableTotal);
-
             } else {
-                if (appliedCoupon.discountType === 'percentage') {
-                    discount = (cartTotal * appliedCoupon.discountValue) / 100;
-                } else {
-                    discount = appliedCoupon.discountValue;
-                }
+                discount = appliedCoupon.discountType === 'percentage' ? (cartTotal * appliedCoupon.discountValue) / 100 : appliedCoupon.discountValue;
             }
         }
     }
     discount = Math.min(discount, cartTotal);
-    const finalTotal = cartTotal - discount;
-
-    return { cartDiscount: discount, cartFinalTotal: finalTotal };
-
+    return { cartDiscount: discount, cartFinalTotal: cartTotal - discount };
   }, [cart, cartTotal, appliedCoupon]);
 
-  const updateAllBanners = (newBanners: Banner[]) => {
-      setBanners(newBanners);
-  };
-
-  const updateAllCategories = (newCategories: Category[]) => {
-      setCategories(newCategories);
-  };
-  
-  const addCoupon = (couponData: Omit<Coupon, 'id'>) => {
-    const newCoupon: Coupon = { ...couponData, id: Date.now() };
-    setCoupons(prev => [newCoupon, ...prev]);
-  };
-  
-  const updateCoupon = (updatedCoupon: Coupon) => {
-      setCoupons(prev => prev.map(c => c.id === updatedCoupon.id ? updatedCoupon : c));
-  };
-
-  const deleteCoupon = (couponId: number) => {
-      setCoupons(prev => prev.filter(c => c.id !== couponId));
-  };
-
+  const addCoupon = (c: Omit<Coupon, 'id'>) => setCoupons(prev => [{ ...c, id: Date.now() }, ...prev]);
+  const updateCoupon = (c: Coupon) => setCoupons(prev => prev.map(i => i.id === c.id ? c : i));
+  const deleteCoupon = (id: number) => setCoupons(prev => prev.filter(c => c.id !== id));
 
   return (
     <AppContext.Provider value={{
-      cart,
-      wishlist,
-      user,
-      reviews,
-      orders,
-      products,
-      categories,
-      notifications,
-      banners,
-      coupons,
-      setBanners: updateAllBanners,
-      setCategories: updateAllCategories,
-      addNotification,
-      markAsRead,
-      markAllAsRead,
-      clearAllNotifications,
-      addReview,
-      deleteReview,
-      acknowledgeReview,
-      updateOrderStatus,
-      fulfillOrder,
-      updateProduct,
-      addProduct,
-      deleteProduct,
-      addMultipleProducts,
-      addOrder,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      cartCount,
-      cartTotal,
-      appliedCoupon,
-      cartDiscount,
-      cartFinalTotal,
-      applyCoupon,
-      removeCoupon,
-      toggleWishlist,
-      isInWishlist,
-      wishlistCount,
-      login,
-      logout,
-      isQuietZoneActive,
-      toggleQuietZone,
-      addCoupon,
-      updateCoupon,
-      deleteCoupon
+      cart, wishlist, orders, user: currentUser, reviews: allReviews, products, categories, notifications, banners, coupons,
+      setBanners, setCategories, addNotification, markAsRead, markAllAsRead, clearAllNotifications,
+      addReview, deleteReview, acknowledgeReview, updateOrderStatus, fulfillOrder, updateProduct, addProduct, deleteProduct, addMultipleProducts, addOrder,
+      addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,
+      appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
+      toggleWishlist, isInWishlist, wishlistCount, login, logout, updateUser, addUser, findUserByPhone,
+      isQuietZoneActive, toggleQuietZone, addCoupon, updateCoupon, deleteCoupon
     }}>
       {children}
     </AppContext.Provider>
@@ -499,8 +318,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
 export const useAppContext = (): AppContextType => {
   const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
+  if (context === undefined) throw new Error('useAppContext must be used within an AppProvider');
   return context;
 };

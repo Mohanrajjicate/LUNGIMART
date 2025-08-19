@@ -30,6 +30,7 @@ export interface Category {
 export interface Review {
   id: number;
   productId: number;
+  userId: number; // Added userId
   author: string;
   rating: number;
   comment: string;
@@ -55,13 +56,14 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  phone: string; // Added phone for OTP login
   addresses: Address[];
   birthday?: string;
-  phone?: string;
 }
 
 export interface Order {
   id: string;
+  userId: number; // Added userId
   date: string;
   items: CartItem[];
   total: number;
