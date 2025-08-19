@@ -1,74 +1,78 @@
-
-
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
-import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner } from '../types';
-import { baseReviews, baseOrders, baseProducts, attachReviewData, mockUsers, baseCategories, baseBanners, mockCoupons, mockWishlists } from '../services/mockData';
-import { encrypt, decrypt } from '../utils/crypto';
+import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner, Address } from '../types';
+import * as api from '../services/api';
 
 interface AppContextType {
   cart: CartItem[];
   wishlist: Product[];
   orders: Order[];
   user: User | null;
-  reviews: Review[];
   products: Product[];
   categories: Category[];
   notifications: Notification[];
   banners: Banner[];
   coupons: Coupon[];
-  standaloneImages: string[];
+  
+  // State setters (some might be removed if not used by admin)
   setBanners: (banners: Banner[]) => void;
   setCategories: (categories: Category[]) => void;
+
+  // Actions
   addNotification: (message: string, target: 'user' | 'admin', link?: string) => void;
   sendGlobalNotification: (message: string, link?: string) => void;
   markAsRead: (notificationId: number) => void;
   markAllAsRead: (target: 'user' | 'admin') => void;
   clearAllNotifications: (target: 'user' | 'admin') => void;
-  addReview: (productId: number, orderId: string, rating: number, comment: string) => void;
-  deleteReview: (reviewId: number) => void;
-  acknowledgeReview: (reviewId: number) => void;
+  
+  addReview: (productId: number, orderId: string, rating: number, comment: string) => Promise<void>;
+  
+  // Admin actions (to be refactored to an admin context later)
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   fulfillOrder: (orderId: string, trackingProvider: string, trackingNumber: string) => void;
   updateProduct: (updatedProduct: Product) => void;
   addProduct: (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => void;
   deleteProduct: (productId: number) => void;
   addMultipleProducts: (newProductsData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>[]) => void;
-  addOrder: (items: CartItem[], total: number) => void;
+  addCoupon: (coupon: Omit<Coupon, 'id'>) => void;
+  updateCoupon: (coupon: Coupon) => void;
+  deleteCoupon: (couponId: number) => void;
+  
+  // Cart
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
+  
+  // Coupon
   appliedCoupon: Coupon | null;
   cartDiscount: number;
   cartFinalTotal: number;
   applyCoupon: (couponCode: string) => { success: boolean; message: string };
   removeCoupon: () => void;
+  
+  // Wishlist
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: number) => boolean;
   wishlistCount: number;
-  loginWithGoogle: (googleUser: { name: string; email: string; birthday?: string }) => { success: boolean; message: string };
+  
+  // User / Auth
+  loginWithGoogle: (googleUser: { name: string; email: string; }) => Promise<void>;
   logout: () => void;
-  updateUser: (updatedUser: User) => void;
-  addUser: (userData: Omit<User, 'id' | 'addresses'>) => User;
-  findUserByEmail: (email: string) => User | undefined;
+  updateUser: (updatedUser: Partial<User>) => Promise<void>;
+  
+  // Misc
   isQuietZoneActive: boolean;
   toggleQuietZone: () => void;
-  addStandaloneImage: (imageUrl: string) => void;
-  addCoupon: (coupon: Omit<Coupon, 'id'>) => void;
-  updateCoupon: (coupon: Coupon) => void;
-  deleteCoupon: (couponId: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const getInitialState = <T,>(key: string, defaultValue: T, isEncrypted = false): T => {
+const getInitialState = <T,>(key: string, defaultValue: T): T => {
   try {
     const item = window.localStorage.getItem(key);
-    if (!item) return defaultValue;
-    const data = isEncrypted ? decrypt(item) : item;
-    return JSON.parse(data);
+    return item ? JSON.parse(item) : defaultValue;
   } catch (error) {
     console.warn(`Error reading localStorage key "${key}":`, error);
     return defaultValue;
@@ -76,178 +80,137 @@ const getInitialState = <T,>(key: string, defaultValue: T, isEncrypted = false):
 };
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Master Data - "The Database"
-  const [allUsers, setAllUsers] = useState<User[]>(() => getInitialState<User[]>('allUsers', mockUsers, true));
-  const [allOrders, setAllOrders] = useState<Order[]>(() => getInitialState<Order[]>('allOrders', baseOrders));
-  const [allReviews, setAllReviews] = useState<Review[]>(() => getInitialState<Review[]>('allReviews', baseReviews));
-  const [allWishlists, setAllWishlists] = useState<{ [userId: number]: number[] }>(() => getInitialState('allWishlists', mockWishlists));
+  // Global App Data (fetched from API)
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
 
-  // Global App Data
-  const [products, setProducts] = useState<Product[]>(() => getInitialState<Product[]>('products', []));
-  const [categories, setCategories] = useState<Category[]>(() => getInitialState<Category[]>('categories', baseCategories));
-  const [banners, setBanners] = useState<Banner[]>(() => getInitialState<Banner[]>('banners', baseBanners));
-  const [coupons, setCoupons] = useState<Coupon[]>(() => getInitialState<Coupon[]>('coupons', mockCoupons));
-  const [notifications, setNotifications] = useState<Notification[]>(() => getInitialState<Notification[]>('notifications', []));
-  const [isQuietZoneActive, setIsQuietZoneActive] = useState<boolean>(() => getInitialState<boolean>('quietZone', false));
-  const [standaloneImages, setStandaloneImages] = useState<string[]>(() => getInitialState<string[]>('standaloneImages', []));
+  // User-Specific Data (fetched from API when logged in)
+  const [wishlist, setWishlist] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [wishlistIds, setWishlistIds] = useState<Set<number>>(new Set());
   
-  // Session / User-Specific State
-  const [currentUser, setCurrentUser] = useState<User | null>(() => getInitialState<User | null>('currentUser', null, true));
+  // Session / User-Specific State (persisted in localStorage)
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getInitialState<User | null>('currentUser', null));
   const [cart, setCart] = useState<CartItem[]>(() => getInitialState<CartItem[]>('cart', []));
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => getInitialState<Coupon | null>('appliedCoupon', null));
+  const [notifications, setNotifications] = useState<Notification[]>(() => getInitialState<Notification[]>('notifications', []));
+  const [isQuietZoneActive, setIsQuietZoneActive] = useState<boolean>(() => getInitialState<boolean>('quietZone', false));
 
-  // Initialize products with review data
+  // --- DATA FETCHING EFFECTS ---
+
+  // Initial load for site-wide data
   useEffect(() => {
-    const initialProducts = getInitialState<Product[]>('products', []);
-    if (initialProducts.length === 0) {
-        const productsWithReviews = baseProducts.map(p => attachReviewData(p, allReviews));
-        setProducts(productsWithReviews);
-    }
+    const loadInitialData = async () => {
+      try {
+        const [productsData, siteData] = await Promise.all([
+          api.fetchProducts(),
+          api.fetchSiteData()
+        ]);
+        setProducts(productsData);
+        setCategories(siteData.categories);
+        setBanners(siteData.banners);
+        setCoupons(siteData.coupons);
+      } catch (error) {
+        console.error("Failed to load initial site data:", error);
+        // Handle error display to user
+      }
+    };
+    loadInitialData();
   }, []);
 
-  const updateProductsWithReviews = useCallback(() => {
-    setProducts(prevProducts => {
-        const baseProductMap = new Map(prevProducts.map(p => [p.id, { ...p, reviews: [], rating: 0, reviewCount: 0 }]));
-        baseProducts.forEach(bp => {
-            const existing = baseProductMap.get(bp.id);
-            baseProductMap.set(bp.id, { ...existing, ...bp });
-        });
-        const updatedProducts = Array.from(baseProductMap.values()).map(p => attachReviewData(p as any, allReviews));
-        return updatedProducts;
-    });
-  }, [allReviews]);
-
+  // Load user-specific data when user logs in or page loads with a user session
   useEffect(() => {
-    updateProductsWithReviews();
-  }, [allReviews, updateProductsWithReviews]);
-
-  // Persistence Effects
-  useEffect(() => { localStorage.setItem('allUsers', encrypt(JSON.stringify(allUsers))); }, [allUsers]);
-  useEffect(() => { localStorage.setItem('currentUser', encrypt(JSON.stringify(currentUser))); }, [currentUser]);
-  useEffect(() => { localStorage.setItem('allOrders', JSON.stringify(allOrders)); }, [allOrders]);
-  useEffect(() => { localStorage.setItem('allReviews', JSON.stringify(allReviews)); }, [allReviews]);
-  useEffect(() => { localStorage.setItem('allWishlists', JSON.stringify(allWishlists)); }, [allWishlists]);
-  useEffect(() => { localStorage.setItem('products', JSON.stringify(products)); }, [products]);
-  useEffect(() => { localStorage.setItem('categories', JSON.stringify(categories)); }, [categories]);
-  useEffect(() => { localStorage.setItem('banners', JSON.stringify(banners)); }, [banners]);
-  useEffect(() => { localStorage.setItem('coupons', JSON.stringify(coupons)); }, [coupons]);
-  useEffect(() => { localStorage.setItem('notifications', JSON.stringify(notifications)); }, [notifications]);
-  useEffect(() => { localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive)); }, [isQuietZoneActive]);
-  useEffect(() => { localStorage.setItem('standaloneImages', JSON.stringify(standaloneImages)); }, [standaloneImages]);
-  useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
-  useEffect(() => { localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon)); }, [appliedCoupon]);
-  
-  // Derived user-specific data for context value
-  const userWishlistProductIds = useMemo(() => (currentUser ? allWishlists[currentUser.id] || [] : []), [currentUser, allWishlists]);
-  const wishlist = useMemo(() => products.filter(p => userWishlistProductIds.includes(p.id)), [products, userWishlistProductIds]);
-  const orders = useMemo(() => (currentUser ? allOrders.filter(o => o.userId === currentUser.id) : []), [currentUser, allOrders]);
-
-  const findUserByEmail = useCallback((email: string): User | undefined => allUsers.find(u => u.email.toLowerCase() === email.toLowerCase()), [allUsers]);
-
-  const addUser = useCallback((userData: Omit<User, 'id' | 'addresses'>): User => {
-    const newUser: User = {
-      ...userData,
-      id: Date.now(),
-      addresses: [],
-      password: encrypt(userData.password), // Encrypt password on creation
+    const loadUserData = async () => {
+      if (currentUser) {
+        try {
+          const [userOrders, userWishlist] = await Promise.all([
+            api.fetchOrders(),
+            api.fetchWishlist()
+          ]);
+          setOrders(userOrders);
+          setWishlist(userWishlist);
+          setWishlistIds(new Set(userWishlist.map(p => p.id)));
+        } catch (error) {
+          console.error("Failed to load user data:", error);
+          // Potentially logout user if token is invalid
+          if (error instanceof Error && error.message.includes('401')) {
+            logout();
+          }
+        }
+      } else {
+        // Clear user data on logout
+        setOrders([]);
+        setWishlist([]);
+        setWishlistIds(new Set());
+      }
     };
-    setAllUsers(prev => [...prev, newUser]);
-    return newUser;
-  }, []);
-
-  const addNotification = useCallback((message: string, target: 'user' | 'admin', link?: string) => {
-    const newNotification: Notification = {
-      id: Date.now(), message, target, link, read: false, timestamp: new Date().toISOString(),
-    };
-    setNotifications(prev => [newNotification, ...prev]);
-  }, []);
-
-  const loginWithGoogle = useCallback((googleUser: { name: string; email: string; birthday?: string }): { success: boolean; message: string } => {
-    let user = findUserByEmail(googleUser.email);
-
-    if (!user) {
-      // User doesn't exist, so create a new one.
-      const newUser = addUser({
-        name: googleUser.name,
-        email: googleUser.email,
-        phone: '', // Google does not provide a phone number.
-        password: Math.random().toString(36).slice(-8), // Assign a random, unusable password.
-        birthday: googleUser.birthday,
-      });
-      user = newUser;
-      addNotification(`Welcome, ${newUser.name}! Your account has been created.`, 'user', '/profile');
-    }
-
-    // Log the user in.
-    setCurrentUser(user);
-    return { success: true, message: "Logged in successfully with Google." };
-  }, [findUserByEmail, addUser, addNotification]);
-
-  const removeCoupon = useCallback(() => setAppliedCoupon(null), []);
-  const clearCart = useCallback(() => { setCart([]); removeCoupon(); }, [removeCoupon]);
-  const logout = useCallback(() => {
-    setCurrentUser(null);
-    clearCart(); // Also clear cart on logout
-  }, [clearCart]);
-
-  const updateUser = useCallback((updatedUser: User) => {
-    setAllUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-    if (currentUser?.id === updatedUser.id) {
-      setCurrentUser(updatedUser);
-    }
+    loadUserData();
   }, [currentUser]);
 
-  const sendGlobalNotification = useCallback((message: string, link?: string) => {
-    addNotification(message, 'user', link);
-  }, [addNotification]);
-  const markAsRead = useCallback((id: number) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n)), []);
-  const markAllAsRead = useCallback((target: 'user' | 'admin') => setNotifications(prev => prev.map(n => n.target === target ? { ...n, read: true } : n)), []);
-  const clearAllNotifications = useCallback((target: 'user' | 'admin') => setNotifications(prev => prev.filter(n => n.target !== target)), []);
+  // --- LOCALSTORAGE PERSISTENCE ---
+  useEffect(() => { localStorage.setItem('currentUser', JSON.stringify(currentUser)); }, [currentUser]);
+  useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
+  useEffect(() => { localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon)); }, [appliedCoupon]);
+  useEffect(() => { localStorage.setItem('notifications', JSON.stringify(notifications)); }, [notifications]);
+  useEffect(() => { localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive)); }, [isQuietZoneActive]);
 
-  const addReview = useCallback((productId: number, orderId: string, rating: number, comment: string) => {
-    if (!currentUser) return;
-    const newReview: Review = {
-      id: Date.now(), productId, userId: currentUser.id, author: currentUser.name, rating, comment,
-      date: new Date().toISOString().split('T')[0], verifiedBuyer: true, acknowledged: false,
-    };
-    setAllReviews(prev => [newReview, ...prev]);
-    setAllOrders(prev => prev.map(o => o.id === orderId ? { ...o, reviewedProducts: { ...o.reviewedProducts, [productId]: true } } : o));
-    addNotification(`New review for "${products.find(p => p.id === productId)?.name || 'a product'}" from ${currentUser.name}.`, 'admin', '/admin/reviews');
-  }, [currentUser, products, addNotification]);
-  const deleteReview = useCallback((id: number) => setAllReviews(prev => prev.filter(r => r.id !== id)), []);
-  const acknowledgeReview = useCallback((id: number) => setAllReviews(prev => prev.map(r => r.id === id ? { ...r, acknowledged: true } : r)), []);
+  // --- ACTIONS ---
 
-  const fulfillOrder = useCallback((orderId: string, trackingProvider: string, trackingNumber: string) => {
-    setAllOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'Shipped', trackingProvider, trackingNumber } : o));
-    addNotification(`Your order #${orderId.slice(-4)} has shipped!`, 'user', '/profile');
-    addNotification(`Order #${orderId.slice(-4)} marked as shipped.`, 'admin', '/admin/orders');
-  }, [addNotification]);
-  const updateOrderStatus = useCallback((orderId: string, status: Order['status']) => {
-    setAllOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
-    addNotification(`Your order #${orderId.slice(-4)} status is now: ${status}.`, 'user', '/profile');
-    addNotification(`Order #${orderId.slice(-4)} status updated to ${status}.`, 'admin', '/admin/orders');
-  }, [addNotification]);
+  const loginWithGoogle = async (googleUser: { name: string; email: string; }) => {
+    try {
+      const user = await api.googleLogin(googleUser);
+      setCurrentUser(user);
+      addNotification(`Welcome back, ${user.name}!`, 'user', '/profile');
+    } catch (error) {
+        console.error("Login failed:", error);
+    }
+  };
 
-  const updateProduct = useCallback((p: Product) => setProducts(prev => prev.map(i => i.id === p.id ? p : i)), []);
-  const addProduct = useCallback((p: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => {
-    const newProduct = { ...p, id: Date.now(), reviews: [], rating: 0, reviewCount: 0 };
-    setProducts(prev => [...prev, newProduct]);
-  }, []);
-  const deleteProduct = useCallback((id: number) => setProducts(prev => prev.filter(p => p.id !== id)), []);
-  const addMultipleProducts = useCallback((newData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>[]) => {
-    const newProducts = newData.map(p => ({ ...p, id: Date.now() + Math.random(), reviews: [], rating: 0, reviewCount: 0 }));
-    setProducts(prev => [...prev, ...newProducts]);
+  const logout = useCallback(() => {
+    setCurrentUser(null);
+    setCart([]);
+    setAppliedCoupon(null);
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('cart');
+    localStorage.removeItem('appliedCoupon');
   }, []);
 
-  const addOrder = useCallback((items: CartItem[], total: number) => {
+  const updateUser = async (updatedUserData: Partial<User>) => {
     if (!currentUser) return;
-    const newOrder: Order = {
-      id: `LM-${Date.now().toString().slice(-6)}`, userId: currentUser.id, date: new Date().toISOString().split('T')[0],
-      items, total, status: 'Processing', customerName: currentUser.name, reviewedProducts: {}, paymentMethod: 'Prepaid'
-    };
-    setAllOrders(prev => [newOrder, ...prev]);
-    addNotification(`New order #${newOrder.id.slice(-4)} received!`, 'admin', '/admin/dashboard');
-  }, [currentUser, addNotification]);
+    try {
+        const updatedUser = await api.updateUser({ ...currentUser, ...updatedUserData });
+        setCurrentUser(updatedUser);
+    } catch (error) {
+        console.error("Failed to update user:", error);
+    }
+  };
+  
+  const toggleWishlist = useCallback(async (product: Product) => {
+      if (!currentUser) {
+          // Optional: redirect to login or show a message
+          alert("Please log in to manage your wishlist.");
+          return;
+      }
+      try {
+          const { wishlist: newWishlistIds } = await api.toggleWishlist(product.id);
+          const newIdSet = new Set(newWishlistIds);
+          setWishlistIds(newIdSet);
+          // Optimistically update the full wishlist object array
+          if (newIdSet.has(product.id)) {
+              setWishlist(prev => [...prev, product]);
+          } else {
+              setWishlist(prev => prev.filter(p => p.id !== product.id));
+          }
+      } catch (error) {
+          console.error("Failed to toggle wishlist:", error);
+      }
+  }, [currentUser]);
+
+  const isInWishlist = useCallback((productId: number) => {
+    return wishlistIds.has(productId);
+  }, [wishlistIds]);
 
   const addToCart = useCallback((product: Product, quantity = 1) => {
     setCart(prev => {
@@ -257,7 +220,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         : [...prev, { ...product, quantity }];
     });
   }, []);
+  
   const removeFromCart = useCallback((id: number) => setCart(prev => prev.filter(i => i.id !== id)), []);
+
   const updateQuantity = useCallback((id: number, quantity: number) => {
     const product = products.find(p => p.id === id);
     if (!product) return;
@@ -265,27 +230,64 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     else setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: Math.min(quantity, product.stock) } : i));
   }, [products, removeFromCart]);
 
-  const toggleWishlist = useCallback((product: Product) => {
-    if (!currentUser) return;
-    setAllWishlists(prev => {
-      const currentWishlist = prev[currentUser.id] || [];
-      const newWishlist = currentWishlist.includes(product.id)
-        ? currentWishlist.filter(id => id !== product.id)
-        : [...currentWishlist, product.id];
-      return { ...prev, [currentUser.id]: newWishlist };
-    });
-  }, [currentUser]);
-  const isInWishlist = useCallback((productId: number) => {
-    if (!currentUser) return false;
-    return (allWishlists[currentUser.id] || []).includes(productId);
-  }, [currentUser, allWishlists]);
+  const removeCoupon = useCallback(() => setAppliedCoupon(null), []);
+  const clearCart = useCallback(() => { setCart([]); removeCoupon(); }, [removeCoupon]);
+  
+  // This function is now used on the Checkout page to create the order in the backend.
+  const addOrder = async (items: CartItem[], total: number) => {
+    if (!currentUser) throw new Error("User not logged in");
+    try {
+        const orderData = { items, total, paymentMethod: 'Prepaid' as const };
+        const newOrder = await api.createOrder(orderData);
+        setOrders(prev => [newOrder, ...prev]);
+        addNotification(`New order #${newOrder.id.slice(-4)} received!`, 'admin', '/admin/dashboard');
+        clearCart();
+    } catch (error) {
+        console.error("Failed to create order:", error);
+        throw error; // Re-throw to be caught by the calling component
+    }
+  };
+  
+  const addReview = async (productId: number, orderId: string, rating: number, comment: string) => {
+      if (!currentUser) return;
+      try {
+          const newReview = await api.submitReview({ productId, rating, comment });
+          setProducts(prev => prev.map(p => p.id === productId ? { ...p, reviews: [newReview, ...p.reviews] } : p));
+          setOrders(prev => prev.map(o => o.id === orderId ? { ...o, reviewedProducts: { ...o.reviewedProducts, [productId]: true } } : o));
+          addNotification(`New review for "${products.find(p=>p.id === productId)?.name}"`, 'admin', '/admin/reviews');
+      } catch (error) {
+          console.error("Failed to add review:", error);
+      }
+  };
 
-  const addStandaloneImage = useCallback((imageUrl: string) => {
-    setStandaloneImages(prev => [imageUrl, ...prev]);
-  }, []);
-
+  // --- MOCK/PLACEHOLDER ADMIN AND NOTIFICATION FUNCTIONS ---
+  // These would be refactored to use a dedicated admin context and API calls
+  const addNotification = useCallback((message: string, target: 'user' | 'admin', link?: string) => {
+    if (isQuietZoneActive && target === 'user') return;
+    const newNotification: Notification = {
+      id: Date.now(), message, target, link, read: false, timestamp: new Date().toISOString(),
+    };
+    setNotifications(prev => [newNotification, ...prev]);
+  }, [isQuietZoneActive]);
+  const sendGlobalNotification = useCallback((message: string, link?: string) => { addNotification(message, 'user', link); }, [addNotification]);
+  const markAsRead = useCallback((id: number) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n)), []);
+  const markAllAsRead = useCallback((target: 'user' | 'admin') => setNotifications(prev => prev.map(n => n.target === target ? { ...n, read: true } : n)), []);
+  const clearAllNotifications = useCallback((target: 'user' | 'admin') => setNotifications(prev => prev.filter(n => n.target !== target)), []);
+  
+  // MOCK ADMIN FUNCTIONS - These would be moved to an Admin Context and use API calls
+  const updateOrderStatus = (orderId: string, status: Order['status']) => { setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o)); };
+  const fulfillOrder = (orderId: string, trackingProvider: string, trackingNumber: string) => { setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'Shipped', trackingProvider, trackingNumber } : o)); };
+  const updateProduct = (p: Product) => setProducts(prev => prev.map(i => i.id === p.id ? p : i));
+  const addProduct = (p: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => setProducts(prev => [...prev, { ...p, id: Date.now(), reviews: [], rating: 0, reviewCount: 0 }]);
+  const deleteProduct = (id: number) => setProducts(prev => prev.filter(p => p.id !== id));
+  const addMultipleProducts = (newData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>[]) => setProducts(prev => [...prev, ...newData.map(p => ({ ...p, id: Date.now() + Math.random(), reviews: [], rating: 0, reviewCount: 0 }))]);
+  const addCoupon = (c: Omit<Coupon, 'id'>) => setCoupons(prev => [{ ...c, id: Date.now() }, ...prev]);
+  const updateCoupon = (c: Coupon) => setCoupons(prev => prev.map(i => i.id === c.id ? c : i));
+  const deleteCoupon = (id: number) => setCoupons(prev => prev.filter(c => c.id !== id));
+  
   const toggleQuietZone = useCallback(() => setIsQuietZoneActive(prev => !prev), []);
 
+  // --- DERIVED STATE & MEMOS ---
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
   const wishlistCount = wishlist.length;
@@ -294,55 +296,36 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const coupon = coupons.find(c => c.code.toLowerCase() === code.toLowerCase());
     if (!coupon) return { success: false, message: "Invalid coupon code." };
     if (!coupon.isActive) return { success: false, message: "This coupon is currently inactive." };
-    if (coupon.trigger === 'first_order') {
-      if (!currentUser) return { success: false, message: "You must be logged in." };
-      if (orders.length > 0) return { success: false, message: "This coupon is only for your first order." };
-    }
+    if (coupon.trigger === 'first_order' && (!currentUser || orders.length > 0)) return { success: false, message: "This is for first-time orders only." };
     if (coupon.trigger === 'birthday') {
-      if (!currentUser || !currentUser.birthday) return { success: false, message: "Set your birthday in your profile." };
-      const today = new Date();
-      const userBday = new Date(currentUser.birthday);
-      if (today.getMonth() !== userBday.getMonth() || today.getDate() !== userBday.getDate()) return { success: false, message: "It's not your birthday yet!" };
+      if (!currentUser?.birthday) return { success: false, message: "Set your birthday in your profile." };
+      const today = new Date(); const bday = new Date(currentUser.birthday);
+      if (today.getMonth() !== bday.getMonth() || today.getDate() !== bday.getDate()) return { success: false, message: "It's not your birthday yet!" };
     }
     if (coupon.minPurchase && cartTotal < coupon.minPurchase) return { success: false, message: `Minimum purchase of ₹${coupon.minPurchase} required.` };
-    if (coupon.applicableProductIds?.length) {
-      if (!cart.some(item => coupon.applicableProductIds!.includes(item.id))) return { success: false, message: "Coupon not applicable to items in cart." };
-    }
     setAppliedCoupon(coupon);
     return { success: true, message: "Coupon applied!" };
-  }, [coupons, currentUser, orders, cartTotal, cart]);
+  }, [coupons, currentUser, orders, cartTotal]);
 
   const { cartDiscount, cartFinalTotal } = useMemo(() => {
     let discount = 0;
-    if (appliedCoupon && cart.length > 0) {
-      const isApplicable = !appliedCoupon.minPurchase || cartTotal >= appliedCoupon.minPurchase;
-      if (isApplicable) {
-        if (appliedCoupon.applicableProductIds?.length) {
-          const applicableTotal = cart.filter(item => appliedCoupon.applicableProductIds!.includes(item.id)).reduce((t, i) => t + i.price * i.quantity, 0);
-          discount = appliedCoupon.discountType === 'percentage' ? (applicableTotal * appliedCoupon.discountValue) / 100 : appliedCoupon.discountValue;
-          discount = Math.min(discount, applicableTotal);
-        } else {
-          discount = appliedCoupon.discountType === 'percentage' ? (cartTotal * appliedCoupon.discountValue) / 100 : appliedCoupon.discountValue;
-        }
-      }
+    if (appliedCoupon && cart.length > 0 && (!appliedCoupon.minPurchase || cartTotal >= appliedCoupon.minPurchase)) {
+      discount = appliedCoupon.discountType === 'percentage' ? (cartTotal * appliedCoupon.discountValue) / 100 : appliedCoupon.discountValue;
     }
     discount = Math.min(discount, cartTotal);
     return { cartDiscount: discount, cartFinalTotal: cartTotal - discount };
   }, [cart, cartTotal, appliedCoupon]);
 
-  const addCoupon = useCallback((c: Omit<Coupon, 'id'>) => setCoupons(prev => [{ ...c, id: Date.now() }, ...prev]), []);
-  const updateCoupon = useCallback((c: Coupon) => setCoupons(prev => prev.map(i => i.id === c.id ? c : i)), []);
-  const deleteCoupon = useCallback((id: number) => setCoupons(prev => prev.filter(c => c.id !== id)), []);
 
   return (
     <AppContext.Provider value={{
-      cart, wishlist, orders, user: currentUser, reviews: allReviews, products, categories, notifications, banners, coupons, standaloneImages,
+      cart, wishlist, orders, user: currentUser, products, categories, notifications, banners, coupons,
       setBanners, setCategories, addNotification, sendGlobalNotification, markAsRead, markAllAsRead, clearAllNotifications,
-      addReview, deleteReview, acknowledgeReview, updateOrderStatus, fulfillOrder, updateProduct, addProduct, deleteProduct, addMultipleProducts, addOrder,
+      addReview, updateOrderStatus, fulfillOrder, updateProduct, addProduct, deleteProduct, addMultipleProducts, addCoupon, updateCoupon, deleteCoupon,
       addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,
       appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
-      toggleWishlist, isInWishlist, wishlistCount, loginWithGoogle, logout, updateUser, addUser, findUserByEmail,
-      isQuietZoneActive, toggleQuietZone, addStandaloneImage, addCoupon, updateCoupon, deleteCoupon
+      toggleWishlist, isInWishlist, wishlistCount, loginWithGoogle, logout, updateUser,
+      isQuietZoneActive, toggleQuietZone
     }}>
       {children}
     </AppContext.Provider>

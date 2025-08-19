@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -62,9 +60,9 @@ const ProfilePage: React.FC = () => {
     setOrderToTrack(null);
   };
 
-  const handleReviewSubmit = (rating: number, comment: string) => {
+  const handleReviewSubmit = async (rating: number, comment: string) => {
     if (productToReview) {
-      addReview(productToReview.product.id, productToReview.orderId, rating, comment);
+      await addReview(productToReview.product.id, productToReview.orderId, rating, comment);
     }
     handleCloseReviewModal();
   };
@@ -329,7 +327,7 @@ const CouponsSection: React.FC<{ user: User, orders: Order[], coupons: Coupon[] 
     );
 };
 
-const ProfileInfoSection: React.FC<{ user: User, updateUser: (user: User) => void }> = ({ user, updateUser }) => {
+const ProfileInfoSection: React.FC<{ user: User, updateUser: (user: Partial<User>) => Promise<void> }> = ({ user, updateUser }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         name: user?.name || '',
@@ -349,9 +347,8 @@ const ProfileInfoSection: React.FC<{ user: User, updateUser: (user: User) => voi
 
     if (!user) return null;
 
-    const handleSave = () => {
-        const updatedUser: User = { ...user, ...formData };
-        updateUser(updatedUser);
+    const handleSave = async () => {
+        await updateUser(formData);
         setIsEditing(false);
     };
 
@@ -391,7 +388,7 @@ const ProfileInfoSection: React.FC<{ user: User, updateUser: (user: User) => voi
     );
 };
 
-const AddressManagerSection: React.FC<{ user: User, updateUser: (user: User) => void }> = ({ user, updateUser }) => {
+const AddressManagerSection: React.FC<{ user: User, updateUser: (user: Partial<User>) => Promise<void> }> = ({ user, updateUser }) => {
     const [isFormVisible, setIsFormVisible] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
     const emptyAddress = { id: 0, name: '', street: '', city: '', zip: '' };
@@ -403,24 +400,25 @@ const AddressManagerSection: React.FC<{ user: User, updateUser: (user: User) => 
             ...addr,
             isDefault: addr.id === addressId
         }));
-        updateUser({ ...user, addresses: updatedAddresses });
+        updateUser({ addresses: updatedAddresses });
     };
 
     const handleDelete = (addressId: number) => {
         if (window.confirm('Are you sure you want to delete this address?')) {
             const updatedAddresses = user.addresses.filter(addr => addr.id !== addressId);
-            updateUser({ ...user, addresses: updatedAddresses });
+            updateUser({ addresses: updatedAddresses });
         }
     };
 
     const handleSaveAddress = (address: Omit<Address, 'id'>) => {
+        let updatedAddresses: Address[];
         if (editingAddress) { // Editing
-            const updatedAddresses = user.addresses.map(addr => addr.id === editingAddress.id ? { ...addr, ...address } : addr);
-            updateUser({ ...user, addresses: updatedAddresses });
+            updatedAddresses = user.addresses.map(addr => addr.id === editingAddress.id ? { ...addr, ...address } : addr);
         } else { // Adding new
             const newAddress: Address = { ...address, id: Date.now(), isDefault: user.addresses.length === 0 };
-            updateUser({ ...user, addresses: [...user.addresses, newAddress] });
+            updatedAddresses = [...user.addresses, newAddress];
         }
+        updateUser({ addresses: updatedAddresses });
         setIsFormVisible(false);
         setEditingAddress(null);
     };

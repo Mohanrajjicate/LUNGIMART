@@ -1,0 +1,6 @@
+[
+  { "id": 1, "code": "FESTIVE10", "description": "Get 10% off on all orders above ₹1000", "discountType": "percentage", "discountValue": 10, "minPurchase": 1000, "trigger": "none", "isActive": true },
+  { "id": 2, "code": "LUNGIKING", "description": "₹150 off on Classic Checkered Lungi", "discountType": "fixed", "discountValue": 150, "applicableProductIds": [1], "trigger": "none", "isActive": true },
+  { "id": 3, "code": "NEW50", "description": "Flat ₹50 off on your first order", "discountType": "fixed", "discountValue": 50, "trigger": "first_order", "isActive": true },
+  { "id": 4, "code": "HBD20", "description": "20% off on your birthday! Happy Birthday!", "discountType": "percentage", "discountValue": 20, "trigger": "birthday", "isActive": true }
+]
