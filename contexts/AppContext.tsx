@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner, Address } from '../types';
 import { baseReviews, baseOrders, baseProducts, attachReviewData, mockUsers, baseCategories, baseBanners, mockCoupons, mockWishlists } from '../services/mockData';
@@ -62,6 +63,7 @@ interface AppContextType {
   deleteCoupon: (couponId: number) => void;
   pendingGoogleUser: { name: string; email: string; } | null;
   completeSignup: (details: { name: string; phone: string; birthday: string; address: Omit<Address, 'id' | 'isDefault'> }) => void;
+  deleteAccount: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -226,6 +228,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     clearCart(); // Also clear cart on logout
   }, [clearCart]);
 
+  const deleteAccount = useCallback(() => {
+    if (!currentUser) return;
+
+    const userIdToDelete = currentUser.id;
+
+    // 1. Remove user
+    setAllUsers(prev => prev.filter(u => u.id !== userIdToDelete));
+
+    // 2. Remove user's orders
+    setAllOrders(prev => prev.filter(o => o.userId !== userIdToDelete));
+
+    // 3. Remove user's reviews
+    setAllReviews(prev => prev.filter(r => r.userId !== userIdToDelete));
+
+    // 4. Remove user's wishlist
+    setAllWishlists(prev => {
+      const { [userIdToDelete]: _, ...remainingWishlists } = prev;
+      return remainingWishlists;
+    });
+    
+    // 5. Log the user out (which also clears cart and currentUser)
+    logout();
+
+  }, [currentUser, logout]);
+
   const updateUser = useCallback((updatedUser: User) => {
     setAllUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
     if (currentUser?.id === updatedUser.id) {
@@ -379,7 +406,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
       toggleWishlist, isInWishlist, wishlistCount, loginWithGoogle, logout, updateUser, addUser, findUserByEmail,
       isQuietZoneActive, toggleQuietZone, addStandaloneImage, addCoupon, updateCoupon, deleteCoupon,
-      pendingGoogleUser, completeSignup
+      pendingGoogleUser, completeSignup, deleteAccount
     }}>
       {children}
     </AppContext.Provider>

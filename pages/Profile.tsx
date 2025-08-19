@@ -12,7 +12,7 @@ import AuthComponent from '../components/Login';
 
 // --- Main Profile Page Component --- //
 const ProfilePage: React.FC = () => {
-  const { user, logout, wishlist, orders, addReview, coupons, updateUser } = useAppContext();
+  const { user, logout, wishlist, orders, addReview, coupons, updateUser, deleteAccount } = useAppContext();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
@@ -69,6 +69,12 @@ const ProfilePage: React.FC = () => {
     handleCloseReviewModal();
   };
 
+  const handleDeleteAccount = () => {
+    if (window.confirm('Are you sure you want to delete your account? This will permanently erase your profile, orders, and reviews. This action cannot be undone.')) {
+      deleteAccount();
+    }
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -96,7 +102,7 @@ const ProfilePage: React.FC = () => {
       case 'profile':
         return <ProfileInfoSection user={user} updateUser={updateUser} />;
       case 'address':
-        return <AddressManagerSection user={user} updateUser={updateUser} />;
+        return <AddressManagerSection user={user} updateUser={updateUser} onDeleteAccount={handleDeleteAccount} />;
       default: return null;
     }
   };
@@ -391,7 +397,7 @@ const ProfileInfoSection: React.FC<{ user: User, updateUser: (user: User) => voi
     );
 };
 
-const AddressManagerSection: React.FC<{ user: User, updateUser: (user: User) => void }> = ({ user, updateUser }) => {
+const AddressManagerSection: React.FC<{ user: User, updateUser: (user: User) => void, onDeleteAccount: () => void }> = ({ user, updateUser, onDeleteAccount }) => {
     const [isFormVisible, setIsFormVisible] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
     const emptyAddress = { id: 0, name: '', street: '', city: '', zip: '' };
@@ -455,6 +461,23 @@ const AddressManagerSection: React.FC<{ user: User, updateUser: (user: User) => 
                     />
                 </div>
             )}
+
+            {/* Danger Zone */}
+            <div className="mt-12 pt-6 border-t-2 border-dashed border-red-200">
+                <h3 className="text-lg font-bold text-red-600">Danger Zone</h3>
+                <div className="mt-4 bg-red-50 p-4 rounded-lg flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <p className="font-semibold text-red-800">Delete My Account</p>
+                        <p className="text-sm text-red-700">Permanently remove your account and all associated data.</p>
+                    </div>
+                    <button
+                        onClick={onDeleteAccount}
+                        className="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                        Delete Account
+                    </button>
+                </div>
+            </div>
         </Section>
     );
 };
