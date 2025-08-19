@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -22,8 +23,14 @@ const AuthComponent: React.FC = () => {
             const result = loginWithGoogle({ name, email });
 
             if (result.success) {
-                const from = location.state?.from || '/profile';
-                navigate(from, { replace: true });
+                if (result.isNewUser) {
+                    // New user, redirect to the signup page to complete profile
+                    navigate('/signup', { replace: true });
+                } else {
+                    // Existing user, redirect to profile or original destination
+                    const from = location.state?.from || '/profile';
+                    navigate(from, { replace: true });
+                }
             } else {
                 // In a real app, you would show an error message to the user.
                 console.error(result.message);

@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
-import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner } from '../types';
+import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner, Address } from '../types';
 import { baseReviews, baseOrders, baseProducts, attachReviewData, mockUsers, baseCategories, baseBanners, mockCoupons, mockWishlists } from '../services/mockData';
 import { encrypt, decrypt } from '../utils/crypto';
 
@@ -49,7 +49,7 @@ interface AppContextType {
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: number) => boolean;
   wishlistCount: number;
-  loginWithGoogle: (googleUser: { name: string; email: string; birthday?: string }) => { success: boolean; message: string };
+  loginWithGoogle: (googleUser: { name: string; email: string; }) => { success: boolean; message: string; isNewUser: boolean; };
   logout: () => void;
   updateUser: (updatedUser: User) => void;
   addUser: (userData: Omit<User, 'id' | 'addresses'>) => User;
@@ -60,6 +60,8 @@ interface AppContextType {
   addCoupon: (coupon: Omit<Coupon, 'id'>) => void;
   updateCoupon: (coupon: Coupon) => void;
   deleteCoupon: (couponId: number) => void;
+  pendingGoogleUser: { name: string; email: string; } | null;
+  completeSignup: (details: { name: string; phone: string; birthday: string; address: Omit<Address, 'id' | 'isDefault'> }) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -96,6 +98,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [currentUser, setCurrentUser] = useState<User | null>(() => getInitialState<User | null>('currentUser', null, true));
   const [cart, setCart] = useState<CartItem[]>(() => getInitialState<CartItem[]>('cart', []));
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => getInitialState<Coupon | null>('appliedCoupon', null));
+  const [pendingGoogleUser, setPendingGoogleUser] = useState<{ name: string; email: string; } | null>(() => getInitialState<{ name: string; email:string; } | null>('pendingGoogleUser', null));
 
   // Initialize products with review data
   useEffect(() => {
@@ -137,6 +140,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => { localStorage.setItem('standaloneImages', JSON.stringify(standaloneImages)); }, [standaloneImages]);
   useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
   useEffect(() => { localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon)); }, [appliedCoupon]);
+  useEffect(() => { localStorage.setItem('pendingGoogleUser', JSON.stringify(pendingGoogleUser)); }, [pendingGoogleUser]);
+
   
   // Derived user-specific data for context value
   const userWishlistProductIds = useMemo(() => (currentUser ? allWishlists[currentUser.id] || [] : []), [currentUser, allWishlists]);
@@ -163,26 +168,56 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setNotifications(prev => [newNotification, ...prev]);
   }, []);
 
-  const loginWithGoogle = useCallback((googleUser: { name: string; email: string; birthday?: string }): { success: boolean; message: string } => {
+  const loginWithGoogle = useCallback((googleUser: { name: string; email: string; }): { success: boolean; message: string, isNewUser: boolean } => {
     let user = findUserByEmail(googleUser.email);
 
     if (!user) {
-      // User doesn't exist, so create a new one.
-      const newUser = addUser({
-        name: googleUser.name,
-        email: googleUser.email,
-        phone: '', // Google does not provide a phone number.
-        password: Math.random().toString(36).slice(-8), // Assign a random, unusable password.
-        birthday: googleUser.birthday,
-      });
-      user = newUser;
-      addNotification(`Welcome, ${newUser.name}! Your account has been created.`, 'user', '/profile');
+        // User doesn't exist. Start the onboarding flow.
+        setPendingGoogleUser({ name: googleUser.name, email: googleUser.email });
+        return { success: true, message: "New user, proceeding to signup.", isNewUser: true };
     }
 
-    // Log the user in.
+    // Existing user. Log them in.
     setCurrentUser(user);
-    return { success: true, message: "Logged in successfully with Google." };
-  }, [findUserByEmail, addUser, addNotification]);
+    return { success: true, message: "Logged in successfully with Google.", isNewUser: false };
+  }, [findUserByEmail]);
+  
+  const completeSignup = useCallback((details: { name: string; phone: string; birthday: string; address: Omit<Address, 'id' | 'isDefault'> }) => {
+    if (!pendingGoogleUser) {
+        console.error("Cannot complete signup without a pending Google user.");
+        return;
+    }
+    
+    // 1. Create the new user with personal details
+    const newUser = addUser({
+        name: details.name,
+        email: pendingGoogleUser.email,
+        phone: details.phone,
+        birthday: details.birthday,
+        password: Math.random().toString(36).slice(-8), // Random, unusable password
+    });
+    
+    // 2. Add the address to the newly created user object
+    const newAddress: Address = {
+        ...details.address,
+        id: Date.now() + 1, // ensure unique id
+        isDefault: true,
+    };
+    newUser.addresses.push(newAddress);
+    
+    // 3. Update the user in the main list with the new address
+    setAllUsers(prev => prev.map(u => u.id === newUser.id ? newUser : u));
+    
+    // 4. Log the user in
+    setCurrentUser(newUser);
+    
+    // 5. Clean up
+    setPendingGoogleUser(null);
+    
+    addNotification(`Welcome, ${newUser.name}! Your profile is complete.`, 'user', '/profile');
+
+  }, [pendingGoogleUser, addUser, addNotification]);
+
 
   const removeCoupon = useCallback(() => setAppliedCoupon(null), []);
   const clearCart = useCallback(() => { setCart([]); removeCoupon(); }, [removeCoupon]);
@@ -343,7 +378,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,
       appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
       toggleWishlist, isInWishlist, wishlistCount, loginWithGoogle, logout, updateUser, addUser, findUserByEmail,
-      isQuietZoneActive, toggleQuietZone, addStandaloneImage, addCoupon, updateCoupon, deleteCoupon
+      isQuietZoneActive, toggleQuietZone, addStandaloneImage, addCoupon, updateCoupon, deleteCoupon,
+      pendingGoogleUser, completeSignup
     }}>
       {children}
     </AppContext.Provider>

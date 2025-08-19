@@ -21,6 +21,7 @@ import InvoicePage from './pages/Invoice';
 import SearchPage from './pages/SearchPage';
 import AdminApp from './AdminApp';
 import AdminLoginPage from './pages/admin/AdminLoginPage';
+import SignupPage from './pages/SignupPage';
 
 const App: React.FC = () => {
   return (
@@ -47,6 +48,7 @@ const App: React.FC = () => {
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/invoice/:orderId" element={<InvoicePage />} />
                 <Route path="/search" element={<SearchPage />} />
+                <Route path="/signup" element={<SignupPage />} />
               </Routes>
             </Layout>
           } />
