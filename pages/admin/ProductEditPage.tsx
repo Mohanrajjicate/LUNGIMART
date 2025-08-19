@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { Product } from '../../types';
 import ProductCard from '../../components/ProductCard';
+import ImageGalleryModal from '../../components/admin/ImageGalleryModal';
 
 const ProductEditPage: React.FC = () => {
     const { productId } = useParams<{ productId: string }>();
@@ -23,6 +24,8 @@ const ProductEditPage: React.FC = () => {
     });
     
     const [selectedParentCategory, setSelectedParentCategory] = useState<number | undefined>(undefined);
+    const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+    const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
 
     const parentCategories = useMemo(() => categories.filter(c => !c.parentId && !['all', 'best-selling', 'new-arrivals', 'featured-products'].includes(c.slug)), [categories]);
     const subCategories = useMemo(() => categories.filter(c => c.parentId === selectedParentCategory), [categories, selectedParentCategory]);
@@ -137,6 +140,17 @@ const ProductEditPage: React.FC = () => {
         setFormData(prev => ({ ...prev, description: mockDescription }));
     };
 
+    const openGalleryForImage = (index: number) => {
+        setEditingImageIndex(index);
+        setIsGalleryOpen(true);
+    };
+
+    const handleImageSelectFromGallery = (imageUrl: string) => {
+        if (editingImageIndex !== null) {
+            handleImageUrlChange(editingImageIndex, imageUrl);
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const productData = {
@@ -175,128 +189,142 @@ const ProductEditPage: React.FC = () => {
     }, [formData, isEditing, productId]);
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* Form Column */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold text-slate-800 mb-6">{isEditing ? `Editing: ${formData.name}` : 'Add New Product'}</h2>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">Product Name</label>
-                        <input type="text" name="name" value={formData.name} onChange={handleChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm" />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <div>
-                            <label className="block text-sm font-medium text-slate-700">Category</label>
-                            <select value={selectedParentCategory || ''} onChange={handleParentCategoryChange} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm">
-                                <option value="" disabled>Select a parent category</option>
-                                {parentCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                            </select>
-                        </div>
+        <>
+            <ImageGalleryModal
+                isOpen={isGalleryOpen}
+                onClose={() => setIsGalleryOpen(false)}
+                onSelectImage={handleImageSelectFromGallery}
+            />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                {/* Form Column */}
+                <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold text-slate-800 mb-6">{isEditing ? `Editing: ${formData.name}` : 'Add New Product'}</h2>
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">Sub-category</label>
-                            <select name="category" value={formData.category.id} onChange={handleChange} disabled={subCategories.length === 0} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm disabled:bg-slate-50">
-                                {subCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                                {subCategories.length === 0 && <option>No sub-categories</option>}
-                            </select>
+                            <label className="block text-sm font-medium text-slate-700">Product Name</label>
+                            <input type="text" name="name" value={formData.name} onChange={handleChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm" />
                         </div>
-                    </div>
-                    
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">Virtual Categories</label>
-                        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2 p-3 bg-slate-50 rounded-lg">
-                            {virtualCategoryOptions.map(vc => (
-                                <label key={vc.slug} className="flex items-center gap-2 cursor-pointer">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={(formData.virtualCategories || []).includes(vc.slug)} 
-                                        onChange={() => handleVirtualCategoryChange(vc.slug)}
-                                        className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/50"
-                                    />
-                                    <span className="text-sm text-slate-700">{vc.name}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">Description</label>
-                        <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm"></textarea>
-                        <button type="button" onClick={handleMockAIGenerate} className="mt-2 text-sm font-semibold text-primary hover:underline">
-                            Generate with AI
-                        </button>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                         <div>
-                            <label className="block text-sm font-medium text-slate-700">Price</label>
-                            <input type="number" name="price" value={formData.price} onChange={handleChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm" />
-                        </div>
-                         <div>
-                            <label className="block text-sm font-medium text-slate-700">Original Price</label>
-                            <input type="number" name="originalPrice" value={formData.originalPrice} onChange={handleChange} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm" />
-                        </div>
-                         <div>
-                            <label className="block text-sm font-medium text-slate-700">Stock</label>
-                            <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm" />
-                        </div>
-                    </div>
-                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Product Images</label>
-                        <div className="space-y-4">
-                            {formData.images.map((img, index) => (
-                                <div key={index} className="flex items-center gap-4 p-3 border rounded-lg">
-                                    <img src={img || 'https://via.placeholder.com/80x80.png?text=Preview'} alt={`Preview ${index + 1}`} className="w-20 h-20 object-cover rounded-md bg-slate-100 flex-shrink-0" />
-                                    <div className="flex-grow space-y-2">
-                                        <input type="file" accept="image/*" onChange={(e) => handleImageFileChange(index, e.target.files ? e.target.files[0] : null)} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                                        <div className="flex items-center gap-2"><hr className="flex-grow"/><span className="text-xs text-slate-400">OR</span><hr className="flex-grow"/></div>
-                                        <input type="text" value={img.startsWith('data:image') ? '' : img} placeholder="Paste image URL" onChange={(e) => handleImageUrlChange(index, e.target.value)} className="block w-full rounded-lg border-slate-300 shadow-sm text-sm" />
-                                    </div>
-                                    {formData.images.length > 1 && (
-                                        <button type="button" onClick={() => removeImage(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-md self-start">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        <button type="button" onClick={addImage} className="mt-2 text-sm font-semibold text-primary hover:underline">+ Add Another Image</button>
-                    </div>
-                     <div>
-                        <label className="block text-sm font-medium text-slate-700">Details (one per line)</label>
-                        {formData.details.map((detail, index) => (
-                            <input key={index} type="text" value={detail} onChange={(e) => handleDetailChange(index, e.target.value)} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm mb-2" />
-                        ))}
-                        <button type="button" onClick={addDetail} className="text-sm font-semibold text-primary hover:underline">+ Add Detail</button>
-                    </div>
-
-                    <div className="flex justify-end gap-4 pt-4 border-t">
-                        <button type="button" onClick={() => navigate(-1)} className="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200">Cancel</button>
-                        <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-dark">{isEditing ? 'Save Changes' : 'Add Product'}</button>
-                    </div>
-                </form>
-            </div>
-            
-            {/* Preview Column */}
-            <div className="lg:col-span-1">
-                <div className="sticky top-24">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-4">Live Preview</h3>
-                    <div className="bg-slate-50 p-4 rounded-lg">
-                        {formData.name ? (
-                            <ProductCard product={previewProduct} />
-                        ) : (
-                            <div className="aspect-[4/5] flex flex-col items-center justify-center text-center bg-white rounded-xl border-2 border-dashed text-slate-400 p-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <p className="mt-2 text-sm font-semibold">Product preview will appear here</p>
-                                <p className="text-xs mt-1">Start by entering a product name.</p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div>
+                                <label className="block text-sm font-medium text-slate-700">Category</label>
+                                <select value={selectedParentCategory || ''} onChange={handleParentCategoryChange} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm">
+                                    <option value="" disabled>Select a parent category</option>
+                                    {parentCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                                </select>
                             </div>
-                        )}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700">Sub-category</label>
+                                <select name="category" value={formData.category.id} onChange={handleChange} disabled={subCategories.length === 0} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm disabled:bg-slate-50">
+                                    {subCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                                    {subCategories.length === 0 && <option>No sub-categories</option>}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700">Virtual Categories</label>
+                            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2 p-3 bg-slate-50 rounded-lg">
+                                {virtualCategoryOptions.map(vc => (
+                                    <label key={vc.slug} className="flex items-center gap-2 cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={(formData.virtualCategories || []).includes(vc.slug)} 
+                                            onChange={() => handleVirtualCategoryChange(vc.slug)}
+                                            className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/50"
+                                        />
+                                        <span className="text-sm text-slate-700">{vc.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700">Description</label>
+                            <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm"></textarea>
+                            <button type="button" onClick={handleMockAIGenerate} className="mt-2 text-sm font-semibold text-primary hover:underline">
+                                Generate with AI
+                            </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                             <div>
+                                <label className="block text-sm font-medium text-slate-700">Price</label>
+                                <input type="number" name="price" value={formData.price} onChange={handleChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm" />
+                            </div>
+                             <div>
+                                <label className="block text-sm font-medium text-slate-700">Original Price</label>
+                                <input type="number" name="originalPrice" value={formData.originalPrice} onChange={handleChange} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm" />
+                            </div>
+                             <div>
+                                <label className="block text-sm font-medium text-slate-700">Stock</label>
+                                <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm" />
+                            </div>
+                        </div>
+                         <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Product Images</label>
+                            <div className="space-y-4">
+                                {formData.images.map((img, index) => (
+                                    <div key={index} className="flex items-center gap-4 p-3 border rounded-lg bg-slate-50/50">
+                                        <img src={img || 'https://via.placeholder.com/80x80.png?text=Preview'} alt={`Preview ${index + 1}`} className="w-20 h-20 object-cover rounded-md bg-slate-100 flex-shrink-0" />
+                                        <div className="flex-grow space-y-2">
+                                            <input type="text" value={img.startsWith('data:image') ? 'Uploaded from device' : img} placeholder="Select an image source" readOnly className="block w-full rounded-lg border-slate-300 shadow-sm text-sm bg-white" />
+                                            <div className="flex gap-2">
+                                                <label htmlFor={`upload-file-${index}`} className="cursor-pointer text-center flex-1 text-sm font-semibold py-2 px-4 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors">
+                                                    Upload File
+                                                </label>
+                                                <input type="file" id={`upload-file-${index}`} className="hidden" accept="image/*" onChange={(e) => handleImageFileChange(index, e.target.files ? e.target.files[0] : null)} />
+                                                <button type="button" onClick={() => openGalleryForImage(index)} className="flex-1 text-sm font-semibold py-2 px-4 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors">
+                                                    From Gallery
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {formData.images.length > 1 && (
+                                            <button type="button" onClick={() => removeImage(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-md self-start">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            <button type="button" onClick={addImage} className="mt-2 text-sm font-semibold text-primary hover:underline">+ Add Another Image</button>
+                        </div>
+                         <div>
+                            <label className="block text-sm font-medium text-slate-700">Details (one per line)</label>
+                            {formData.details.map((detail, index) => (
+                                <input key={index} type="text" value={detail} onChange={(e) => handleDetailChange(index, e.target.value)} className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm mb-2" />
+                            ))}
+                            <button type="button" onClick={addDetail} className="text-sm font-semibold text-primary hover:underline">+ Add Detail</button>
+                        </div>
+
+                        <div className="flex justify-end gap-4 pt-4 border-t">
+                            <button type="button" onClick={() => navigate(-1)} className="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200">Cancel</button>
+                            <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-dark">{isEditing ? 'Save Changes' : 'Add Product'}</button>
+                        </div>
+                    </form>
+                </div>
+                
+                {/* Preview Column */}
+                <div className="lg:col-span-1">
+                    <div className="sticky top-24">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-4">Live Preview</h3>
+                        <div className="bg-slate-50 p-4 rounded-lg">
+                            {formData.name ? (
+                                <ProductCard product={previewProduct} />
+                            ) : (
+                                <div className="aspect-[4/5] flex flex-col items-center justify-center text-center bg-white rounded-xl border-2 border-dashed text-slate-400 p-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p className="mt-2 text-sm font-semibold">Product preview will appear here</p>
+                                    <p className="text-xs mt-1">Start by entering a product name.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
