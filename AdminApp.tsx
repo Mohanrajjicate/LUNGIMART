@@ -11,6 +11,7 @@ import ReviewsPage from './pages/admin/ReviewsPage';
 import AppearancePage from './pages/admin/AppearancePage';
 import CouponsPage from './pages/admin/CouponsPage';
 import CouponEditPage from './pages/admin/CouponEditPage';
+import NotificationsPage from './pages/admin/NotificationsPage';
 
 const AdminApp: React.FC = () => {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ const AdminApp: React.FC = () => {
         <Route path="coupons" element={<CouponsPage />} />
         <Route path="coupons/new" element={<CouponEditPage />} />
         <Route path="coupons/edit/:couponId" element={<CouponEditPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
       </Routes>
     </AdminLayout>
   );

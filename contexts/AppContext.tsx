@@ -19,6 +19,7 @@ interface AppContextType {
   setBanners: (banners: Banner[]) => void;
   setCategories: (categories: Category[]) => void;
   addNotification: (message: string, target: 'user' | 'admin', link?: string) => void;
+  sendGlobalNotification: (message: string, link?: string) => void;
   markAsRead: (notificationId: number) => void;
   markAllAsRead: (target: 'user' | 'admin') => void;
   clearAllNotifications: (target: 'user' | 'admin') => void;
@@ -181,6 +182,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
       setNotifications(prev => [newNotification, ...prev]);
   };
+  const sendGlobalNotification = (message: string, link?: string) => {
+    addNotification(message, 'user', link);
+  };
   const markAsRead = (id: number) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   const markAllAsRead = (target: 'user' | 'admin') => setNotifications(prev => prev.map(n => n.target === target ? { ...n, read: true } : n));
   const clearAllNotifications = (target: 'user' | 'admin') => setNotifications(prev => prev.filter(n => n.target !== target));
@@ -316,7 +320,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   return (
     <AppContext.Provider value={{
       cart, wishlist, orders, user: currentUser, reviews: allReviews, products, categories, notifications, banners, coupons,
-      setBanners, setCategories, addNotification, markAsRead, markAllAsRead, clearAllNotifications,
+      setBanners, setCategories, addNotification, sendGlobalNotification, markAsRead, markAllAsRead, clearAllNotifications,
       addReview, deleteReview, acknowledgeReview, updateOrderStatus, fulfillOrder, updateProduct, addProduct, deleteProduct, addMultipleProducts, addOrder,
       addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,
       appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
