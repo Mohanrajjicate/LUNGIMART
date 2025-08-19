@@ -1,6 +1,0 @@
-[
-    { "id": "LM-1024", "userId": 1, "date": "2023-10-15", "total": 1398, "status": "Delivered", "customerName": "Suresh P.", "paymentMethod": "Prepaid", "trackingProvider": "Delhivery", "trackingNumber": "AWB987654321", "items": [{ "productId": 1, "quantity": 1 }, { "productId": 5, "quantity": 1 }], "reviewedProducts": { "1": true, "5": false } },
-    { "id": "LM-1023", "userId": 2, "date": "2023-10-01", "total": 899, "status": "Delivered", "customerName": "Ramesh K.", "paymentMethod": "Prepaid", "trackingProvider": "Blue Dart", "trackingNumber": "BD123456789", "items": [{ "productId": 2, "quantity": 1 }], "reviewedProducts": { "2": true } },
-    { "id": "LM-1022", "userId": 3, "date": "2023-09-29", "total": 950, "status": "Shipped", "customerName": "Gopal V.", "paymentMethod": "Prepaid", "trackingProvider": "Ecom Express", "trackingNumber": "EE987123456", "items": [{ "productId": 4, "quantity": 1 }], "reviewedProducts": {} },
-    { "id": "LM-1021", "userId": 4, "date": "2023-09-28", "total": 550, "status": "Processing", "customerName": "Anitha", "paymentMethod": "Prepaid", "items": [{ "productId": 6, "quantity": 1 }], "reviewedProducts": { "6": false } }
-]

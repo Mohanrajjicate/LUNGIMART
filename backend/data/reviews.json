@@ -1,6 +1,0 @@
-[
-    { "id": 1, "productId": 1, "userId": 2, "author": "Ramesh K.", "rating": 5, "comment": "Excellent quality and very comfortable.", "date": "2023-10-10", "verifiedBuyer": true, "acknowledged": true },
-    { "id": 2, "productId": 1, "userId": 1, "author": "Suresh P.", "rating": 4, "comment": "Good value for money. Color is vibrant.", "date": "2023-10-12", "verifiedBuyer": true, "acknowledged": true },
-    { "id": 3, "productId": 2, "userId": 4, "author": "Anitha", "rating": 5, "comment": "Soft material, my husband loves it!", "date": "2023-09-20", "verifiedBuyer": true, "acknowledged": true },
-    { "id": 4, "productId": 4, "userId": 3, "author": "Gopal V.", "rating": 4, "comment": "The party colors are perfect. Very happy with the purchase.", "date": "2023-08-15", "verifiedBuyer": true, "acknowledged": true }
-]

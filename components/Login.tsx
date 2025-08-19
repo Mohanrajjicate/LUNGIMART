@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -11,21 +12,24 @@ const AuthComponent: React.FC = () => {
     const location = useLocation();
     const googleButtonRef = useRef<HTMLDivElement>(null);
 
-    const handleGoogleCallback = useCallback(async (response: any) => {
+    const handleGoogleCallback = useCallback((response: any) => {
         try {
-            // Decode the JWT to get user info.
+            // In a real app, send `response.credential` (the JWT) to your backend for verification.
+            // For this simulation, we'll decode it on the client side.
             const userObject = JSON.parse(atob(response.credential.split('.')[1]));
             const { name, email } = userObject;
 
-            // Call the context function which now hits the backend API.
-            await loginWithGoogle({ name, email });
+            const result = loginWithGoogle({ name, email });
 
-            const from = location.state?.from || '/profile';
-            navigate(from, { replace: true });
-
+            if (result.success) {
+                const from = location.state?.from || '/profile';
+                navigate(from, { replace: true });
+            } else {
+                // In a real app, you would show an error message to the user.
+                console.error(result.message);
+            }
         } catch (e) {
-            console.error("Error processing Google login:", e);
-            // Optionally show an error message to the user
+            console.error("Error decoding Google credential:", e);
         }
     }, [loginWithGoogle, navigate, location.state]);
 

@@ -1,5 +1,8 @@
+
+
 import React, { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { getAvailableCouponsForProduct } from '../services/mockData';
 import { useAppContext } from '../contexts/AppContext';
 import ProductCard from '../components/ProductCard';
 import StarRating from '../components/StarRating';
@@ -13,18 +16,10 @@ const SocialShareIcon: React.FC<{ href: string; children: React.ReactNode; label
 
 const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { products, addToCart, toggleWishlist, isInWishlist, coupons } = useAppContext();
+  const { products, addToCart, toggleWishlist, isInWishlist } = useAppContext();
   
   const product = useMemo(() => products.find(p => p.slug === slug), [slug, products]);
-  
-  const availableCoupons = useMemo(() => {
-    if (!product) return [];
-    return coupons.filter(coupon => {
-        if (!coupon.isActive || coupon.trigger !== 'none') return false;
-        if (!coupon.applicableProductIds || coupon.applicableProductIds.length === 0) return true;
-        return coupon.applicableProductIds.includes(product.id);
-    });
-  }, [product, coupons]);
+  const availableCoupons = useMemo(() => product ? getAvailableCouponsForProduct(product.id) : [], [product]);
   
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
@@ -64,7 +59,7 @@ const ProductDetailPage: React.FC = () => {
   const inWishlist = isInWishlist(product.id);
   const hasDiscount = product.originalPrice && product.originalPrice > product.price;
   const discountPercentage = hasDiscount ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) : 0;
-  const relatedProducts = products.filter(p => p.id !== product.id && p.category.id === product.category.id).slice(0, 4);
+  const relatedProducts = products.filter(p => p.id !== product.id).slice(0, 4);
 
   const reviewsRef = React.useRef<HTMLDivElement>(null);
   const handleReviewsLinkClick = () => {

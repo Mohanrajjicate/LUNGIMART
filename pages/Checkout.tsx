@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -11,7 +13,8 @@ const RAZORPAY_KEY_ID = 'rzp_test_R6kCJ5gvBdee0Y';
 const CheckoutPage: React.FC = () => {
     const { 
         user, updateUser, cart, cartCount, cartTotal, 
-        appliedCoupon, cartDiscount, cartFinalTotal, addOrder
+        appliedCoupon, cartDiscount, cartFinalTotal,
+        addOrder, clearCart
     } = useAppContext();
     const navigate = useNavigate();
     
@@ -51,26 +54,23 @@ const CheckoutPage: React.FC = () => {
         }
     }, [isOrderPlaced]);
 
-    const handleSaveAddress = async (e: React.FormEvent) => {
+    const handleSaveAddress = (e: React.FormEvent) => {
         e.preventDefault();
         if (user && newAddress.name && newAddress.street && newAddress.city && newAddress.zip) {
             const newId = Date.now();
             const addressToAdd: Address = { id: newId, ...newAddress, isDefault: user.addresses.length === 0 };
-            const newAddresses = [...user.addresses, addressToAdd];
-            await updateUser({ addresses: newAddresses });
+            const updatedUser = { ...user, addresses: [...user.addresses, addressToAdd] };
+            updateUser(updatedUser);
             setSelectedAddressId(newId);
             setIsAddingNewAddress(false);
             setNewAddress({ name: '', street: '', city: '', zip: '' });
         }
     };
 
-    const processOrderCompletion = async () => {
-        try {
-            await addOrder(cart, cartFinalTotal);
-            setIsOrderPlaced(true);
-        } catch (error) {
-            alert('There was an error placing your order. Please try again.');
-        }
+    const processOrderCompletion = () => {
+        addOrder(cart, cartFinalTotal);
+        clearCart();
+        setIsOrderPlaced(true);
     };
     
     const finalTotalWithShipping = cartFinalTotal + 50;
