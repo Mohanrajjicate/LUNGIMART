@@ -80,42 +80,48 @@ const HomePage: React.FC = () => {
   };
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
-  // Logic for category scroller
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const checkScrollButtons = useCallback(() => {
-    const el = scrollContainerRef.current;
-    if (el) {
-        const tolerance = 1;
-        const isScrollable = el.scrollWidth > el.clientWidth + tolerance;
-        setCanScrollLeft(el.scrollLeft > tolerance);
-        setCanScrollRight(isScrollable && el.scrollLeft < el.scrollWidth - el.clientWidth - tolerance);
+  const checkScrollability = useCallback(() => {
+    const element = scrollContainerRef.current;
+    if (element) {
+      if (window.innerWidth >= 768) { // md breakpoint
+        const hasOverflow = element.scrollWidth > element.clientWidth;
+        setCanScrollLeft(element.scrollLeft > 0);
+        setCanScrollRight(hasOverflow && element.scrollLeft < element.scrollWidth - element.clientWidth - 1);
+      } else {
+        setCanScrollLeft(false);
+        setCanScrollRight(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-      const el = scrollContainerRef.current;
-      if (el) {
-          const timer = setTimeout(checkScrollButtons, 100);
-          el.addEventListener('scroll', checkScrollButtons);
-          window.addEventListener('resize', checkScrollButtons);
-          return () => {
-              clearTimeout(timer);
-              el.removeEventListener('scroll', checkScrollButtons);
-              window.removeEventListener('resize', checkScrollButtons);
-          };
-      }
-  }, [checkScrollButtons, mainCategories]);
+    const element = scrollContainerRef.current;
+    if (element) {
+      checkScrollability();
+      const handleResize = () => checkScrollability();
+      const handleScroll = () => checkScrollability();
+      
+      window.addEventListener('resize', handleResize);
+      element.addEventListener('scroll', handleScroll);
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        element.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [checkScrollability]);
 
   const handleScroll = (direction: 'left' | 'right') => {
-      const el = scrollContainerRef.current;
-      if (el) {
-          const scrollAmount = el.clientWidth * 0.7;
-          el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
-      }
+    const element = scrollContainerRef.current;
+    if (element) {
+      const scrollAmount = element.clientWidth * 0.7;
+      element.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
   };
+
 
   const ProductSection: React.FC<{title: string; description: string; link: string; products: any[]; loading: boolean; count: number;}> = ({ title, description, link, products, loading, count }) => (
     <section>
@@ -182,39 +188,45 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Categories Section */}
-      <section>
+      <section className="relative group/section">
         <h2 className="text-3xl font-bold text-center text-slate-900 mb-10">Our Collections</h2>
-        <div className="relative">
-            <div
-              ref={scrollContainerRef}
-              className="flex justify-start md:justify-center items-start gap-4 md:gap-8 overflow-x-auto pb-4 no-scrollbar scroll-smooth"
-            >
-              {mainCategories.map((cat) => (
-                <Link key={cat.id} to={`/shop/${cat.slug}`} className="text-center group flex-shrink-0">
-                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg transform group-hover:scale-105 group-hover:shadow-xl transition-all duration-300">
-                    <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
-                  </div>
-                  <p className="mt-4 font-semibold text-slate-700 group-hover:text-primary transition-colors">{cat.name}</p>
-                </Link>
-              ))}
-            </div>
-             {/* Mobile Scroll Buttons */}
-            <div className="md:hidden absolute top-[4rem] -translate-y-1/2 w-full flex justify-between items-center px-2 pointer-events-none">
-              <button
-                onClick={() => handleScroll('left')}
-                className={`w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-slate-600 transition-opacity pointer-events-auto ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}
-                aria-label="Scroll left"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <button
-                onClick={() => handleScroll('right')}
-                className={`w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-slate-600 transition-opacity pointer-events-auto ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}
-                aria-label="Scroll right"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-              </button>
-            </div>
+
+        {/* Desktop Scroll Buttons */}
+        {canScrollLeft && (
+          <button 
+            onClick={() => handleScroll('left')}
+            className="hidden md:flex absolute top-1/2 left-0 -translate-y-1/2 z-20 bg-white/70 backdrop-blur-sm rounded-full w-12 h-12 items-center justify-center shadow-lg hover:bg-white transition-opacity duration-300 opacity-0 group-hover/section:opacity-100"
+            aria-label="Scroll left"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+        {canScrollRight && (
+          <button 
+            onClick={() => handleScroll('right')}
+            className="hidden md:flex absolute top-1/2 right-0 -translate-y-1/2 z-20 bg-white/70 backdrop-blur-sm rounded-full w-12 h-12 items-center justify-center shadow-lg hover:bg-white transition-opacity duration-300 opacity-0 group-hover/section:opacity-100"
+            aria-label="Scroll right"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
+        
+        <div
+          ref={scrollContainerRef}
+          className="flex justify-start items-start gap-4 md:gap-8 overflow-x-auto pb-4 no-scrollbar scroll-smooth"
+        >
+          {mainCategories.map((cat) => (
+            <Link key={cat.id} to={`/shop/${cat.slug}`} className="text-center group flex-shrink-0">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg transform group-hover:scale-105 group-hover:shadow-xl transition-all duration-300">
+                <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+              </div>
+              <p className="mt-4 font-semibold text-slate-700 group-hover:text-primary transition-colors">{cat.name}</p>
+            </Link>
+          ))}
         </div>
       </section>
       
