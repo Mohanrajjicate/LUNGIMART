@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner, Address } from '../types';
+import { useToast } from './ToastContext';
 
 interface AppContextType {
   cart: CartItem[];
@@ -15,6 +16,8 @@ interface AppContextType {
   banners: Banner[];
   coupons: Coupon[];
   standaloneImages: string[];
+  isLoading: boolean;
+  error: string | null;
   setBanners: (banners: Banner[]) => void;
   setCategories: (categories: Category[]) => void;
   addNotification: (message: string, target: 'user' | 'admin', link?: string) => void;
@@ -43,7 +46,7 @@ interface AppContextType {
   cartFinalTotal: number;
   applyCoupon: (couponCode: string) => { success: boolean; message: string };
   removeCoupon: () => void;
-  toggleWishlist: (product: Product) => void;
+  toggleWishlist: (product: Product) => Promise<void>;
   isInWishlist: (productId: number) => boolean;
   wishlistCount: number;
   loginWithGoogle: (googleUser: { name: string; email: string; }) => Promise<{ success: boolean; message: string; isNewUser: boolean; }>;
@@ -102,6 +105,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [standaloneImages, setStandaloneImages] = useState<string[]>([]); // This can be derived
   const [pendingGoogleUser, setPendingGoogleUser] = useState<{ name: string; email: string; } | null>(() => getLocalStorageState<{ name: string; email:string; } | null>('pendingGoogleUser', null));
   const [allWishlists, setAllWishlists] = useState<{ [userId: number]: number[] }>(() => getLocalStorageState('allWishlists', {}));
+  
+  const { addToast } = useToast();
 
   // --- DATA FETCHING ---
   useEffect(() => {
@@ -366,7 +371,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         ? prev.map(i => i.id === product.id ? { ...i, quantity: Math.min(i.quantity + quantity, product.stock) } : i)
         : [...prev, { ...product, quantity }];
     });
-  }, []);
+    addToast(`${product.name} added to cart!`);
+  }, [addToast]);
+  
   const removeFromCart = useCallback((id: number) => setCart(prev => prev.filter(i => i.id !== id)), []);
   const updateQuantity = useCallback((id: number, quantity: number) => {
     const product = products.find(p => p.id === id);
@@ -375,16 +382,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     else setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: Math.min(quantity, product.stock) } : i));
   }, [products, removeFromCart]);
 
-  const toggleWishlist = useCallback((product: Product) => {
-    if (!currentUser) return;
+  const toggleWishlist = useCallback(async (product: Product) => {
+    if (!currentUser) {
+        addToast("Please sign in to use the wishlist.", "info");
+        return;
+    }
+    // Optimistic UI update
+    const wasInWishlist = (allWishlists[currentUser.id] || []).includes(product.id);
     setAllWishlists(prev => {
       const currentWishlist = prev[currentUser.id] || [];
-      const newWishlist = currentWishlist.includes(product.id)
+      const newWishlist = wasInWishlist
         ? currentWishlist.filter(id => id !== product.id)
         : [...currentWishlist, product.id];
       return { ...prev, [currentUser.id]: newWishlist };
     });
-  }, [currentUser]);
+    addToast(wasInWishlist ? `${product.name} removed from wishlist.` : `${product.name} added to wishlist!`);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 300));
+    // In a real app, you would handle API call success/failure here.
+  }, [currentUser, allWishlists, addToast]);
+  
   const isInWishlist = useCallback((productId: number) => {
     if (!currentUser) return false;
     return (allWishlists[currentUser.id] || []).includes(productId);
@@ -401,8 +419,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (coupon.trigger === 'first_order' && orders.length > 0) return { success: false, message: "This coupon is only for your first order." };
     if (coupon.minPurchase && cartTotal < coupon.minPurchase) return { success: false, message: `Minimum purchase of ₹${coupon.minPurchase} required.` };
     setAppliedCoupon(coupon);
+    addToast("Coupon applied successfully!", "success");
     return { success: true, message: "Coupon applied!" };
-  }, [coupons, orders, cartTotal]);
+  }, [coupons, orders, cartTotal, addToast]);
 
   const { cartDiscount, cartFinalTotal } = useMemo(() => {
     let discount = 0;
@@ -429,32 +448,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateCoupon = () => {};
   const deleteCoupon = () => {};
 
-  if (isLoading) {
-      return (
-          <div className="flex justify-center items-center min-h-screen">
-              <div className="text-center">
-                  <p className="text-2xl font-bold tracking-tight text-slate-900">LungiMart.in</p>
-                  <p className="mt-2 text-slate-600">Loading authentic weaves...</p>
-              </div>
-          </div>
-      );
-  }
-
-  if(error) {
-       return (
-          <div className="flex justify-center items-center min-h-screen">
-              <div className="text-center p-8 bg-red-50 rounded-lg">
-                  <p className="text-xl font-bold text-red-700">Oops! Something went wrong.</p>
-                  <p className="mt-2 text-red-600">{error}</p>
-                   <p className="mt-4 text-sm text-slate-500">Please try refreshing the page.</p>
-              </div>
-          </div>
-      );
-  }
-
   return (
     <AppContext.Provider value={{
       cart, wishlist, orders, allOrders, users, user: currentUser, reviews: allReviews, products, categories, notifications, banners, coupons, standaloneImages,
+      isLoading, error,
       setBanners, setCategories, addNotification, sendGlobalNotification, markAsRead, markAllAsRead, clearAllNotifications,
       addReview, deleteReview, acknowledgeReview, updateOrderStatus, fulfillOrder, updateProduct, addProduct, deleteProduct, addMultipleProducts, addOrder,
       addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,

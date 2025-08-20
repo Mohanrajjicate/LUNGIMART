@@ -1,12 +1,14 @@
 
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
+import SkeletonCard from '../components/skeletons/SkeletonCard';
 
 const HomePage: React.FC = () => {
-  const { products, banners, categories } = useAppContext();
+  const { products, banners, categories, isLoading } = useAppContext();
 
   const getBannerUrl = (id: string, fallback: string) => {
     const banner = banners.find(b => b.id === id);
@@ -77,6 +79,27 @@ const HomePage: React.FC = () => {
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  const ProductSection: React.FC<{title: string; description: string; link: string; products: any[]; loading: boolean; count: number;}> = ({ title, description, link, products, loading, count }) => (
+    <section>
+        <div className="flex justify-between items-baseline mb-8">
+            <div>
+                <h2 className="text-3xl font-bold text-slate-900">{title}</h2>
+                <p className="text-slate-600 mt-2">{description}</p>
+            </div>
+            <Link to={link} className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
+                View All &rarr;
+            </Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {loading ? (
+                Array.from({ length: count }).map((_, i) => <SkeletonCard key={i} />)
+            ) : (
+                products.map(p => <ProductCard key={p.id} product={p} />)
+            )}
+        </div>
+      </section>
+  );
+
   return (
     <div className="space-y-16 md:space-y-24">
       {/* Hero Section */}
@@ -137,22 +160,8 @@ const HomePage: React.FC = () => {
           ))}
         </div>
       </section>
-
-      {/* Best Selling */}
-      <section>
-        <div className="flex justify-between items-baseline mb-8">
-            <div>
-                <h2 className="text-3xl font-bold text-slate-900">Best Selling</h2>
-                <p className="text-slate-600 mt-2">Handpicked for quality and comfort, loved by our customers.</p>
-            </div>
-            <Link to="/shop/best-selling" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
-                View All &rarr;
-            </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {bestSellingProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
+      
+      <ProductSection title="Best Selling" description="Handpicked for quality and comfort, loved by our customers." link="/shop/best-selling" products={bestSellingProducts} loading={isLoading} count={8} />
 
       {/* Two Banner Section */}
       <section>
@@ -187,37 +196,8 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Recent Products */}
-      <section>
-        <div className="flex justify-between items-baseline mb-8">
-            <div>
-                <h2 className="text-3xl font-bold text-slate-900">Recent Products</h2>
-                <p className="text-slate-600 mt-2">Check out the latest additions to our collection.</p>
-            </div>
-            <Link to="/shop/new-arrivals" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
-                View All &rarr;
-            </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {recentProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section>
-        <div className="flex justify-between items-baseline mb-8">
-            <div>
-                <h2 className="text-3xl font-bold text-slate-900">Featured Products</h2>
-                <p className="text-slate-600 mt-2">Specially selected products we think you'll love.</p>
-            </div>
-            <Link to="/shop/featured-products" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
-                View All &rarr;
-            </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {featuredProductsData.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
+      <ProductSection title="Recent Products" description="Check out the latest additions to our collection." link="/shop/new-arrivals" products={recentProducts} loading={isLoading} count={4} />
+      <ProductSection title="Featured Products" description="Specially selected products we think you'll love." link="/shop/featured-products" products={featuredProductsData} loading={isLoading} count={4} />
 
       {/* Festival Offer Banner */}
       {/* TODO: The backgroundImage URL and offer details can be fetched from a database. */}
@@ -233,102 +213,13 @@ const HomePage: React.FC = () => {
             </div>
           </div>
        </section>
-
-      {/* Lungi Collection */}
-      <section>
-        <div className="flex justify-between items-baseline mb-8">
-            <div>
-                <h2 className="text-3xl font-bold text-slate-900">Lungi Collection</h2>
-                <p className="text-slate-600 mt-2">Explore our wide range of comfortable and stylish lungis.</p>
-            </div>
-            <Link to="/shop/lungi" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
-                View All &rarr;
-            </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {lungiProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
-
-      {/* Dhoti Collection */}
-      <section>
-        <div className="flex justify-between items-baseline mb-8">
-            <div>
-                <h2 className="text-3xl font-bold text-slate-900">Dhoti Collection</h2>
-                <p className="text-slate-600 mt-2">Traditional and elegant dhotis for every occasion.</p>
-            </div>
-            <Link to="/shop/dhoti" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
-                View All &rarr;
-            </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {dhotiProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
       
-      {/* Matching Sets */}
-      <section>
-        <div className="flex justify-between items-baseline mb-8">
-            <div>
-                <h2 className="text-3xl font-bold text-slate-900">Matching Sets</h2>
-                <p className="text-slate-600 mt-2">Complete your look with our matching dhoti and angavastram sets.</p>
-            </div>
-            <Link to="/shop/matching-dhoti" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
-                View All &rarr;
-            </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {matchingDhotiProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
-
-      {/* Temple Vibe */}
-      <section>
-        <div className="flex justify-between items-baseline mb-8">
-            <div>
-                <h2 className="text-3xl font-bold text-slate-900">Temple Vibe</h2>
-                <p className="text-slate-600 mt-2">Pure and elegant wear for your spiritual occasions.</p>
-            </div>
-            <Link to="/shop/temple-vibe" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
-                View All &rarr;
-            </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {templeVibeProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
-
-      {/* Political Party Wear */}
-      <section>
-        <div className="flex justify-between items-baseline mb-8">
-            <div>
-                <h2 className="text-3xl font-bold text-slate-900">Political Party Wear</h2>
-                <p className="text-slate-600 mt-2">Show your support with our premium quality collection.</p>
-            </div>
-            <Link to="/shop/political-party" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
-                View All &rarr;
-            </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {politicalProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
-
-       {/* Towel Collection */}
-      <section>
-        <div className="flex justify-between items-baseline mb-8">
-            <div>
-                <h2 className="text-3xl font-bold text-slate-900">Our Towel Collection</h2>
-                <p className="text-slate-600 mt-2">Soft, absorbent, and durable towels for everyday use.</p>
-            </div>
-            <Link to="/shop/towel" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap">
-                View All &rarr;
-            </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {towelProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
+      <ProductSection title="Lungi Collection" description="Explore our wide range of comfortable and stylish lungis." link="/shop/lungi" products={lungiProducts} loading={isLoading} count={4} />
+      <ProductSection title="Dhoti Collection" description="Traditional and elegant dhotis for every occasion." link="/shop/dhoti" products={dhotiProducts} loading={isLoading} count={4} />
+      <ProductSection title="Matching Sets" description="Complete your look with our matching dhoti and angavastram sets." link="/shop/matching-dhoti" products={matchingDhotiProducts} loading={isLoading} count={4} />
+      <ProductSection title="Temple Vibe" description="Pure and elegant wear for your spiritual occasions." link="/shop/temple-vibe" products={templeVibeProducts} loading={isLoading} count={4} />
+      <ProductSection title="Political Party Wear" description="Show your support with our premium quality collection." link="/shop/political-party" products={politicalProducts} loading={isLoading} count={4} />
+      <ProductSection title="Our Towel Collection" description="Soft, absorbent, and durable towels for everyday use." link="/shop/towel" products={towelProducts} loading={isLoading} count={4} />
       
       {/* Why Our Products Section */}
       <section className="bg-white p-8 rounded-2xl">

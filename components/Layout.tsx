@@ -3,6 +3,7 @@ import NavBar from './NavBar';
 import Footer from './Footer';
 import BottomNavBar from './BottomNavBar';
 import SearchOverlay from './SearchOverlay';
+import ToastContainer from './ToastContainer';
 
 interface LayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Footer />
       <BottomNavBar onSearchClick={() => setIsSearchOpen(true)} />
       {isSearchOpen && <SearchOverlay onClose={() => setIsSearchOpen(false)} />}
+      <ToastContainer />
     </div>
   );
 };

@@ -29,7 +29,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="relative overflow-hidden pt-[100%] bg-slate-100">
         <img 
           src={product.images[0]} 
-          alt={product.name} 
+          alt={product.name}
+          loading="lazy"
           className="absolute top-0 left-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
         />
         <button 

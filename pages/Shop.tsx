@@ -1,13 +1,15 @@
 
 
+
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
+import SkeletonCard from '../components/skeletons/SkeletonCard';
 
 const ShopPage: React.FC = () => {
   const { categorySlug } = useParams<{ categorySlug?: string }>();
-  const { products, categories } = useAppContext();
+  const { products, categories, isLoading } = useAppContext();
   const [sortOption, setSortOption] = useState('featured');
   
   const activeCategorySlug = categorySlug || 'all';
@@ -188,7 +190,11 @@ const ShopPage: React.FC = () => {
                 </select>
             </div>
         </div>
-        {filteredProducts.length > 0 ? (
+        {isLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {filteredProducts.map(product => (
               <ProductCard key={product.id} product={product} />
