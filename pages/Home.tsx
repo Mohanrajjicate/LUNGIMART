@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
@@ -83,36 +83,40 @@ const HomePage: React.FC = () => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const checkScrollability = useCallback(() => {
-    const element = scrollContainerRef.current;
-    if (element) {
-      if (window.innerWidth >= 768) { // md breakpoint
-        const hasOverflow = element.scrollWidth > element.clientWidth;
-        setCanScrollLeft(element.scrollLeft > 0);
-        setCanScrollRight(hasOverflow && element.scrollLeft < element.scrollWidth - element.clientWidth - 1);
-      } else {
-        setCanScrollLeft(false);
-        setCanScrollRight(false);
-      }
-    }
-  }, []);
-
   useEffect(() => {
     const element = scrollContainerRef.current;
-    if (element) {
-      checkScrollability();
-      const handleResize = () => checkScrollability();
-      const handleScroll = () => checkScrollability();
-      
-      window.addEventListener('resize', handleResize);
-      element.addEventListener('scroll', handleScroll);
+    if (!element) return;
 
-      return () => {
-        window.removeEventListener('resize', handleResize);
-        element.removeEventListener('scroll', handleScroll);
-      };
-    }
-  }, [checkScrollability]);
+    const checkScrollability = () => {
+      // Only show buttons on desktop
+      if (window.innerWidth < 768) { // md breakpoint
+        setCanScrollLeft(false);
+        setCanScrollRight(false);
+        return;
+      }
+      
+      const tolerance = 2; // A small tolerance for floating point inaccuracies
+      const hasOverflow = element.scrollWidth > element.clientWidth + tolerance;
+      setCanScrollLeft(element.scrollLeft > tolerance);
+      setCanScrollRight(hasOverflow && element.scrollLeft < element.scrollWidth - element.clientWidth - tolerance);
+    };
+
+    // Initial check and setup listeners
+    checkScrollability();
+    element.addEventListener('scroll', checkScrollability);
+    window.addEventListener('resize', checkScrollability);
+    
+    // Observer for content changes (e.g., when categories load)
+    const observer = new ResizeObserver(checkScrollability);
+    observer.observe(element);
+
+    // Cleanup
+    return () => {
+      element.removeEventListener('scroll', checkScrollability);
+      window.removeEventListener('resize', checkScrollability);
+      observer.disconnect();
+    };
+  }, [isLoading]); // Re-run when loading is finished to ensure content is measured
 
   const handleScroll = (direction: 'left' | 'right') => {
     const element = scrollContainerRef.current;

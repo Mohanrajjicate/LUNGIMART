@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
@@ -95,29 +94,30 @@ const ShopPage: React.FC = () => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const checkScrollButtons = useCallback(() => {
+  useEffect(() => {
     const el = scrollContainerRef.current;
-    if (el) {
+    if (!el) return;
+
+    const checkScrollButtons = () => {
         const tolerance = 1;
         const isScrollable = el.scrollWidth > el.clientWidth + tolerance;
         setCanScrollLeft(el.scrollLeft > tolerance);
         setCanScrollRight(isScrollable && el.scrollLeft < el.scrollWidth - el.clientWidth - tolerance);
-    }
-  }, []);
+    };
 
-  useEffect(() => {
-      const el = scrollContainerRef.current;
-      if (el) {
-          const timer = setTimeout(checkScrollButtons, 100);
-          el.addEventListener('scroll', checkScrollButtons);
-          window.addEventListener('resize', checkScrollButtons);
-          return () => {
-              clearTimeout(timer);
-              el.removeEventListener('scroll', checkScrollButtons);
-              window.removeEventListener('resize', checkScrollButtons);
-          };
-      }
-  }, [checkScrollButtons]);
+    checkScrollButtons();
+    el.addEventListener('scroll', checkScrollButtons);
+    window.addEventListener('resize', checkScrollButtons);
+    
+    const observer = new ResizeObserver(checkScrollButtons);
+    observer.observe(el);
+
+    return () => {
+        el.removeEventListener('scroll', checkScrollButtons);
+        window.removeEventListener('resize', checkScrollButtons);
+        observer.disconnect();
+    };
+  }, [isLoading]);
 
   const handleScroll = (direction: 'left' | 'right') => {
       const el = scrollContainerRef.current;

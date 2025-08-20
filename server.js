@@ -1,7 +1,6 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const emailService = require('./services/emailService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -161,9 +160,6 @@ app.post('/api/signup', (req, res) => {
     };
     mockUsers.push(newUser);
     
-    // Send welcome email
-    emailService.sendWelcomeEmail(newUser);
-
     const { password: _, ...userWithoutPassword } = newUser;
     res.json({ success: true, user: userWithoutPassword });
 });
@@ -187,11 +183,7 @@ app.post('/api/orders', (req, res) => {
     };
     baseOrders.unshift(newOrder);
 
-    // Send order confirmation email
     const user = mockUsers.find(u => u.id === parseInt(userId));
-    if (user) {
-        emailService.sendOrderConfirmationEmail(user, newOrder);
-    }
 
     res.status(201).json({ success: true, order: newOrder });
 });
@@ -206,14 +198,6 @@ app.put('/api/orders/:orderId', (req, res) => {
         if (status) baseOrders[orderIndex].status = status;
         if (trackingProvider) baseOrders[orderIndex].trackingProvider = trackingProvider;
         if (trackingNumber) baseOrders[orderIndex].trackingNumber = trackingNumber;
-        
-        // If status changed to 'Shipped', send email
-        if (status === 'Shipped' && originalStatus !== 'Shipped') {
-            const user = mockUsers.find(u => u.id === baseOrders[orderIndex].userId);
-            if (user) {
-                emailService.sendShippingUpdateEmail(user, baseOrders[orderIndex]);
-            }
-        }
         
         res.json({ success: true, order: baseOrders[orderIndex] });
     } else {
@@ -268,10 +252,10 @@ app.post('/api/notifications/global', (req, res) => {
         return res.status(400).json({ success: false, message: 'Notification message is required.' });
     }
     
-    // In a real app, you might queue these jobs. Here we'll just loop and "send".
-    mockUsers.forEach(user => {
-        emailService.sendGlobalNotificationEmail(user, message, link);
-    });
+    // In a real app, you might queue these jobs. Here we'll just log it.
+    console.log(`Simulating global notification to ${mockUsers.length} users:`);
+    console.log(`Message: ${message}`);
+    console.log(`Link: ${link}`);
 
     res.json({ success: true, message: `Notification sent to ${mockUsers.length} users.` });
 });
