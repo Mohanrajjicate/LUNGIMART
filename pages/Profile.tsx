@@ -369,7 +369,17 @@ const ProfileInfoSection: React.FC<{ user: User, updateUser: (user: User) => voi
                         <div><p className="text-sm text-slate-500">Full Name</p><p className="font-semibold text-slate-800">{user.name}</p></div>
                         <div><p className="text-sm text-slate-500">Email Address</p><p className="font-semibold text-slate-800">{user.email || 'Not set'}</p></div>
                         <div><p className="text-sm text-slate-500">Phone</p><p className="font-semibold text-slate-800">{user.phone}</p></div>
-                        <div><p className="text-sm text-slate-500">Birthday</p><p className="font-semibold text-slate-800">{user.birthday || 'Not set'}</p></div>
+                        <div>
+                            <p className="text-sm text-slate-500">Birthday</p>
+                            <p className="font-semibold text-slate-800 flex items-center gap-2">
+                                <span>{user.birthday || 'Not set'}</span>
+                                {!user.birthday && (
+                                    <span className="text-red-500 animate-pulse text-xs font-normal">
+                                        (set your birthday to get birthday offer)
+                                    </span>
+                                )}
+                            </p>
+                        </div>
                         <button onClick={() => setIsEditing(true)} className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-dark transition-colors">Edit Profile</button>
                     </div>
                 ) : (

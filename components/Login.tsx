@@ -13,7 +13,6 @@ const AuthComponent: React.FC = () => {
     const location = useLocation();
     const googleButtonRef = useRef<HTMLDivElement>(null);
     const [authMode, setAuthMode] = useState<'signIn' | 'signUp'>('signIn');
-    const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
     
     // Form States
     const [signInData, setSignInData] = useState({ identifier: '', password: '' });
@@ -109,7 +108,9 @@ const AuthComponent: React.FC = () => {
         setIsLoading(true);
         setTimeout(() => { // Simulate network delay
             let result;
-            if (loginMethod === 'email') {
+            const isEmail = signInData.identifier.includes('@');
+            
+            if (isEmail) {
                 result = signInWithEmail({ email: signInData.identifier, password: signInData.password });
             } else {
                 result = signInWithPhone({ phone: signInData.identifier, password: signInData.password });
@@ -179,39 +180,14 @@ const AuthComponent: React.FC = () => {
 
             {authMode === 'signIn' ? (
                 <form onSubmit={handleSignInSubmit} className="space-y-4 text-left">
-                     <div className="flex border-b border-slate-200">
-                        <button
-                            type="button"
-                            onClick={() => { setLoginMethod('email'); setSignInData({ identifier: '', password: signInData.password }); setError(''); }}
-                            className={`w-full py-3 text-sm font-semibold transition-colors focus:outline-none ${
-                                loginMethod === 'email'
-                                    ? 'border-b-2 border-primary text-primary'
-                                    : 'text-slate-500 hover:text-slate-800 border-b-2 border-transparent'
-                            }`}
-                        >
-                            Email
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => { setLoginMethod('phone'); setSignInData({ identifier: '', password: signInData.password }); setError(''); }}
-                            className={`w-full py-3 text-sm font-semibold transition-colors focus:outline-none ${
-                                loginMethod === 'phone'
-                                    ? 'border-b-2 border-primary text-primary'
-                                    : 'text-slate-500 hover:text-slate-800 border-b-2 border-transparent'
-                            }`}
-                        >
-                            Phone
-                        </button>
-                    </div>
-
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 capitalize">{loginMethod}</label>
+                        <label className="block text-sm font-medium text-slate-700">Email or Phone</label>
                         <input 
-                            type={loginMethod === 'email' ? 'email' : 'tel'} 
+                            type="text" 
                             name="identifier"
                             value={signInData.identifier}
                             onChange={handleSignInChange} 
-                            placeholder={loginMethod === 'email' ? 'you@example.com' : '9876543210'}
+                            placeholder="you@example.com or 9876543210"
                             required 
                             className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"
                         />
