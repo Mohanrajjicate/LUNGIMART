@@ -262,9 +262,10 @@ app.post('/api/notifications/global', (req, res) => {
 
 
 // --- STATIC FILE SERVING ---
-app.use(express.static(path.join(__dirname, '.')));
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // --- START SERVER ---
