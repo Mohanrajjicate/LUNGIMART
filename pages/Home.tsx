@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
@@ -35,18 +33,23 @@ const HomePage: React.FC = () => {
 
     const category = categories.find(c => c.slug === slug);
     if (!category) return [];
+
+    const childCategories = categories.filter(c => c.parentId === category.id);
+    if (childCategories.length > 0) {
+        const childCategoryIds = childCategories.map(c => c.id);
+        const allCategoryIds = [category.id, ...childCategoryIds];
+        return products.filter(p => allCategoryIds.includes(p.category.id));
+    }
+
     return products.filter(p => p.category.id === category.id);
   };
 
-  const bestSellingProducts = useMemo(() => getProductsByCategorySlug('best-selling').slice(0, 8), [products]);
-  const recentProducts = useMemo(() => getProductsByCategorySlug('new-arrivals').slice(0, 4), [products]);
-  const featuredProductsData = useMemo(() => getProductsByCategorySlug('featured-products'), [products]);
-  const lungiProducts = useMemo(() => getProductsByCategorySlug('lungi').slice(0, 4), [products]);
-  const dhotiProducts = useMemo(() => getProductsByCategorySlug('dhoti').slice(0, 4), [products]);
-  const matchingDhotiProducts = useMemo(() => getProductsByCategorySlug('matching-dhoti').slice(0, 4), [products]);
-  const templeVibeProducts = useMemo(() => getProductsByCategorySlug('temple-vibe').slice(0, 4), [products]);
-  const politicalProducts = useMemo(() => getProductsByCategorySlug('political-party').slice(0, 4), [products]);
-  const towelProducts = useMemo(() => getProductsByCategorySlug('towel').slice(0, 4), [products]);
+  const bestSellingProducts = useMemo(() => getProductsByCategorySlug('best-selling').slice(0, 8), [products, categories]);
+  const recentProducts = useMemo(() => getProductsByCategorySlug('new-arrivals').slice(0, 4), [products, categories]);
+  const featuredProductsData = useMemo(() => getProductsByCategorySlug('featured-products'), [products, categories]);
+  const lungiProducts = useMemo(() => getProductsByCategorySlug('lungi').slice(0, 4), [products, categories]);
+  const dhotiProducts = useMemo(() => getProductsByCategorySlug('dhoti').slice(0, 4), [products, categories]);
+  const towelProducts = useMemo(() => getProductsByCategorySlug('towel').slice(0, 4), [products, categories]);
   
   const mainCategories = useMemo(() => categories.filter(c => !['all', 'all-products', 'best-selling', 'new-arrivals', 'featured-products'].includes(c.slug)), [categories]);
 
@@ -216,9 +219,6 @@ const HomePage: React.FC = () => {
       
       <ProductSection title="Lungi Collection" description="Explore our wide range of comfortable and stylish lungis." link="/shop/lungi" products={lungiProducts} loading={isLoading} count={4} />
       <ProductSection title="Dhoti Collection" description="Traditional and elegant dhotis for every occasion." link="/shop/dhoti" products={dhotiProducts} loading={isLoading} count={4} />
-      <ProductSection title="Matching Sets" description="Complete your look with our matching dhoti and angavastram sets." link="/shop/matching-dhoti" products={matchingDhotiProducts} loading={isLoading} count={4} />
-      <ProductSection title="Temple Vibe" description="Pure and elegant wear for your spiritual occasions." link="/shop/temple-vibe" products={templeVibeProducts} loading={isLoading} count={4} />
-      <ProductSection title="Political Party Wear" description="Show your support with our premium quality collection." link="/shop/political-party" products={politicalProducts} loading={isLoading} count={4} />
       <ProductSection title="Our Towel Collection" description="Soft, absorbent, and durable towels for everyday use." link="/shop/towel" products={towelProducts} loading={isLoading} count={4} />
       
       {/* Why Our Products Section */}

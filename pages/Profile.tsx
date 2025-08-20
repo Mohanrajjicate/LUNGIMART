@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';

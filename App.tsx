@@ -1,6 +1,4 @@
 
-
-
 import React from 'react';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { AppProvider, useAppContext } from './contexts/AppContext';

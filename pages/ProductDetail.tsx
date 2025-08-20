@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getAvailableCouponsForProduct } from '../services/mockData';

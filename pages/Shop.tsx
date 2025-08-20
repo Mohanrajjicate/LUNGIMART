@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
@@ -45,6 +43,14 @@ const ShopPage: React.FC = () => {
 
     const category = categories.find(c => c.slug === slug);
     if (!category) return [];
+    
+    const childCategories = categories.filter(c => c.parentId === category.id);
+    if (childCategories.length > 0) {
+        const childCategoryIds = childCategories.map(c => c.id);
+        const allCategoryIds = [category.id, ...childCategoryIds];
+        return products.filter(p => allCategoryIds.includes(p.category.id));
+    }
+
     return products.filter(p => p.category.id === category.id);
   };
 
@@ -64,9 +70,9 @@ const ShopPage: React.FC = () => {
                 return 0; // 'featured'
         }
     });
-  }, [activeCategorySlug, sortOption, products]);
+  }, [activeCategorySlug, sortOption, products, categories]);
   
-  const recommendedProducts = useMemo(() => getProductsByCategorySlug('featured-products').slice(0, 4), [products]);
+  const recommendedProducts = useMemo(() => getProductsByCategorySlug('featured-products').slice(0, 4), [products, categories]);
   const recommendedProductIds = useMemo(() => new Set(recommendedProducts.map(p => p.id)), [recommendedProducts]);
 
   const otherCategories = useMemo(() => {
@@ -82,7 +88,7 @@ const ShopPage: React.FC = () => {
     const uniqueProducts = Array.from(new Map(productsFromCategories.map(p => [p.id, p])).values());
     
     return uniqueProducts.slice(0, 4);
-  }, [otherCategories, recommendedProductIds, products]);
+  }, [otherCategories, recommendedProductIds, products, categories]);
 
   // Category Scroller Logic
   const scrollContainerRef = useRef<HTMLDivElement>(null);

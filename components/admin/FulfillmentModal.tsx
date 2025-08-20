@@ -36,66 +36,84 @@ const FulfillmentModal: React.FC<FulfillmentModalProps> = ({ order, customer, on
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
+                
+                {!isLabelVisible ? (
+                    <div className="p-6">
+                        {/* Order Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 className="font-semibold text-slate-800 mb-2">Shipping To</h3>
+                                {shippingAddress ? (
+                                    <address className="not-italic text-sm text-slate-600">
+                                        <strong>{shippingAddress.name}</strong><br />
+                                        {shippingAddress.street}<br />
+                                        {shippingAddress.city}, {shippingAddress.zip}
+                                    </address>
+                                ) : <p className="text-sm text-red-500">No address found for this customer.</p>}
+                            </div>
+                             <div>
+                                <h3 className="font-semibold text-slate-800 mb-2">Order Summary</h3>
+                                <ul className="text-sm text-slate-600">
+                                    {order.items.map(item => (
+                                        <li key={item.id} className="flex justify-between">
+                                            <span>{item.name} x {item.quantity}</span>
+                                            <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="font-bold text-right mt-2 text-slate-800">Total: ₹{order.total.toFixed(2)}</p>
+                            </div>
+                        </div>
 
-                <div className="p-6 max-h-[70vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Left Column */}
-                    <div className="space-y-4">
-                        <h3 className="font-semibold text-slate-800">Order Summary</h3>
-                        <ul className="space-y-2 text-sm">
-                            {order.items.map(item => (
-                                <li key={item.id} className="flex justify-between">
-                                    <span className="text-slate-600">{item.name} (x{item.quantity})</span>
-                                    <span className="font-medium text-slate-800">₹{(item.price * item.quantity).toFixed(2)}</span>
-                                </li>
-                            ))}
-                        </ul>
-                         <div className="font-bold text-lg flex justify-between border-t pt-2">
-                             <span>Total</span>
-                             <span>₹{order.total.toFixed(2)}</span>
-                         </div>
-                         <div className="flex flex-wrap items-center gap-3 pt-4">
-                             <button onClick={() => setLabelVisible(true)} className="text-sm font-semibold py-2 px-4 rounded-lg bg-slate-200 text-slate-800 hover:bg-slate-300">Generate Shipping Label</button>
-                             <a href={`/#/invoice/${btoa(order.id)}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold py-2 px-4 rounded-lg bg-slate-200 text-slate-800 hover:bg-slate-300">View Invoice</a>
+                        {/* Fulfillment Form */}
+                        <div className="mt-6 border-t pt-6">
+                            <h3 className="font-semibold text-slate-800 mb-4">Shipping Details</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700">Tracking Provider</label>
+                                    <input 
+                                        type="text"
+                                        value={trackingProvider}
+                                        onChange={e => setTrackingProvider(e.target.value)}
+                                        placeholder="e.g., Delhivery"
+                                        className="mt-1 block w-full rounded-lg border-slate-300" 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700">Tracking Number</label>
+                                    <input 
+                                        type="text"
+                                        value={trackingNumber}
+                                        onChange={e => setTrackingNumber(e.target.value)}
+                                        placeholder="e.g., AWB12345678"
+                                        className="mt-1 block w-full rounded-lg border-slate-300" 
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-end gap-4">
+                            <button onClick={() => setLabelVisible(true)} disabled={!shippingAddress} className="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 disabled:opacity-50">
+                                View Shipping Label
+                            </button>
+                            <button onClick={handleMarkAsShipped} className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-dark">
+                                Mark as Shipped
+                            </button>
                         </div>
                     </div>
-                    {/* Right Column */}
-                    <div className="space-y-4">
-                         <h3 className="font-semibold text-slate-800">Shipping & Tracking</h3>
-                         {shippingAddress ? (
-                            <address className="not-italic text-sm text-slate-600 bg-slate-50 p-3 rounded-md">
-                                <strong>{shippingAddress.name}</strong><br />
-                                {shippingAddress.street}<br />
-                                {shippingAddress.city}, {shippingAddress.zip}
-                            </address>
-                         ) : <p className="text-sm text-red-500">No address found for this user.</p>}
-                         
-                         <div>
-                            <label className="block text-sm font-medium text-slate-700">Tracking Provider</label>
-                            <input type="text" value={trackingProvider} onChange={e => setTrackingProvider(e.target.value)} placeholder="e.g., Delhivery" className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1 text-sm" />
-                         </div>
-                         <div>
-                            <label className="block text-sm font-medium text-slate-700">Tracking Number</label>
-                            <input type="text" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} placeholder="e.g., AWB123456789" className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1 text-sm" />
+                ) : (
+                    <div className="p-6">
+                         {shippingAddress ? <ShippingLabel order={order} shippingAddress={shippingAddress} /> : <p>No address available to generate label.</p>}
+                         <div className="mt-4 flex justify-between no-print">
+                             <button onClick={() => setLabelVisible(false)} className="text-sm font-semibold text-primary hover:underline">&larr; Back to Details</button>
+                             <button onClick={() => window.print()} className="bg-slate-700 text-white font-bold py-2 px-6 rounded-lg hover:bg-slate-600">
+                                 Print Label
+                             </button>
                          </div>
                     </div>
-                </div>
-
-                <div className="p-6 bg-slate-50 border-t flex flex-wrap justify-end items-center gap-4">
-                    <button onClick={handleMarkAsShipped} disabled={!trackingProvider || !trackingNumber} className="bg-primary text-white font-bold py-2.5 px-6 rounded-lg hover:bg-primary-dark disabled:bg-slate-400 disabled:cursor-not-allowed">
-                        Mark as Shipped
-                    </button>
-                </div>
+                )}
             </div>
         </div>
-
-        {isLabelVisible && shippingAddress && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setLabelVisible(false)}>
-                 <div className="relative bg-white" onClick={e => e.stopPropagation()}>
-                    <ShippingLabel order={order} shippingAddress={shippingAddress} />
-                    <button onClick={() => window.print()} className="no-print absolute -bottom-12 right-0 bg-primary text-white font-bold py-2 px-4 rounded-lg">Print</button>
-                 </div>
-            </div>
-        )}
         </>
     );
 };
