@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 
@@ -8,10 +8,18 @@ import { useAppContext } from '../contexts/AppContext';
 const GOOGLE_CLIENT_ID = '763344556195-h5s3750ce89g1ttnb0if2h4hl98djmir.apps.googleusercontent.com';
 
 const AuthComponent: React.FC = () => {
-    const { loginWithGoogle } = useAppContext();
+    const { loginWithGoogle, signInWithEmail, signUpWithEmail } = useAppContext();
     const navigate = useNavigate();
     const location = useLocation();
     const googleButtonRef = useRef<HTMLDivElement>(null);
+    const [authMode, setAuthMode] = useState<'signIn' | 'signUp'>('signIn');
+    
+    // Form States
+    const [signInData, setSignInData] = useState({ email: '', password: '' });
+    const [signUpData, setSignUpData] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
 
     const handleGoogleCallback = useCallback((response: any) => {
         try {
@@ -32,11 +40,11 @@ const AuthComponent: React.FC = () => {
                     navigate(from, { replace: true });
                 }
             } else {
-                // In a real app, you would show an error message to the user.
-                console.error(result.message);
+                setError(result.message);
             }
         } catch (e) {
             console.error("Error decoding Google credential:", e);
+            setError("Failed to process Google sign-in.");
         }
     }, [loginWithGoogle, navigate, location.state]);
 
@@ -56,14 +64,124 @@ const AuthComponent: React.FC = () => {
            
         }
     }, [handleGoogleCallback]);
+    
+    const handleSignInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSignInData({ ...signInData, [e.target.name]: e.target.value });
+    };
+
+    const handleSignUpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSignUpData({ ...signUpData, [e.target.name]: e.target.value });
+    };
+
+    const handleSignInSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setIsLoading(true);
+        setTimeout(() => { // Simulate network delay
+            const result = signInWithEmail(signInData);
+            if (result.success) {
+                const from = location.state?.from || '/profile';
+                navigate(from, { replace: true });
+            } else {
+                setError(result.message);
+            }
+            setIsLoading(false);
+        }, 500);
+    };
+
+    const handleSignUpSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        if (signUpData.password !== signUpData.confirmPassword) {
+            setError("Passwords do not match.");
+            return;
+        }
+        setIsLoading(true);
+        setTimeout(() => { // Simulate network delay
+            const result = signUpWithEmail(signUpData);
+            if (result.success) {
+                 const from = location.state?.from || '/profile';
+                 navigate(from, { replace: true });
+            } else {
+                setError(result.message);
+            }
+            setIsLoading(false);
+        }, 500);
+    };
+
+    const toggleAuthMode = () => {
+        setError('');
+        setSignInData({ email: '', password: '' });
+        setSignUpData({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+        setAuthMode(prev => prev === 'signIn' ? 'signUp' : 'signIn');
+    };
 
     return (
         <div className="w-full max-w-md mx-auto bg-white p-8 rounded-xl shadow-md text-center">
-             <h2 className="text-2xl font-bold text-slate-900 mb-2">Sign In or Create an Account</h2>
-            <p className="text-slate-600 mb-8">Use your Google account to continue.</p>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                {authMode === 'signIn' ? 'Sign In' : 'Create an Account'}
+            </h2>
+            <p className="text-slate-600 mb-6">
+                {authMode === 'signIn' ? 'to continue to LungiMart' : 'to get started'}
+            </p>
+            
             <div className="flex justify-center" ref={googleButtonRef}></div>
-             <p className="text-xs text-slate-400 mt-8">
-                By continuing, you agree to LungiMart.in's Terms of Service and Privacy Policy.
+
+            <div className="my-6 flex items-center">
+                <div className="flex-grow border-t border-slate-200"></div>
+                <span className="flex-shrink mx-4 text-xs font-semibold text-slate-400 uppercase">OR</span>
+                <div className="flex-grow border-t border-slate-200"></div>
+            </div>
+
+            {authMode === 'signIn' ? (
+                <form onSubmit={handleSignInSubmit} className="space-y-4 text-left">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700">Email</label>
+                        <input type="email" name="email" value={signInData.email} onChange={handleSignInChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700">Password</label>
+                        <input type="password" name="password" value={signInData.password} onChange={handleSignInChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                    </div>
+                    <button type="submit" disabled={isLoading} className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-slate-400">
+                        {isLoading ? 'Signing In...' : 'Sign In'}
+                    </button>
+                </form>
+            ) : (
+                <form onSubmit={handleSignUpSubmit} className="space-y-4 text-left">
+                     <div>
+                        <label className="block text-sm font-medium text-slate-700">Full Name</label>
+                        <input type="text" name="name" value={signUpData.name} onChange={handleSignUpChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700">Email</label>
+                        <input type="email" name="email" value={signUpData.email} onChange={handleSignUpChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                    </div>
+                     <div>
+                        <label className="block text-sm font-medium text-slate-700">Mobile Number</label>
+                        <input type="tel" name="phone" value={signUpData.phone} onChange={handleSignUpChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700">Password</label>
+                        <input type="password" name="password" value={signUpData.password} onChange={handleSignUpChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700">Confirm Password</label>
+                        <input type="password" name="confirmPassword" value={signUpData.confirmPassword} onChange={handleSignUpChange} required className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary/20 focus:ring-1"/>
+                    </div>
+                    <button type="submit" disabled={isLoading} className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-slate-400">
+                        {isLoading ? 'Creating Account...' : 'Sign Up'}
+                    </button>
+                </form>
+            )}
+
+            {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+            
+            <p className="text-sm text-slate-500 mt-6">
+                {authMode === 'signIn' ? "Don't have an account?" : "Already have an account?"}
+                <button onClick={toggleAuthMode} className="font-semibold text-primary hover:underline ml-1">
+                    {authMode === 'signIn' ? 'Sign Up' : 'Sign In'}
+                </button>
             </p>
         </div>
     );

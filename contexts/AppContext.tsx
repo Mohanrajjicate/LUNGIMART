@@ -51,6 +51,8 @@ interface AppContextType {
   isInWishlist: (productId: number) => boolean;
   wishlistCount: number;
   loginWithGoogle: (googleUser: { name: string; email: string; }) => { success: boolean; message: string; isNewUser: boolean; };
+  signInWithEmail: (credentials: { email: string; password: string; }) => { success: boolean; message: string; };
+  signUpWithEmail: (details: { name: string; email: string; phone: string; password: string; }) => { success: boolean; message: string; };
   logout: () => void;
   updateUser: (updatedUser: User) => void;
   addUser: (userData: Omit<User, 'id' | 'addresses'>) => User;
@@ -219,6 +221,42 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     addNotification(`Welcome, ${newUser.name}! Your profile is complete.`, 'user', '/profile');
 
   }, [pendingGoogleUser, addUser, addNotification]);
+
+  const signInWithEmail = useCallback((credentials: { email: string; password: string; }): { success: boolean; message: string; } => {
+    const user = findUserByEmail(credentials.email);
+    if (!user) {
+        return { success: false, message: "Invalid email or password." };
+    }
+    
+    // The stored password is encrypted (btoa). We encrypt the input password to compare.
+    const encryptedPassword = encrypt(credentials.password);
+
+    if (user.password === encryptedPassword) {
+        setCurrentUser(user);
+        return { success: true, message: "Logged in successfully." };
+    } else {
+        return { success: false, message: "Invalid email or password." };
+    }
+  }, [findUserByEmail]);
+
+  const signUpWithEmail = useCallback((details: { name: string; email: string; phone: string; password: string; }): { success: boolean; message: string; } => {
+    const existingUser = findUserByEmail(details.email);
+    if (existingUser) {
+        return { success: false, message: "An account with this email already exists." };
+    }
+
+    const newUser = addUser({
+        name: details.name,
+        email: details.email,
+        phone: details.phone,
+        password: details.password, // addUser will encrypt this
+    });
+
+    setCurrentUser(newUser);
+    addNotification(`Welcome, ${newUser.name}! Your account is created.`, 'user', '/profile');
+
+    return { success: true, message: "Account created successfully!" };
+  }, [findUserByEmail, addUser, addNotification]);
 
 
   const removeCoupon = useCallback(() => setAppliedCoupon(null), []);
@@ -405,6 +443,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,
       appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
       toggleWishlist, isInWishlist, wishlistCount, loginWithGoogle, logout, updateUser, addUser, findUserByEmail,
+      signInWithEmail, signUpWithEmail,
       isQuietZoneActive, toggleQuietZone, addStandaloneImage, addCoupon, updateCoupon, deleteCoupon,
       pendingGoogleUser, completeSignup, deleteAccount
     }}>
