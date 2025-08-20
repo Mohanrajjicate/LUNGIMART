@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -52,12 +51,12 @@ const AuthComponent: React.FC = () => {
         return Object.values(newCriteria).every(Boolean);
     };
 
-    const handleGoogleCallback = useCallback((response: any) => {
+    const handleGoogleCallback = useCallback(async (response: any) => {
         try {
             const userObject = JSON.parse(atob(response.credential.split('.')[1]));
             const { name, email } = userObject;
 
-            const result = loginWithGoogle({ name, email });
+            const result = await loginWithGoogle({ name, email });
 
             if (result.success) {
                 if (result.isNewUser) {
@@ -106,14 +105,14 @@ const AuthComponent: React.FC = () => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
-        setTimeout(() => { // Simulate network delay
+        setTimeout(async () => { // Simulate network delay
             let result;
             const isEmail = signInData.identifier.includes('@');
             
             if (isEmail) {
-                result = signInWithEmail({ email: signInData.identifier, password: signInData.password });
+                result = await signInWithEmail({ email: signInData.identifier, password: signInData.password });
             } else {
-                result = signInWithPhone({ phone: signInData.identifier, password: signInData.password });
+                result = await signInWithPhone({ phone: signInData.identifier, password: signInData.password });
             }
 
             if (result.success) {
@@ -140,8 +139,8 @@ const AuthComponent: React.FC = () => {
             return;
         }
         setIsLoading(true);
-        setTimeout(() => { // Simulate network delay
-            const result = signUpWithEmail(signUpData);
+        setTimeout(async () => { // Simulate network delay
+            const result = await signUpWithEmail(signUpData);
             if (result.success) {
                  const from = location.state?.from || '/profile';
                  navigate(from, { replace: true });
