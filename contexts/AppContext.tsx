@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner, Address } from '../types';
 
@@ -19,15 +18,15 @@ interface AppContextType {
   setBanners: (banners: Banner[]) => void;
   setCategories: (categories: Category[]) => void;
   addNotification: (message: string, target: 'user' | 'admin', link?: string) => void;
-  sendGlobalNotification: (message: string, link?: string) => void;
+  sendGlobalNotification: (message: string, link?: string) => Promise<void>;
   markAsRead: (notificationId: number) => void;
   markAllAsRead: (target: 'user' | 'admin') => void;
   clearAllNotifications: (target: 'user' | 'admin') => void;
   addReview: (productId: number, orderId: string, rating: number, comment: string) => Promise<void>;
   deleteReview: (reviewId: number) => void;
   acknowledgeReview: (reviewId: number) => void;
-  updateOrderStatus: (orderId: string, status: Order['status']) => void;
-  fulfillOrder: (orderId: string, trackingProvider: string, trackingNumber: string) => void;
+  updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
+  fulfillOrder: (orderId: string, trackingProvider: string, trackingNumber: string) => Promise<void>;
   updateProduct: (updatedProduct: Product) => void;
   addProduct: (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => void;
   deleteProduct: (productId: number) => void;
@@ -250,6 +249,51 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [currentUser]);
 
+  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to update order status');
+        setAllOrders(prev => prev.map(o => o.id === orderId ? data.order : o));
+    } catch (err) {
+        console.error("Failed to update order status:", err);
+    }
+  };
+
+  const fulfillOrder = async (orderId: string, trackingProvider: string, trackingNumber: string) => {
+     try {
+        const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'Shipped', trackingProvider, trackingNumber })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to fulfill order');
+        setAllOrders(prev => prev.map(o => o.id === orderId ? data.order : o));
+    } catch (err) {
+        console.error("Failed to fulfill order:", err);
+    }
+  };
+  
+  const sendGlobalNotification = async (message: string, link?: string) => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/notifications/global`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, link })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to send notification');
+        // Add a notification for the admin as confirmation
+        addNotification('Global notification sent to all users.', 'admin');
+    } catch (err) {
+        console.error("Failed to send global notification:", err);
+    }
+  };
 
   // --- Functions that remain mostly client-side or are simple state setters ---
 
@@ -374,12 +418,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const addUser = (d: any) => d as User;
   const toggleQuietZone = () => setIsQuietZoneActive(p => !p);
   const addStandaloneImage = () => {};
-  const sendGlobalNotification = (message: string, link?: string) => addNotification(message, 'user', link);
   // Admin functions would need their own API endpoints
   const deleteReview = () => {};
   const acknowledgeReview = () => {};
-  const updateOrderStatus = () => {};
-  const fulfillOrder = () => {};
   const updateProduct = () => {};
   const addProduct = () => {};
   const deleteProduct = () => {};

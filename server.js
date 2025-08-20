@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const emailService = require('./services/emailService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -119,13 +120,7 @@ app.get('/api/initial-data', (req, res) => {
 });
 
 app.get('/api/orders', (req, res) => {
-    const { userId } = req.query;
-    if (userId) {
-        const userOrders = baseOrders.filter(o => o.userId === parseInt(userId));
-        res.json(userOrders);
-    } else {
-        res.json(baseOrders); // For admin panel
-    }
+    res.json(baseOrders); // For admin panel
 });
 
 
@@ -165,6 +160,10 @@ app.post('/api/signup', (req, res) => {
         birthday: '',
     };
     mockUsers.push(newUser);
+    
+    // Send welcome email
+    emailService.sendWelcomeEmail(newUser);
+
     const { password: _, ...userWithoutPassword } = newUser;
     res.json({ success: true, user: userWithoutPassword });
 });
@@ -187,8 +186,41 @@ app.post('/api/orders', (req, res) => {
         paymentMethod: paymentMethod || 'Prepaid'
     };
     baseOrders.unshift(newOrder);
+
+    // Send order confirmation email
+    const user = mockUsers.find(u => u.id === parseInt(userId));
+    if (user) {
+        emailService.sendOrderConfirmationEmail(user, newOrder);
+    }
+
     res.status(201).json({ success: true, order: newOrder });
 });
+
+app.put('/api/orders/:orderId', (req, res) => {
+    const { orderId } = req.params;
+    const { status, trackingProvider, trackingNumber } = req.body;
+    const orderIndex = baseOrders.findIndex(o => o.id === orderId);
+
+    if (orderIndex > -1) {
+        const originalStatus = baseOrders[orderIndex].status;
+        if (status) baseOrders[orderIndex].status = status;
+        if (trackingProvider) baseOrders[orderIndex].trackingProvider = trackingProvider;
+        if (trackingNumber) baseOrders[orderIndex].trackingNumber = trackingNumber;
+        
+        // If status changed to 'Shipped', send email
+        if (status === 'Shipped' && originalStatus !== 'Shipped') {
+            const user = mockUsers.find(u => u.id === baseOrders[orderIndex].userId);
+            if (user) {
+                emailService.sendShippingUpdateEmail(user, baseOrders[orderIndex]);
+            }
+        }
+        
+        res.json({ success: true, order: baseOrders[orderIndex] });
+    } else {
+        res.status(404).json({ success: false, message: "Order not found." });
+    }
+});
+
 
 app.post('/api/reviews', (req, res) => {
     const { productId, orderId, rating, comment, userId, author } = req.body;
@@ -228,6 +260,20 @@ app.put('/api/users/:userId', (req, res) => {
     } else {
         res.status(404).json({ success: false, message: "User not found." });
     }
+});
+
+app.post('/api/notifications/global', (req, res) => {
+    const { message, link } = req.body;
+    if (!message) {
+        return res.status(400).json({ success: false, message: 'Notification message is required.' });
+    }
+    
+    // In a real app, you might queue these jobs. Here we'll just loop and "send".
+    mockUsers.forEach(user => {
+        emailService.sendGlobalNotificationEmail(user, message, link);
+    });
+
+    res.json({ success: true, message: `Notification sent to ${mockUsers.length} users.` });
 });
 
 
