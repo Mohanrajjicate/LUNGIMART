@@ -52,6 +52,7 @@ interface AppContextType {
   wishlistCount: number;
   loginWithGoogle: (googleUser: { name: string; email: string; }) => { success: boolean; message: string; isNewUser: boolean; };
   signInWithEmail: (credentials: { email: string; password: string; }) => { success: boolean; message: string; };
+  signInWithPhone: (credentials: { phone: string; password: string; }) => { success: boolean; message: string; };
   signUpWithEmail: (details: { name: string; email: string; phone: string; password: string; }) => { success: boolean; message: string; };
   logout: () => void;
   updateUser: (updatedUser: User) => void;
@@ -153,6 +154,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const orders = useMemo(() => (currentUser ? allOrders.filter(o => o.userId === currentUser.id) : []), [currentUser, allOrders]);
 
   const findUserByEmail = useCallback((email: string): User | undefined => allUsers.find(u => u.email.toLowerCase() === email.toLowerCase()), [allUsers]);
+  const findUserByPhone = useCallback((phone: string): User | undefined => allUsers.find(u => u.phone === phone), [allUsers]);
 
   const addUser = useCallback((userData: Omit<User, 'id' | 'addresses'>): User => {
     const newUser: User = {
@@ -238,6 +240,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return { success: false, message: "Invalid email or password." };
     }
   }, [findUserByEmail]);
+
+  const signInWithPhone = useCallback((credentials: { phone: string; password: string; }): { success: boolean; message: string; } => {
+    const user = findUserByPhone(credentials.phone);
+    if (!user) {
+        return { success: false, message: "Invalid phone number or password." };
+    }
+
+    const encryptedPassword = encrypt(credentials.password);
+
+    if (user.password === encryptedPassword) {
+        setCurrentUser(user);
+        return { success: true, message: "Logged in successfully." };
+    } else {
+        return { success: false, message: "Invalid phone number or password." };
+    }
+  }, [findUserByPhone]);
 
   const signUpWithEmail = useCallback((details: { name: string; email: string; phone: string; password: string; }): { success: boolean; message: string; } => {
     const existingUser = findUserByEmail(details.email);
@@ -443,7 +461,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,
       appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
       toggleWishlist, isInWishlist, wishlistCount, loginWithGoogle, logout, updateUser, addUser, findUserByEmail,
-      signInWithEmail, signUpWithEmail,
+      signInWithEmail, signInWithPhone, signUpWithEmail,
       isQuietZoneActive, toggleQuietZone, addStandaloneImage, addCoupon, updateCoupon, deleteCoupon,
       pendingGoogleUser, completeSignup, deleteAccount
     }}>
