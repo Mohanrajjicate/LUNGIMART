@@ -17,13 +17,14 @@ const CustomersPage: React.FC = () => {
     });
 
     const handleDownloadCRM = () => {
-        const headers = ["Name", "Email", "Orders", "Total Spent (INR)"];
+        const headers = ["Name", "Email", "Mobile Number", "Orders", "Total Spent (INR)"];
         const csvContent = [
             headers.join(","),
             ...usersWithStats.map(user => 
                 [
                     `"${user.name}"`, 
-                    user.email, 
+                    user.email,
+                    user.phone || 'N/A',
                     user.orderCount, 
                     user.totalSpent.toFixed(2)
                 ].join(",")
@@ -57,6 +58,7 @@ const CustomersPage: React.FC = () => {
                         <tr>
                             <th scope="col" className="px-6 py-3">Name</th>
                             <th scope="col" className="px-6 py-3">Email</th>
+                            <th scope="col" className="px-6 py-3">Mobile Number</th>
                             <th scope="col" className="px-6 py-3">Orders</th>
                             <th scope="col" className="px-6 py-3">Total Spent</th>
                         </tr>
@@ -66,6 +68,7 @@ const CustomersPage: React.FC = () => {
                             <tr key={user.id} className="bg-white border-b hover:bg-slate-50">
                                 <td className="px-6 py-4 font-medium text-slate-900">{user.name}</td>
                                 <td className="px-6 py-4">{user.email}</td>
+                                <td className="px-6 py-4">{user.phone}</td>
                                 <td className="px-6 py-4">{user.orderCount}</td>
                                 <td className="px-6 py-4">₹{user.totalSpent.toLocaleString()}</td>
                             </tr>
