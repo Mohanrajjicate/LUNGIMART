@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -53,22 +52,22 @@ const CheckoutPage: React.FC = () => {
         }
     }, [isOrderPlaced]);
 
-    const handleSaveAddress = (e: React.FormEvent) => {
+    const handleSaveAddress = async (e: React.FormEvent) => {
         e.preventDefault();
         if (user && newAddress.name && newAddress.street && newAddress.city && newAddress.zip) {
             const newId = Date.now();
             const addressToAdd: Address = { id: newId, ...newAddress, isDefault: user.addresses.length === 0 };
             const updatedUser = { ...user, addresses: [...user.addresses, addressToAdd] };
-            updateUser(updatedUser);
+            await updateUser(updatedUser); // This now makes an API call
             setSelectedAddressId(newId);
             setIsAddingNewAddress(false);
             setNewAddress({ name: '', street: '', city: '', zip: '' });
         }
     };
 
-    const processOrderCompletion = () => {
-        addOrder(cart, cartFinalTotal);
-        clearCart();
+    const processOrderCompletion = (address: Address) => {
+        addOrder(cart, cartFinalTotal, address);
+        // clearCart is now handled within the backend response for addOrder
         setIsOrderPlaced(true);
     };
     
@@ -84,7 +83,7 @@ const CheckoutPage: React.FC = () => {
         const options = {
             key: RAZORPAY_KEY_ID, amount: Math.round(finalTotalWithShipping * 100), currency: "INR",
             name: "LungiMart.in", description: "Order Payment", image: "/favicon.svg",
-            handler: () => processOrderCompletion(),
+            handler: () => processOrderCompletion(selectedAddress),
             prefill: { name: user.name, email: user.email, contact: user.phone },
             notes: { address: `${selectedAddress.street}, ${selectedAddress.city}` },
             theme: { color: "#2563EB" },
@@ -176,38 +175,58 @@ const CheckoutPage: React.FC = () => {
                                 <input type="text" placeholder="Street Address" value={newAddress.street} onChange={e => setNewAddress({...newAddress, street: e.target.value})} required className="w-full rounded-lg border-slate-300" />
                                 <input type="text" placeholder="City" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} required className="w-full rounded-lg border-slate-300" />
                                 <input type="text" placeholder="ZIP Code" value={newAddress.zip} onChange={e => setNewAddress({...newAddress, zip: e.target.value})} required className="w-full rounded-lg border-slate-300" />
-                                <button type="submit" className="bg-slate-800 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-700">Save Address</button>
+                                <button type="submit" className="w-full bg-slate-800 text-white font-semibold py-2 rounded-lg hover:bg-slate-700">Save Address</button>
                             </form>
                         )}
                     </div>
                 </div>
-
+                
                 {/* Right side - Order Summary */}
                 <div className="lg:sticky lg:top-28 lg:self-start">
-                     <div className="rounded-xl bg-slate-50 p-4 sm:p-6 lg:p-8">
-                        <h2 className="text-lg font-medium text-slate-900">Order summary</h2>
-                        <ul className="divide-y divide-slate-200 mt-4">
-                            {cart.map(item => (
-                                <li key={item.id} className="flex py-4">
-                                    <img src={item.images[0]} alt={item.name} className="h-16 w-16 rounded-md object-cover"/>
-                                    <div className="ml-4 flex-1 flex justify-between">
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-800">{item.name}</p>
-                                            <p className="text-xs text-slate-500">Qty: {item.quantity}</p>
-                                        </div>
-                                        <p className="text-sm font-medium text-slate-900">₹{(item.price * item.quantity).toFixed(2)}</p>
+                    <div className="rounded-xl bg-slate-50 p-6">
+                        <h2 className="text-xl font-semibold text-slate-800">Order Summary</h2>
+                        <ul className="mt-6 divide-y divide-slate-200">
+                        {cart.map(item => (
+                            <li key={item.id} className="flex py-4">
+                                <img src={item.images[0]} alt={item.name} className="h-20 w-20 flex-shrink-0 rounded-md object-cover" />
+                                <div className="ml-4 flex flex-1 flex-col">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-slate-800">{item.name}</h3>
+                                        <p className="mt-1 text-sm text-slate-500">Qty: {item.quantity}</p>
                                     </div>
-                                </li>
-                            ))}
+                                    <div className="flex flex-1 items-end justify-between text-sm">
+                                        <p className="text-slate-600">₹{item.price.toFixed(2)}</p>
+                                    </div>
+                                </div>
+                            </li>
+                        ))}
                         </ul>
-                        <dl className="mt-6 space-y-4 border-t border-slate-200 pt-6">
-                            <div className="flex items-center justify-between text-sm"><dt className="text-slate-600">Subtotal ({cartCount})</dt><dd className="font-medium text-slate-900">₹{cartTotal.toFixed(2)}</dd></div>
-                            {appliedCoupon && (<div className="flex items-center justify-between text-sm text-green-600"><dt>Discount ({appliedCoupon.code})</dt><dd className="font-medium">-₹{cartDiscount.toFixed(2)}</dd></div>)}
-                            <div className="flex items-center justify-between text-sm"><dt className="text-slate-600">Shipping</dt><dd className="font-medium text-slate-900">₹50.00</dd></div>
-                            <div className="flex items-center justify-between text-base font-medium text-slate-900 border-t border-slate-200 pt-4"><dt>Order total</dt><dd>₹{finalTotalWithShipping.toFixed(2)}</dd></div>
+                        <dl className="mt-6 space-y-4 border-t border-slate-200 pt-6 text-sm font-medium text-slate-600">
+                             <div className="flex items-center justify-between">
+                                <dt>Subtotal ({cartCount} items)</dt>
+                                <dd className="text-slate-900">₹{cartTotal.toFixed(2)}</dd>
+                            </div>
+                            {appliedCoupon && (
+                                <div className="flex items-center justify-between text-green-600">
+                                    <dt>Discount ({appliedCoupon.code})</dt>
+                                    <dd>-₹{cartDiscount.toFixed(2)}</dd>
+                                </div>
+                            )}
+                             <div className="flex items-center justify-between">
+                                <dt>Shipping</dt>
+                                <dd className="text-slate-900">₹50.00</dd>
+                            </div>
+                            <div className="flex items-center justify-between border-t border-slate-200 pt-4 text-base text-slate-900">
+                                <dt>Order total</dt>
+                                <dd>₹{(finalTotalWithShipping).toFixed(2)}</dd>
+                            </div>
                         </dl>
-                        <div className="mt-6">
-                            <button onClick={handlePlaceOrder} className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-colors" disabled={!selectedAddressId}>
+                        <div className="mt-8">
+                            <button
+                                onClick={handlePlaceOrder}
+                                disabled={!selectedAddressId}
+                                className="w-full bg-primary border border-transparent rounded-lg shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 focus:ring-primary transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                            >
                                 Place Order
                             </button>
                         </div>

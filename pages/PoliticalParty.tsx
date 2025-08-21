@@ -1,13 +1,11 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { getProductsByCategory } from '../services/mockData';
 import ProductCard from '../components/ProductCard';
 import { useAppContext } from '../contexts/AppContext';
 
 const PoliticalPartyPage: React.FC = () => {
   const { products } = useAppContext();
-  const politicalProducts = getProductsByCategory('political-party', products);
+  const politicalProducts = products.filter(p => p.category.slug === 'political-party');
 
   return (
     <div className="space-y-12">

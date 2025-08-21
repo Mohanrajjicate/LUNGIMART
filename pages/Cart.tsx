@@ -28,10 +28,10 @@ const CartPage: React.FC = () => {
     );
   }
   
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!couponCode.trim()) return;
-    const result = applyCoupon(couponCode);
+    const result = await applyCoupon(couponCode);
     setCouponMessage({ text: result.message, isError: !result.success });
     if (result.success) {
         setCouponCode('');

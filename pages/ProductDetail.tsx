@@ -1,7 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getAvailableCouponsForProduct } from '../services/mockData';
 import { useAppContext } from '../contexts/AppContext';
 import ProductCard from '../components/ProductCard';
 import StarRating from '../components/StarRating';
@@ -15,10 +13,18 @@ const SocialShareIcon: React.FC<{ href: string; children: React.ReactNode; label
 
 const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { products, addToCart, toggleWishlist, isInWishlist } = useAppContext();
+  const { products, addToCart, toggleWishlist, isInWishlist, coupons } = useAppContext();
   
   const product = useMemo(() => products.find(p => p.slug === slug), [slug, products]);
-  const availableCoupons = useMemo(() => product ? getAvailableCouponsForProduct(product.id) : [], [product]);
+  
+  const availableCoupons = useMemo(() => {
+    if (!product) return [];
+    return coupons.filter(c => 
+        c.isActive &&
+        c.trigger === 'none' &&
+        (!c.applicableProductIds || c.applicableProductIds.length === 0 || c.applicableProductIds.includes(product.id))
+    );
+  }, [product, coupons]);
   
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
@@ -185,58 +191,73 @@ const ProductDetailPage: React.FC = () => {
                     <SocialShareIcon href={`https://wa.me/?text=Check%20out%20this%20product:%20${window.location.href}`} label="Share on WhatsApp">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.58C8.75 21.38 10.36 21.82 12.04 21.82C17.5 21.82 21.95 17.37 21.95 11.91C21.95 9.28 20.94 6.8 19.19 4.98C17.44 3.17 14.87 2 12.04 2M12.04 3.67C16.56 3.67 20.28 7.38 20.28 11.91C20.28 16.44 16.56 20.15 12.04 20.15C10.56 20.15 9.14 19.78 7.9 19.09L7.22 18.7L3.62 19.82L4.76 16.31L4.44 15.6C3.68 14.34 3.3 12.9 3.3 11.91C3.3 7.38 7.01 3.67 12.04 3.67M9.13 8.03C8.93 8.03 8.73 8.04 8.55 8.07C8.37 8.1 8.08 8.21 7.81 8.47C7.54 8.74 7.15 9.12 7.03 9.3C6.91 9.48 6.8 9.68 6.8 9.91C6.8 10.14 6.89 10.38 7.06 10.6C7.23 10.82 7.55 11.16 7.91 11.53C8.27 11.9 8.94 12.54 9.69 13.2C10.96 14.38 11.83 14.72 12.23 14.88C12.63 15.04 13.23 15 13.5 14.73C13.77 14.46 14.24 13.91 14.41 13.6C14.58 13.29 14.58 13.04 14.48 12.91C14.38 12.78 14.28 12.71 14.04 12.58C13.8 12.45 12.6 11.85 12.38 11.76C12.16 11.67 12.01 11.64 11.86 11.87C11.71 12.1 11.26 12.63 11.11 12.79C10.96 12.95 10.81 12.98 10.6 12.85C10.39 12.72 9.68 12.48 8.81 11.66C8.11 11.01 7.62 10.22 7.49 9.95C7.36 9.68 7.48 9.53 7.6 9.4C7.72 9.27 7.86 9.12 8.01 8.95C8.16 8.78 8.21 8.68 8.31 8.5C8.41 8.32 8.38 8.17 8.31 8.03C8.24 7.89 7.72 6.64 7.5 6.12C7.28 5.6 7.06 5.61 6.89 5.61" /></svg>
                     </SocialShareIcon>
-                    <SocialShareIcon href={`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`} label="Share on Facebook">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z" /></svg>
+                    <SocialShareIcon href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} label="Share on Facebook">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" /></svg>
                     </SocialShareIcon>
-                     <SocialShareIcon href={`https://x.com/intent/post?url=${window.location.href}&text=Check%20out%20this%20product:`} label="Share on X">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                    <SocialShareIcon href={`https://twitter.com/intent/tweet?text=Check%20out%20this%20product:%20${product.name}&url=${encodeURIComponent(window.location.href)}`} label="Share on Twitter">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.71v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg>
                     </SocialShareIcon>
                   </div>
               </div>
           </div>
         </div>
       </div>
-      
-      {/* Description, Details, Reviews Tabs */}
-       <div ref={reviewsRef} className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-md">
-         <div className="border-b border-slate-200">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                <button onClick={() => setActiveTab('details')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>Details</button>
-                <button onClick={() => setActiveTab('reviews')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'reviews' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>Reviews ({product.reviews.length})</button>
-            </nav>
-         </div>
-         <div className="mt-6 text-slate-600 leading-relaxed">
-            {activeTab === 'details' && <ul className="list-disc list-inside space-y-2">{product.details.map((detail, i) => <li key={i}>{detail}</li>)}</ul>}
-            {activeTab === 'reviews' && (
-                <div className="space-y-6">
-                    {product.reviews.length > 0 ? product.reviews.map(review => (
-                        <div key={review.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                            <div className="flex flex-wrap items-center mb-2 gap-x-4 gap-y-1">
-                                <p className="font-semibold text-slate-800">{review.author}</p>
-                                <div className="flex-shrink-0">
-                                   <StarRating rating={review.rating} />
-                                </div>
-                                <time className="text-xs text-slate-500" dateTime={review.date}>{new Date(review.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
-                            </div>
-                            {review.verifiedBuyer && <p className="text-xs font-semibold text-green-600 mb-2">✓ Verified Buyer</p>}
-                            <p>{review.comment}</p>
-                        </div>
-                    )) : <p>No reviews yet for this product.</p>}
-                 </div>
-            )}
-         </div>
-       </div>
 
-      {relatedProducts.length > 0 && (
-        <section>
-          <h2 className="text-3xl font-bold text-center text-slate-900 mb-8">You Might Also Like</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {relatedProducts.map(p => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Details & Reviews */}
+      <div ref={reviewsRef} className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-md">
+        <div className="border-b border-slate-200">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
+            >
+              Product Details
+            </button>
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'reviews' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
+            >
+              Reviews ({product.reviewCount || 0})
+            </button>
+          </nav>
+        </div>
+        <div className="py-6">
+          {activeTab === 'details' && (
+            <div className="prose max-w-none text-slate-600">
+              <ul className="list-disc pl-5 space-y-2">
+                {product.details.map((detail, i) => <li key={i}>{detail}</li>)}
+              </ul>
+            </div>
+          )}
+          {activeTab === 'reviews' && (
+             <div>
+              {product.reviews && product.reviews.length > 0 ? (
+                <div className="space-y-6">
+                  {product.reviews.map(review => (
+                    <div key={review.id} className="border-b border-slate-200 pb-6 last:border-b-0 last:pb-0">
+                      <div className="flex items-center mb-2">
+                        <p className="font-bold text-slate-800">{review.author}</p>
+                        <div className="ml-4"><StarRating rating={review.rating} /></div>
+                      </div>
+                      <p className="text-slate-600">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-500">No reviews for this product yet.</p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Related Products */}
+      <section>
+        <h2 className="text-2xl font-bold text-slate-900 mb-6">You might also like</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          {relatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
+        </div>
+      </section>
     </div>
   );
 };
