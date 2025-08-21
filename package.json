@@ -1,15 +1,24 @@
 {
   "name": "lungimart",
+  "private": true,
   "version": "1.0.0",
-  "description": "A modern, responsive e-commerce frontend for LungiMart.in, selling traditional lungi and dhoti from Komarapalayam. Built with React and TailwindCSS.",
-  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.3"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0"
   },
   "author": "",
   "license": "ISC"

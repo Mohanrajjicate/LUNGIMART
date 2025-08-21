@@ -36,6 +36,7 @@ export interface Review {
   date: string;
   verifiedBuyer: boolean;
   acknowledged: boolean;
+  orderId?: string;
 }
 
 export interface CartItem extends Product {
@@ -55,7 +56,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  password: string; // Added for password authentication
+  password?: string; // Added for password authentication
   phone: string;
   addresses: Address[];
   birthday?: string;

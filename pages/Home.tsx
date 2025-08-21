@@ -192,14 +192,14 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Categories Section */}
-      <section className="relative group/section">
+      <section className="relative">
         <h2 className="text-3xl font-bold text-center text-slate-900 mb-10">Our Collections</h2>
 
         {/* Desktop Scroll Buttons */}
         {canScrollLeft && (
           <button 
             onClick={() => handleScroll('left')}
-            className="hidden md:flex absolute top-1/2 left-0 -translate-y-1/2 z-20 bg-white/70 backdrop-blur-sm rounded-full w-12 h-12 items-center justify-center shadow-lg hover:bg-white transition-opacity duration-300 opacity-0 group-hover/section:opacity-100"
+            className="hidden md:flex absolute top-1/2 left-0 -translate-y-1/2 z-20 bg-white/70 backdrop-blur-sm rounded-full w-12 h-12 items-center justify-center shadow-lg hover:bg-white transition-colors duration-300"
             aria-label="Scroll left"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -210,7 +210,7 @@ const HomePage: React.FC = () => {
         {canScrollRight && (
           <button 
             onClick={() => handleScroll('right')}
-            className="hidden md:flex absolute top-1/2 right-0 -translate-y-1/2 z-20 bg-white/70 backdrop-blur-sm rounded-full w-12 h-12 items-center justify-center shadow-lg hover:bg-white transition-opacity duration-300 opacity-0 group-hover/section:opacity-100"
+            className="hidden md:flex absolute top-1/2 right-0 -translate-y-1/2 z-20 bg-white/70 backdrop-blur-sm rounded-full w-12 h-12 items-center justify-center shadow-lg hover:bg-white transition-colors duration-300"
             aria-label="Scroll right"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
