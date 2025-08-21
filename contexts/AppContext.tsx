@@ -248,9 +248,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }
   
   const loginWithGoogle = async (googleUser: { name: string; email: string; }) => {
-    // This part of backend is not fully implemented in the provided snippet
-    addToast("Google Sign-in not yet available.", "info");
-    return { success: false, message: "Not implemented.", isNewUser: false };
+    const res = await api.post('loginWithGoogle', googleUser);
+    if (res.success) {
+        if (res.isNewUser) {
+            setPendingGoogleUser(googleUser);
+        } else {
+            setUser(res.user);
+        }
+    }
+    // Forward the original response to the caller component
+    return { ...res, message: res.message || '' };
   };
 
   const signUpWithEmail = async (details: { name: string; email: string; phone: string; password: string; }) => {
@@ -317,7 +324,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (!user) return;
     const res = await api.post('addOrder', { items, total, address: selectedAddress });
     if (res.success) {
-        // We'd ideally get the full order object back
+        // We'd ideally get the full order object back from the server, 
+        // but for now we construct it client-side and then re-sync.
         const newOrder: Order = {
             id: res.orderId,
             userId: user.id,
@@ -331,7 +339,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         };
         setOrders(prev => [newOrder, ...prev]);
         setAllOrders(prev => [newOrder, ...prev]); // also add to admin orders
-        clearCart();
+        clearCart(); // Clear local cart state
+        await syncUserData(); // Re-sync with backend to get fresh state
     } else {
         addToast(res.message || 'There was an issue placing your order.', 'error');
     }
