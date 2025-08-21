@@ -2,25 +2,30 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { CartItem, Product, User, Review, Order, Coupon, Category, Notification, Banner, Address } from '../types';
 import { useToast } from './ToastContext';
+import { 
+    mockProducts, mockCategories, mockUsers, mockOrders, 
+    mockReviews, mockCoupons, mockBanners, mockStandaloneImages 
+} from '../services/mockData';
 
-// Helper for API calls
-const api = {
-  get: async (action: string, params = {}) => {
-    const query = new URLSearchParams({ action, ...params }).toString();
-    const response = await fetch(`/api/?${query}`);
-    if (!response.ok) throw new Error('Network response was not ok');
-    return response.json();
-  },
-  post: async (action: string, body = {}) => {
-    const response = await fetch(`/api/?action=${action}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return response.json();
-  }
+// --- Local Storage Helpers ---
+const getFromStorage = <T,>(key: string, defaultValue: T): T => {
+    try {
+        const item = window.localStorage.getItem(key);
+        return item ? JSON.parse(item) : defaultValue;
+    } catch (error) {
+        console.error(`Error reading from localStorage key “${key}”:`, error);
+        return defaultValue;
+    }
 };
+
+const setToStorage = <T,>(key: string, value: T) => {
+    try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+        console.error(`Error setting localStorage key “${key}”:`, error);
+    }
+};
+
 
 interface AppContextType {
   cart: CartItem[];
@@ -38,462 +43,409 @@ interface AppContextType {
   standaloneImages: string[];
   isLoading: boolean;
   error: string | null;
+  pendingGoogleUser: { name: string; email: string } | null;
+
   setBanners: (banners: Banner[]) => void;
   setCategories: (categories: Category[]) => void;
   addNotification: (message: string, target: 'user' | 'admin', link?: string) => void;
-  sendGlobalNotification: (message: string, link?: string) => Promise<void>;
+  sendGlobalNotification: (message: string, link?: string) => void;
   markAsRead: (notificationId: number) => void;
   markAllAsRead: (target: 'user' | 'admin') => void;
   clearAllNotifications: (target: 'user' | 'admin') => void;
-  addReview: (productId: number, orderId: string, rating: number, comment: string) => Promise<void>;
+  addReview: (productId: number, orderId: string, rating: number, comment: string) => void;
   deleteReview: (reviewId: number) => void;
   acknowledgeReview: (reviewId: number) => void;
-  updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
-  fulfillOrder: (orderId: string, trackingProvider: string, trackingNumber: string) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  fulfillOrder: (orderId: string, trackingProvider: string, trackingNumber: string) => void;
   updateProduct: (updatedProduct: Product) => void;
   addProduct: (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => void;
   deleteProduct: (productId: number) => void;
   addMultipleProducts: (newProductsData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>[]) => void;
-  addOrder: (items: CartItem[], total: number, selectedAddress: Address) => Promise<void>;
+  addOrder: (items: CartItem[], total: number, selectedAddress: Address) => void;
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
+  wishlistCount: number;
   appliedCoupon: Coupon | null;
   cartDiscount: number;
   cartFinalTotal: number;
-  applyCoupon: (couponCode: string) => Promise<{ success: boolean; message: string }>;
+  applyCoupon: (couponCode: string) => { success: boolean; message: string };
   removeCoupon: () => void;
-  toggleWishlist: (product: Product) => Promise<void>;
+  toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: number) => boolean;
-  wishlistCount: number;
-  loginWithGoogle: (googleUser: { name: string; email: string; }) => Promise<{ success: boolean; message: string; isNewUser: boolean; }>;
-  signInWithEmail: (credentials: { email: string; password: string; }) => Promise<{ success: boolean; message: string; }>;
-  signInWithPhone: (credentials: { phone: string; password: string; }) => Promise<{ success: boolean; message: string; }>;
-  signUpWithEmail: (details: { name: string; email: string; phone: string; password: string; }) => Promise<{ success: boolean; message: string; }>;
-  logout: () => void;
-  updateUser: (updatedUser: User) => Promise<void>;
-  addUser: (userData: Omit<User, 'id' | 'addresses'>) => User;
-  findUserByEmail: (email: string) => User | undefined;
   isQuietZoneActive: boolean;
   toggleQuietZone: () => void;
-  addStandaloneImage: (imageUrl: string) => void;
+  loginWithGoogle: (googleUser: { name: string; email: string }) => { success: boolean, isNewUser: boolean, message: string };
+  signInWithEmail: (credentials: { email: string, password: string }) => { success: boolean, message: string };
+  signUpWithEmail: (userData: Omit<User, 'id'|'addresses'>) => { success: boolean, message: string };
+  signInWithPhone: (credentials: { phone: string, password: string }) => { success: boolean, message: string };
+  completeSignup: (details: { name: string, birthday: string, phone: string, address: Omit<Address, 'id' | 'isDefault'> }) => void;
+  logout: () => void;
+  updateUser: (updatedUser: User) => void;
+  deleteAccount: () => void;
   addCoupon: (coupon: Omit<Coupon, 'id'>) => void;
   updateCoupon: (coupon: Coupon) => void;
   deleteCoupon: (couponId: number) => void;
-  pendingGoogleUser: { name: string; email: string; } | null;
-  completeSignup: (details: { name: string; phone: string; birthday: string; address: Omit<Address, 'id' | 'isDefault'> }) => void;
-  deleteAccount: () => void;
+  addStandaloneImage: (imageUrl: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const getLocalStorageState = <T,>(key: string, defaultValue: T): T => {
-  try {
-    const item = window.localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
-  } catch (error) {
-    console.warn(`Error reading localStorage key "${key}":`, error);
-    return defaultValue;
-  }
-};
-
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [allReviews, setAllReviews] = useState<Review[]>([]);
-  const [allOrders, setAllOrders] = useState<Order[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [standaloneImages, setStandaloneImages] = useState<string[]>([]);
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  const [user, setUser] = useState<User | null>(null);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [wishlist, setWishlist] = useState<Product[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-  const [isQuietZoneActive, setIsQuietZoneActive] = useState<boolean>(() => getLocalStorageState<boolean>('quietZone', false));
-  const [pendingGoogleUser, setPendingGoogleUser] = useState<{ name: string; email: string; } | null>(() => getLocalStorageState<{ name: string; email:string; } | null>('pendingGoogleUser', null));
+    const { addToast } = useToast();
+    
+    // --- STATE MANAGEMENT ---
+    const [products, setProducts] = useState<Product[]>(mockProducts);
+    const [categories, setCategories] = useState<Category[]>(mockCategories);
+    const [users, setUsers] = useState<User[]>(mockUsers);
+    const [allOrders, setAllOrders] = useState<Order[]>(mockOrders); // For admin
+    const [reviews, setReviews] = useState<Review[]>(mockReviews);
+    const [coupons, setCoupons] = useState<Coupon[]>(mockCoupons);
+    const [banners, setBanners] = useState<Banner[]>(mockBanners);
+    const [standaloneImages, setStandaloneImages] = useState<string[]>(mockStandaloneImages);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    
+    // User-specific state with localStorage persistence
+    const [user, setUser] = useState<User | null>(() => getFromStorage('user', null));
+    const [cart, setCart] = useState<CartItem[]>(() => getFromStorage('cart', []));
+    const [wishlist, setWishlist] = useState<Product[]>(() => getFromStorage('wishlist', []));
+    const [isQuietZoneActive, setIsQuietZoneActive] = useState<boolean>(() => getFromStorage('quietZone', false));
+    const [pendingGoogleUser, setPendingGoogleUser] = useState<{name: string, email: string} | null>(null);
 
-  const { addToast } = useToast();
+    // Coupon state
+    const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
 
-  const syncUserData = useCallback(async () => {
-    if (!user) {
-      setCart([]);
-      setWishlist([]);
-      setOrders([]);
-      setNotifications([]);
-      setAppliedCoupon(null);
-      return;
-    }
-    try {
-      const data = await api.get('getUserData');
-      if (data.success) {
-        setCart(data.cart || []);
-        setWishlist(data.wishlist || []);
-        setOrders(data.orders || []);
-        setNotifications(data.notifications || []);
-        setAppliedCoupon(data.appliedCoupon || null);
-      } else {
-        throw new Error(data.message || 'Failed to sync user data');
-      }
-    } catch (err: any) {
-      setError(err.message);
-      addToast(err.message, 'error');
-    }
-  }, [user, addToast]);
-  
-  useEffect(() => {
-     localStorage.setItem('pendingGoogleUser', JSON.stringify(pendingGoogleUser)); 
-  }, [pendingGoogleUser]);
+    // Persist changes to localStorage
+    useEffect(() => { setToStorage('user', user); }, [user]);
+    useEffect(() => { setToStorage('cart', cart); }, [cart]);
+    useEffect(() => { setToStorage('wishlist', wishlist); }, [wishlist]);
+    useEffect(() => { setToStorage('quietZone', isQuietZoneActive); }, [isQuietZoneActive]);
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setIsLoading(true);
-        const [initialData, sessionData] = await Promise.all([
-            api.get('getInitialData'),
-            api.get('checkSession')
-        ]);
+    // --- COMPUTED VALUES ---
+    const cartCount = useMemo(() => cart.reduce((count, item) => count + item.quantity, 0), [cart]);
+    const cartTotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
+    const wishlistCount = useMemo(() => wishlist.length, [wishlist]);
 
-        if (initialData.success) {
-          setProducts(initialData.products);
-          setCategories(initialData.categories);
-          setBanners(initialData.banners);
-          setCoupons(initialData.coupons);
-          // These might not be sent on initial load unless for admin
-          setAllReviews(initialData.reviews || []); 
-          setAllOrders(initialData.orders || []);
-          setUsers(initialData.users || []);
-          setStandaloneImages(initialData.standaloneImages || []);
+    const { cartDiscount, cartFinalTotal } = useMemo(() => {
+        if (!appliedCoupon) return { cartDiscount: 0, cartFinalTotal: cartTotal };
+        let discount = 0;
+        if (appliedCoupon.discountType === 'percentage') {
+            discount = cartTotal * (appliedCoupon.discountValue / 100);
         } else {
-          throw new Error(initialData.message || "Failed to load site data.");
+            discount = appliedCoupon.discountValue;
         }
-        
-        if (sessionData.success && sessionData.user) {
-            setUser(sessionData.user);
+        return { cartDiscount: discount, cartFinalTotal: Math.max(0, cartTotal - discount) };
+    }, [cartTotal, appliedCoupon]);
+
+    const orders = useMemo(() => user ? allOrders.filter(o => o.userId === user.id) : [], [user, allOrders]);
+
+    // --- FUNCTIONS ---
+    const showNotification = useCallback((message: string) => {
+        if (!isQuietZoneActive) {
+            addToast(message, 'info');
         }
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchInitialData();
-  }, []);
+    }, [isQuietZoneActive, addToast]);
 
-  useEffect(() => {
-      syncUserData();
-  }, [user, syncUserData]);
-  
-  useEffect(() => {
-    localStorage.setItem('quietZone', JSON.stringify(isQuietZoneActive));
-  }, [isQuietZoneActive]);
+    const addToCart = useCallback((product: Product, quantity = 1) => {
+        setCart(prevCart => {
+            const existingItem = prevCart.find(item => item.id === product.id);
+            if (existingItem) {
+                const newQuantity = Math.min(product.stock, existingItem.quantity + quantity);
+                return prevCart.map(item => item.id === product.id ? { ...item, quantity: newQuantity } : item);
+            }
+            return [...prevCart, { ...product, quantity }];
+        });
+        showNotification(`${product.name} added to cart!`);
+    }, [showNotification]);
 
+    const removeFromCart = useCallback((productId: number) => {
+        setCart(prev => prev.filter(item => item.id !== productId));
+        addToast("Item removed from cart", 'info');
+    }, [addToast]);
 
-  const addToCart = useCallback((product: Product, quantity = 1) => {
-    if (!user) {
-        addToast("Please sign in to add items to your cart.", "info");
-        return;
-    }
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevCart.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + quantity } 
-            : item
-        );
-      }
-      return [...prevCart, { ...product, quantity }];
-    });
-    addToast(`${product.name} added to cart!`);
-  }, [user, addToast]);
-  
-  const removeFromCart = useCallback((productId: number) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== productId));
-  }, []);
+    const updateQuantity = useCallback((productId: number, quantity: number) => {
+        setCart(prev => {
+            if (quantity <= 0) return prev.filter(item => item.id !== productId);
+            const product = products.find(p => p.id === productId);
+            const newQuantity = Math.min(product?.stock || 0, quantity);
+            return prev.map(item => item.id === productId ? { ...item, quantity: newQuantity } : item);
+        });
+    }, [products]);
 
-  const updateQuantity = useCallback((productId: number, quantity: number) => {
-    if (quantity <= 0) {
-        removeFromCart(productId);
-        return;
-    }
-    setCart(prevCart => prevCart.map(item => 
-        item.id === productId ? { ...item, quantity } : item
-    ));
-  }, [removeFromCart]);
-  
-  const clearCart = useCallback(() => {
-    setCart([]);
-  }, []);
+    const clearCart = useCallback(() => setCart([]), []);
 
-  const signInWithEmail = async (credentials: { email: string; password: string; }) => {
-    const res = await api.post('signInWithEmail', credentials);
-    if (res.success) setUser(res.user);
-    return res;
-  };
-  
-  const signInWithPhone = async (credentials: { phone: string; password: string; }) => {
-    // This part of backend is not fully implemented in the provided snippet
-    addToast("Sign in with phone not yet available.", "info");
-    return { success: false, message: "Not implemented." };
-  }
-  
-  const loginWithGoogle = async (googleUser: { name: string; email: string; }) => {
-    const res = await api.post('loginWithGoogle', googleUser);
-    if (res.success) {
-        if (res.isNewUser) {
-            setPendingGoogleUser(googleUser);
-        } else {
-            setUser(res.user);
+    const toggleWishlist = useCallback((product: Product) => {
+        setWishlist(prev => {
+            const isInWishlist = prev.some(item => item.id === product.id);
+            if (isInWishlist) {
+                addToast(`${product.name} removed from wishlist`, 'info');
+                return prev.filter(item => item.id !== product.id);
+            } else {
+                addToast(`${product.name} added to wishlist`, 'info');
+                return [...prev, product];
+            }
+        });
+    }, [addToast]);
+
+    const isInWishlist = useCallback((productId: number) => wishlist.some(p => p.id === productId), [wishlist]);
+
+    const applyCoupon = useCallback((couponCode: string) => {
+        const coupon = coupons.find(c => c.code === couponCode && c.isActive);
+        if (!coupon) return { success: false, message: 'Invalid coupon code.' };
+        if (coupon.minPurchase && cartTotal < coupon.minPurchase) {
+            return { success: false, message: `Minimum purchase of ₹${coupon.minPurchase} required.` };
         }
-    }
-    // Forward the original response to the caller component
-    return { ...res, message: res.message || '' };
-  };
+        setAppliedCoupon(coupon);
+        return { success: true, message: 'Coupon applied!' };
+    }, [coupons, cartTotal]);
 
-  const signUpWithEmail = async (details: { name: string; email: string; phone: string; password: string; }) => {
-    const res = await api.post('signUpWithEmail', details);
-    if (res.success) setUser(res.user);
-    return res;
-  };
-
-  const completeSignup = async (details: { name: string; phone: string; birthday: string; address: Omit<Address, 'id' | 'isDefault'> }) => {
-    if (!pendingGoogleUser) return;
-    const res = await api.post('completeSignup', { ...details, email: pendingGoogleUser.email });
-    if(res.success) {
-        setUser(res.user);
-        setPendingGoogleUser(null);
-    } else {
-        addToast(res.message, 'error');
-    }
-  };
-
-  const logout = useCallback(async () => {
-    await api.get('logout');
-    setUser(null);
-  }, []);
-  
-  const deleteAccount = async () => {
-      if (user && window.confirm('Are you sure you want to delete your account? This is irreversible.')) {
-        const res = await api.post('deleteAccount');
-        if (res.success) {
-            logout();
-            addToast("Account deleted successfully.", "info");
-        } else {
-            addToast(res.message, 'error');
-        }
-      }
-  };
-  
-  const updateUser = async (updatedUser: User) => {
-    // In a real app, you would post this to the backend.
-    // For now, we'll update local state to reflect changes.
-    setUser(updatedUser);
-    addToast("Profile updated!", "success");
-  };
-  
-  const toggleWishlist = async (product: Product) => {
-    if (!user) {
-        addToast("Please sign in to use the wishlist.", "info");
-        return;
-    }
-    setWishlist(currentWishlist => {
-      const exists = currentWishlist.some(p => p.id === product.id);
-      if (exists) {
-        addToast(`${product.name} removed from wishlist.`);
-        return currentWishlist.filter(p => p.id !== product.id);
-      } else {
-        addToast(`${product.name} added to wishlist!`);
-        return [...currentWishlist, product];
-      }
-    });
-  };
-  
-  const isInWishlist = (productId: number) => wishlist.some(p => p.id === productId);
-
-  const addOrder = async (items: CartItem[], total: number, selectedAddress: Address) => {
-    if (!user) return;
-    const res = await api.post('addOrder', { items, total, address: selectedAddress });
-    if (res.success) {
-        // We'd ideally get the full order object back from the server, 
-        // but for now we construct it client-side and then re-sync.
+    const removeCoupon = useCallback(() => setAppliedCoupon(null), []);
+    
+    const addOrder = useCallback((items: CartItem[], total: number, selectedAddress: Address) => {
+        if (!user) return;
         const newOrder: Order = {
-            id: res.orderId,
+            id: `LM-${Date.now()}`,
             userId: user.id,
+            customerName: user.name,
             date: new Date().toISOString(),
             items,
             total,
             status: 'Processing',
-            reviewedProducts: {},
-            customerName: user.name,
-            paymentMethod: 'Prepaid'
+            paymentMethod: 'Prepaid',
+            reviewedProducts: {}
         };
-        setOrders(prev => [newOrder, ...prev]);
-        setAllOrders(prev => [newOrder, ...prev]); // also add to admin orders
-        clearCart(); // Clear local cart state
-        await syncUserData(); // Re-sync with backend to get fresh state
-    } else {
-        addToast(res.message || 'There was an issue placing your order.', 'error');
-    }
-  };
-  
-  const applyCoupon = async (couponCode: string) => {
-    const coupon = coupons.find(c => c.code.toUpperCase() === couponCode.toUpperCase() && c.isActive);
-    if (coupon) {
-      setAppliedCoupon(coupon);
-      addToast("Coupon applied!", "success");
-      return { success: true, message: "Coupon applied!" };
-    }
-    addToast("Invalid or expired coupon.", "error");
-    return { success: false, message: "Invalid or expired coupon." };
-  };
-  
-  const removeCoupon = async () => {
-    setAppliedCoupon(null);
-  };
-  
-  const addReview = async (productId: number, orderId: string, rating: number, comment: string) => {
-    // Mocking this as backend isn't implemented for it
-     addToast("Review submitted!", "success");
-  };
-  
-  // Admin actions
-  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
-     setAllOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
-  };
-
-  const fulfillOrder = async (orderId: string, trackingProvider: string, trackingNumber: string) => {
-     setAllOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'Shipped', trackingProvider, trackingNumber } : o));
-  };
-  
-  const updateProduct = async (updatedProduct: Product) => {
-    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-  };
-
-  const addProduct = async (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => {
-     const newProduct: Product = {
-      ...newProductData,
-      id: Date.now(),
-      reviews: [],
-      rating: 0,
-      reviewCount: 0,
+        setAllOrders(prev => [newOrder, ...prev]);
+        clearCart();
+        removeCoupon();
+        addNotification(`Your order #${newOrder.id} has been placed!`, 'user', `/invoice/${btoa(newOrder.id)}`);
+    }, [user, clearCart, removeCoupon]);
+    
+    // --- AUTH FUNCTIONS ---
+    const logout = () => {
+        setUser(null);
+        setCart([]);
+        setWishlist([]);
     };
-    setProducts(prev => [newProduct, ...prev]);
-  };
-  
-  const deleteProduct = async (productId: number) => {
-    setProducts(prev => prev.filter(p => p.id !== productId));
-  };
-  
-  const addMultipleProducts = async (newProductsData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>[]) => {
-      const newProducts: Product[] = newProductsData.map(p => ({
+
+    const loginWithGoogle = (googleUser: { name: string; email: string }) => {
+        const existingUser = users.find(u => u.email === googleUser.email);
+        if (existingUser) {
+            setUser(existingUser);
+            return { success: true, isNewUser: false, message: 'Login successful!' };
+        } else {
+            setPendingGoogleUser(googleUser);
+            return { success: true, isNewUser: true, message: 'New user detected. Please complete your profile.' };
+        }
+    };
+    
+    const completeSignup = (details: { name: string, birthday: string, phone: string, address: Omit<Address, 'id' | 'isDefault'> }) => {
+        if (!pendingGoogleUser) return;
+        const newUser: User = {
+            id: Date.now(),
+            name: details.name,
+            email: pendingGoogleUser.email,
+            phone: details.phone,
+            birthday: details.birthday,
+            addresses: [{ ...details.address, id: Date.now(), isDefault: true }],
+        };
+        setUsers(prev => [...prev, newUser]);
+        setUser(newUser);
+        setPendingGoogleUser(null);
+        addToast(`Welcome, ${newUser.name}!`, 'success');
+    };
+
+    const signInWithEmail = ({ email, password }: { email: string, password: string }) => {
+        const foundUser = users.find(u => u.email === email && u.password === password);
+        if (foundUser) {
+            setUser(foundUser);
+            return { success: true, message: 'Login successful!' };
+        }
+        return { success: false, message: 'Invalid email or password.' };
+    };
+
+    const signInWithPhone = ({ phone, password }: { phone: string, password: string }) => {
+        const foundUser = users.find(u => u.phone === phone && u.password === password);
+        if (foundUser) {
+            setUser(foundUser);
+            return { success: true, message: 'Login successful!' };
+        }
+        return { success: false, message: 'Invalid phone number or password.' };
+    };
+
+    const signUpWithEmail = (userData: Omit<User, 'id'|'addresses'>) => {
+        if (users.some(u => u.email === userData.email)) {
+            return { success: false, message: 'An account with this email already exists.' };
+        }
+        const newUser: User = { ...userData, id: Date.now(), addresses: [] };
+        setUsers(prev => [...prev, newUser]);
+        setUser(newUser);
+        addToast(`Welcome, ${newUser.name}!`, 'success');
+        return { success: true, message: 'Account created successfully!' };
+    };
+    
+    const updateUser = (updatedUser: User) => {
+        if (!user) return;
+        setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+        if(user.id === updatedUser.id) {
+            setUser(updatedUser);
+        }
+        addToast('Profile updated!', 'success');
+    };
+
+    const deleteAccount = () => {
+        if (!user) return;
+        // In a real app, you'd also delete their data. Here we just log them out.
+        logout();
+        addToast('Account deleted successfully.', 'info');
+    };
+
+    const toggleQuietZone = () => setIsQuietZoneActive(prev => !prev);
+    
+    // --- ADMIN FUNCTIONS ---
+
+    const addNotification = (message: string, target: 'user' | 'admin', link?: string) => {
+        const newNotif: Notification = {
+            id: Date.now(),
+            message, target, link,
+            read: false,
+            timestamp: new Date().toISOString()
+        };
+        setNotifications(prev => [newNotif, ...prev]);
+    };
+
+    const sendGlobalNotification = (message: string, link?: string) => {
+        users.forEach(u => {
+             const newNotif: Notification = {
+                id: Date.now() + u.id,
+                message, 
+                target: 'user', 
+                link,
+                read: false,
+                timestamp: new Date().toISOString()
+            };
+            setNotifications(prev => [newNotif, ...prev]);
+        });
+        addNotification(`Global notification sent: "${message}"`, 'admin');
+    };
+
+    const markAsRead = (id: number) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    };
+
+    const markAllAsRead = (target: 'user' | 'admin') => {
+        setNotifications(prev => prev.map(n => n.target === target ? { ...n, read: true } : n));
+    };
+    
+    const clearAllNotifications = (target: 'user' | 'admin') => {
+        setNotifications(prev => prev.filter(n => n.target !== target));
+    };
+
+    const addReview = (productId: number, orderId: string, rating: number, comment: string) => {
+        if(!user) return;
+        const newReview: Review = {
+            id: Date.now(),
+            productId,
+            userId: user.id,
+            author: user.name,
+            rating,
+            comment,
+            date: new Date().toISOString(),
+            verifiedBuyer: true,
+            acknowledged: false
+        };
+        setReviews(prev => [newReview, ...prev]);
+        setProducts(prev => prev.map(p => {
+            if (p.id === productId) {
+                const updatedReviews = [...p.reviews, newReview];
+                return {
+                    ...p,
+                    reviews: updatedReviews,
+                    reviewCount: updatedReviews.length,
+                    rating: updatedReviews.reduce((acc, r) => acc + r.rating, 0) / updatedReviews.length
+                };
+            }
+            return p;
+        }));
+        setAllOrders(prev => prev.map(o => o.id === orderId ? {...o, reviewedProducts: {...o.reviewedProducts, [productId]: true}} : o));
+        addToast('Thank you for your review!', 'success');
+        addNotification(`New review for ${products.find(p=>p.id === productId)?.name} from ${user.name}`, 'admin', '/admin/reviews');
+    };
+
+    const deleteReview = (reviewId: number) => setReviews(prev => prev.filter(r => r.id !== reviewId));
+    const acknowledgeReview = (reviewId: number) => setReviews(prev => prev.map(r => r.id === reviewId ? {...r, acknowledged: true} : r));
+
+    const updateOrderStatus = (orderId: string, status: Order['status']) => {
+        setAllOrders(prev => prev.map(o => o.id === orderId ? {...o, status} : o));
+    };
+
+    const fulfillOrder = (orderId: string, trackingProvider: string, trackingNumber: string) => {
+        setAllOrders(prev => prev.map(o => o.id === orderId ? {...o, status: 'Shipped', trackingProvider, trackingNumber} : o));
+        addNotification(`Your order #${orderId} has been shipped!`, 'user', '/profile');
+    };
+
+    const addProduct = (newProductData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>) => {
+        const newProduct: Product = {
+            ...newProductData,
+            id: Date.now(),
+            reviews: [], rating: 0, reviewCount: 0
+        };
+        setProducts(prev => [newProduct, ...prev]);
+    };
+    
+    const addMultipleProducts = (newProductsData: Omit<Product, 'id' | 'reviews' | 'rating' | 'reviewCount'>[]) => {
+        const newProducts: Product[] = newProductsData.map((p, i) => ({
             ...p,
-            id: Date.now() + Math.random(),
-            reviews: [],
-            rating: 0,
-            reviewCount: 0
-      }));
-      setProducts(prev => [...prev, ...newProducts]);
-  };
-  
-  const addCoupon = async (coupon: Omit<Coupon, 'id'>) => {
-    const newCoupon = { ...coupon, id: Date.now() };
-    setCoupons(prev => [newCoupon, ...prev]);
-  };
-  
-  const updateCoupon = async (coupon: Coupon) => {
-    setCoupons(prev => prev.map(c => c.id === coupon.id ? coupon : c));
-  };
-  
-  const deleteCoupon = async (couponId: number) => {
-    setCoupons(prev => prev.filter(c => c.id !== couponId));
-  };
-  
-  const setBannersAPI = async (banners: Banner[]) => {
-      setBanners(banners);
-  }
+            id: Date.now() + i,
+            reviews: [], rating: 0, reviewCount: 0
+        }));
+        setProducts(prev => [...newProducts, ...prev]);
+    };
 
-  const setCategoriesAPI = async (categories: Category[]) => {
-      setCategories(categories);
-  }
+    const updateProduct = (updatedProduct: Product) => {
+        setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+    };
 
-  const sendGlobalNotification = async (message: string, link?: string) => {
-      // Mocking this, in real app would POST to server
-      const newNotification: Notification = {
-          id: Date.now(),
-          message,
-          link,
-          target: 'user',
-          read: false,
-          timestamp: new Date().toISOString()
-      };
-      setNotifications(prev => [newNotification, ...prev]);
-      addToast("Global notification sent (mocked).", "info");
-  }
+    const deleteProduct = (productId: number) => {
+        setProducts(prev => prev.filter(p => p.id !== productId));
+    };
+    
+    const addCoupon = (coupon: Omit<Coupon, 'id'>) => setCoupons(prev => [{...coupon, id: Date.now()}, ...prev]);
+    const updateCoupon = (coupon: Coupon) => setCoupons(prev => prev.map(c => c.id === coupon.id ? coupon : c));
+    const deleteCoupon = (couponId: number) => setCoupons(prev => prev.filter(c => c.id !== couponId));
+    
+    const addStandaloneImage = (imageUrl: string) => setStandaloneImages(prev => [imageUrl, ...prev]);
 
-  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-  const wishlistCount = wishlist.length;
-
-  const { cartDiscount, cartFinalTotal } = useMemo(() => {
-    let discount = 0;
-    if (appliedCoupon) {
-      discount = appliedCoupon.discountType === 'percentage' ? (cartTotal * appliedCoupon.discountValue) / 100 : appliedCoupon.discountValue;
-    }
-    discount = Math.min(discount, cartTotal);
-    return { cartDiscount: discount, cartFinalTotal: cartTotal - discount };
-  }, [cartTotal, appliedCoupon]);
-
-  const toggleQuietZone = () => setIsQuietZoneActive(p => !p);
-
-  // The below functions are either not needed with a backend or are simplified
-  const addNotification = (message: string, target: 'user' | 'admin', link?: string) => { /* Notifications are now pushed from backend */ };
-  const markAsRead = async (notificationId: number) => {
-      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
-  };
-  const markAllAsRead = async (target: 'user' | 'admin') => {
-      setNotifications(prev => prev.map(n => n.target === target ? { ...n, read: true } : n));
-  };
-  const clearAllNotifications = async (target: 'user' | 'admin') => {
-      setNotifications(prev => prev.filter(n => n.target !== target));
-  };
-  const deleteReview = (reviewId: number) => {};
-  const acknowledgeReview = (reviewId: number) => {};
-  const addUser = (userData: Omit<User, 'id' | 'addresses'>) => ({} as User);
-  const findUserByEmail = (email: string) => users.find(u => u.email === email);
-  const addStandaloneImage = (imageUrl: string) => {
-    setStandaloneImages(prev => [imageUrl, ...prev]);
-  };
-  
-  return (
-    <AppContext.Provider value={{
-      cart, wishlist, orders, allOrders, users, user, reviews: allReviews, products, categories, notifications, banners, coupons, standaloneImages,
-      isLoading, error,
-      setBanners: setBannersAPI, setCategories: setCategoriesAPI, addNotification, sendGlobalNotification, markAsRead, markAllAsRead, clearAllNotifications,
-      addReview, deleteReview, acknowledgeReview, updateOrderStatus, fulfillOrder, updateProduct, addProduct, deleteProduct, addMultipleProducts, addOrder,
-      addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal,
-      appliedCoupon, cartDiscount, cartFinalTotal, applyCoupon, removeCoupon,
-      toggleWishlist, isInWishlist, wishlistCount, loginWithGoogle, logout, updateUser, addUser, findUserByEmail,
-      signInWithEmail, signInWithPhone, signUpWithEmail,
-      isQuietZoneActive, toggleQuietZone, addStandaloneImage, addCoupon, updateCoupon, deleteCoupon,
-      pendingGoogleUser, completeSignup, deleteAccount
-    }}>
-      {children}
-    </AppContext.Provider>
-  );
+    return (
+        <AppContext.Provider value={{ 
+            cart, wishlist, orders, user, reviews, products, categories, notifications,
+            allOrders, users, coupons, banners, standaloneImages,
+            isLoading: false, error: null, pendingGoogleUser,
+            setBanners, setCategories,
+            addNotification, sendGlobalNotification, markAsRead, markAllAsRead, clearAllNotifications,
+            addReview, deleteReview, acknowledgeReview,
+            updateOrderStatus, fulfillOrder,
+            addProduct, updateProduct, deleteProduct, addMultipleProducts,
+            addOrder, addToCart, removeFromCart, updateQuantity, clearCart,
+            cartCount, cartTotal, wishlistCount, appliedCoupon, cartDiscount, cartFinalTotal,
+            applyCoupon, removeCoupon,
+            toggleWishlist, isInWishlist,
+            isQuietZoneActive, toggleQuietZone,
+            loginWithGoogle, signInWithEmail, signInWithPhone, signUpWithEmail, completeSignup,
+            logout, updateUser, deleteAccount,
+            addCoupon, updateCoupon, deleteCoupon, addStandaloneImage,
+        }}>
+            {children}
+        </AppContext.Provider>
+    );
 };
 
 export const useAppContext = (): AppContextType => {
-  const context = useContext(AppContext);
-  if (context === undefined) throw new Error('useAppContext must be used within an AppProvider');
-  return context;
+    const context = useContext(AppContext);
+    if (!context) {
+        throw new Error('useAppContext must be used within an AppProvider');
+    }
+    return context;
 };
