@@ -22,6 +22,9 @@ import SearchPage from './pages/SearchPage';
 import AdminApp from './AdminApp';
 import AdminLoginPage from './pages/admin/AdminLoginPage';
 import SignupPage from './pages/SignupPage';
+import FaqPage from './pages/Faq';
+import ShippingReturnsPage from './pages/ShippingReturns';
+import PrivacyPolicyPage from './pages/PrivacyPolicy';
 
 const AppContent: React.FC = () => {
   const { isLoading, error } = useAppContext();
@@ -73,6 +76,9 @@ const AppContent: React.FC = () => {
               <Route path="/invoice/:orderId" element={<InvoicePage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/signup" element={<SignupPage />} />
+              <Route path="/faq" element={<FaqPage />} />
+              <Route path="/shipping-returns" element={<ShippingReturnsPage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             </Routes>
           </Layout>
         } />
